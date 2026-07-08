@@ -68,7 +68,7 @@ export default function LandingPage() {
               </svg>
             </div>
             <h3 className={styles.featureTitle}>技术栈</h3>
-            <p className={styles.featureDesc}>Java 26 + Spring Boot + MySQL + MongoDB + Redis + React 19。</p>
+            <p className={styles.featureDesc}>Java 26 + Spring Boot 3.5 + MySQL + MongoDB + Redis + React 19。</p>
           </div>
         </div>
       </section>

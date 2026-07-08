@@ -16,9 +16,9 @@ docker compose version        # >= 2.20
 ### 手动方式
 
 ```bash
-redis-server --version        # >= 7.0
-mysql --version               # >= 8.0
-mongod --version              # >= 7.0
+redis-server --version        # >= 7.4
+mysql --version               # >= 8.4
+mongod --version              # >= 8.3
 java -version                 # >= 26 (JVM)
 mvn --version                 # >= 3.9 (Maven)
 node --version                # >= 22 (前端构建)

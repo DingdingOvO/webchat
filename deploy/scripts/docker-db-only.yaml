@@ -7,7 +7,7 @@
 
 services:
   mysql:
-    image: mysql:8.0
+    image: mysql:8.4
     container_name: webchat-mysql-dev
     restart: unless-stopped
     ports:
@@ -19,7 +19,7 @@ services:
       MYSQL_DATABASE: webchat
 
   mongodb:
-    image: mongo:7
+    image: mongo:8.3
     container_name: webchat-mongodb-dev
     restart: unless-stopped
     ports:
@@ -28,7 +28,7 @@ services:
       - mongo_dev_data:/data/db
 
   redis:
-    image: redis:7-alpine
+    image: redis:7.4-alpine
     container_name: webchat-redis-dev
     restart: unless-stopped
     ports:

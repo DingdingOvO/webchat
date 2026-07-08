@@ -3,7 +3,7 @@ services:
   # MySQL — 元数据（用户、群组等）
   # ============================================================
   mysql:
-    image: mysql:8.0
+    image: mysql:8.4
     container_name: webchat-mysql
     restart: unless-stopped
     volumes:
@@ -22,7 +22,7 @@ services:
   # MongoDB — 消息本体（冷存储）
   # ============================================================
   mongodb:
-    image: mongo:7
+    image: mongo:8.3
     container_name: webchat-mongodb
     restart: unless-stopped
     volumes:
@@ -32,7 +32,7 @@ services:
   # Redis — 热消息 / 实时状态 / Pub-Sub
   # ============================================================
   redis:
-    image: redis:7-alpine
+    image: redis:7.4-alpine
     container_name: webchat-redis
     restart: unless-stopped
     volumes:

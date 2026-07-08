@@ -61,7 +61,7 @@ services:
     plan: starter
     env: docker
     repo: https://github.com/DingdingOvO/webchat
-    dockerCommand: mysql:8.0
+    dockerCommand: mysql:8.4
     envVars:
       - key: MYSQL_ROOT_PASSWORD
         generateValue: true
@@ -73,11 +73,11 @@ services:
     name: webchat-mongodb
     plan: starter
     env: docker
-    dockerCommand: mongo:7
+    dockerCommand: mongo:8.3
 
   # --- Redis ---
   - type: pserv
     name: webchat-redis
     plan: starter
     env: docker
-    dockerCommand: redis:7-alpine
+    dockerCommand: redis:7.4-alpine

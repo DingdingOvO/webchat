@@ -1,6 +1,6 @@
 # WebChat 部署指南
 
-> **技术栈**: Spring Boot 3.4.5 (Java 26) + React 19 + Webpack + MySQL 8.0 + MongoDB 7 + Redis 7
+> **技术栈**: Spring Boot 3.5.16 (Java 26) + React 19 + Webpack + MySQL 8.4 + MongoDB 8.3 + Redis 7.4
 
 本文档涵盖 **16 种不同的部署方式**，从本地开发到生产级集群全覆盖。
 
