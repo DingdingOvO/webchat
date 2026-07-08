@@ -22,8 +22,8 @@ RUN mvn dependency:go-offline -B
 
 COPY src ./src
 
-# 将前端构建产物复制到 Spring Boot 静态资源目录
-COPY --from=frontend-build /app/frontend/dist ./frontend/dist
+# 将前端构建产物嵌入 JAR 内（Spring Boot 从 classpath:/static/ 读取）
+COPY --from=frontend-build /app/frontend/dist ./src/main/resources/static
 
 RUN mvn clean package -DskipTests
 
