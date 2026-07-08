@@ -1,27 +1,44 @@
 # ============================================================
-# Stage 1: Maven 构建
+# Dockerfile — WebChat 统一构建（前端 + 后端）
+# 适用于 Railway / Fly.io / 单容器部署
 # ============================================================
-FROM maven:3.9-eclipse-temurin-21 AS build
+
+# ---- Stage 1: 构建前端 ----
+FROM node:22-alpine AS frontend-build
+WORKDIR /app/frontend
+
+COPY frontend/package.json frontend/package-lock.json ./
+RUN npm ci
+
+COPY frontend/ .
+RUN npm run build
+
+# ---- Stage 2: 构建后端 ----
+FROM maven:3.9-eclipse-temurin-26 AS backend-build
 WORKDIR /app
 
-# 先拉依赖层，利用 Docker 缓存
 COPY pom.xml .
 RUN mvn dependency:go-offline -B
 
-# 复制源码并构建
 COPY src ./src
+
+# 将前端构建产物复制到 Spring Boot 静态资源目录
+COPY --from=frontend-build /app/frontend/dist ./frontend/dist
+
 RUN mvn clean package -DskipTests
 
-# ============================================================
-# Stage 2: JRE 运行
-# ============================================================
-FROM eclipse-temurin:21-jre
+# ---- Stage 3: 运行 ----
+FROM eclipse-temurin:26-jre
 WORKDIR /app
 
-# 从 build 阶段复制可执行 JAR（Spring Boot repackage 产物）
-COPY --from=build /app/target/*.jar app.jar
+# 从后端构建阶段复制 JAR
+COPY --from=backend-build /app/target/*.jar app.jar
 
-# 数据库连接通过环境变量配置（参见 application.properties）
+# Spring Boot 默认端口
 EXPOSE 8080
+
+# 健康检查
+HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
+  CMD curl -s http://localhost:8080/api/auth/me > /dev/null 2>&1 || exit 1
 
 ENTRYPOINT ["java", "-jar", "app.jar"]

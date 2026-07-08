@@ -1,20 +1,19 @@
 # ============================================================
-# Stage 1: Node 构建前端
+# Frontend Dockerfile — Nginx 独立运行
+# Railway 多服务部署时使用此镜像
 # ============================================================
-FROM node:20-alpine AS build
+
+# Stage 1: Node 构建前端
+FROM node:22-alpine AS build
 WORKDIR /app
 
-# 先装依赖，利用 Docker 缓存
 COPY package.json package-lock.json ./
 RUN npm ci
 
-# 复制源码并构建
 COPY . .
 RUN npm run build
 
-# ============================================================
 # Stage 2: Nginx 运行
-# ============================================================
 FROM nginx:alpine
 
 # 复制构建产物
@@ -24,3 +23,6 @@ COPY --from=build /app/dist /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
+
+HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
+  CMD wget -q http://localhost/ -O /dev/null || exit 1
