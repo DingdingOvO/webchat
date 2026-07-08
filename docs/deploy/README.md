@@ -76,7 +76,7 @@ sudo bash deploy/scripts/deploy.sh
 ```
 
 脚本自动完成：
-1. 安装 Java 21、MySQL、MongoDB、Redis、Nginx、Certbot
+1. 安装 Java 26、MySQL、MongoDB、Redis、Nginx、Certbot
 2. 创建 `webchat` 用户和 `/opt/webchat` 目录
 3. 初始化数据库和表
 4. 安装 Systemd 服务

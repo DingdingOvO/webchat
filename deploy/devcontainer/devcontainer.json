@@ -17,7 +17,7 @@
         "mtxr.sqltools-driver-mysql"
       ],
       "settings": {
-        "java.jdt.ls.java.home": "/usr/local/openjdk-21",
+        "java.jdt.ls.java.home": "/usr/local/openjdk-26",
         "java.configuration.updateBuildConfiguration": "automatic",
         "typescript.validate.enable": true
       }

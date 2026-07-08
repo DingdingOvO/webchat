@@ -3,14 +3,14 @@
 WebChat 是一款基于 Web 的即时通讯系统，支持实时私聊、群组聊天、好友管理、在线状态同步和消息分级存储。
 
 - **前端**: React 19 + TypeScript + Webpack 5
-- **后端**: Java 21 + Spring Boot 3.4
+- **后端**: Java 26 + Spring Boot 3.4
 - **存储**: MySQL 8.0 + MongoDB 7 + Redis 7
 
 ---
 
 ## 什么是 WebChat
 
-WebChat 是一个全栈即时通讯应用，前端使用 React 19 + TypeScript + Webpack 5，后端基于 Java 21 + Spring Boot 3.4，数据存储采用 MySQL + MongoDB + Redis 三层架构。支持实时私聊、群组聊天、好友管理、在线状态同步等核心功能。
+WebChat 是一个全栈即时通讯应用，前端使用 React 19 + TypeScript + Webpack 5，后端基于 Java 26 + Spring Boot 3.4，数据存储采用 MySQL + MongoDB + Redis 三层架构。支持实时私聊、群组聊天、好友管理、在线状态同步等核心功能。
 
 | 指标 | 数值 |
 |------|------|

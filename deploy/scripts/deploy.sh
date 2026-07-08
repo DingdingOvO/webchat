@@ -28,10 +28,10 @@ command -v java  >/dev/null 2>&1 || warn "Java 未安装，将自动安装"
 log "安装系统依赖..."
 if command -v apt-get &>/dev/null; then
     apt-get update -qq
-    apt-get install -y -qq curl wget git nginx certbot python3-certbot-nginx openjdk-21-jre mysql-server mongodb-mongosh redis-server
+    apt-get install -y -qq curl wget git nginx certbot python3-certbot-nginx openjdk-26-jre mysql-server mongodb-mongosh redis-server
 elif command -v yum &>/dev/null; then
     yum install -y epel-release
-    yum install -y curl wget git nginx certbot python3-certbot-nginx java-21-openjdk mysql-server mongodb-mongosh redis
+    yum install -y curl wget git nginx certbot python3-certbot-nginx java-26-openjdk mysql-server mongodb-mongosh redis
 fi
 
 # ---- 2. 创建用户 ----

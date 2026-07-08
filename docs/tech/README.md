@@ -18,7 +18,7 @@
 
 | 技术 | 版本 | 用途 |
 |------|------|------|
-| Java | 21 (LTS) | 运行时 |
+| Java | 26 | 运行时 |
 | Spring Boot | 3.4.5 | REST + WebSocket + JPA |
 | JPA / Hibernate | — | MySQL ORM |
 | Spring Data MongoDB | — | MongoDB 消息存储 |

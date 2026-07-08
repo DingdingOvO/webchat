@@ -1,6 +1,6 @@
 # WebChat 部署指南
 
-> **技术栈**: Spring Boot 3.4.5 (Java 21) + React 19 + Webpack + MySQL 8.0 + MongoDB 7 + Redis 7
+> **技术栈**: Spring Boot 3.4.5 (Java 26) + React 19 + Webpack + MySQL 8.0 + MongoDB 7 + Redis 7
 
 本文档涵盖 **16 种不同的部署方式**，从本地开发到生产级集群全覆盖。
 
@@ -195,7 +195,7 @@ sudo bash deploy/scripts/deploy.sh
 ```
 
 **脚本自动完成**:
-1. 安装 Java 21、MySQL、MongoDB、Redis、Nginx、Certbot
+1. 安装 Java 26、MySQL、MongoDB、Redis、Nginx、Certbot
 2. 创建 `webchat` 用户和 `/opt/webchat` 目录
 3. 初始化数据库和表
 4. 安装 Systemd 服务
@@ -271,7 +271,7 @@ ansible-playbook -i deploy/ansible/inventory/hosts.ini deploy/ansible/site.yml
 ```
 
 **Playbook 结构**:
-- `common` — 系统依赖、Java 21、系统用户
+- `common` — 系统依赖、Java 26、系统用户
 - `databases` — MySQL、MongoDB、Redis 安装与初始化
 - `backend` — 构建 JAR、Systemd 服务配置
 - `frontend` — 构建前端、Nginx 配置
@@ -320,7 +320,7 @@ ln -sf deploy/devcontainer/devcontainer.json .devcontainer.json
 **工作流文件**: `.github/workflows/ci-cd.yml`
 
 **自动完成**:
-1. 构建后端（Maven + Java 21）
+1. 构建后端（Maven + Java 26）
 2. 构建前端（Node.js 22 + Webpack）
 3. 构建 Docker 镜像并推送到 GHCR
 4. 通过 SSH 部署到生产服务器

@@ -13,7 +13,7 @@
       - nginx
       - certbot
       - python3-certbot-nginx
-      - openjdk-21-jre-headless
+      - openjdk-26-jre-headless
       - unzip
     state: present
 

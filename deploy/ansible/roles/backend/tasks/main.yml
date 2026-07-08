@@ -13,7 +13,7 @@
   args:
     creates: /tmp/webchat-build/target/*.jar
   environment:
-    JAVA_HOME: /usr/lib/jvm/java-21-openjdk-amd64
+    JAVA_HOME: /usr/lib/jvm/java-26-openjdk-amd64
 
 - name: 复制 JAR 到目标目录
   copy:

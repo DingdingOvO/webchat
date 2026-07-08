@@ -1,6 +1,6 @@
 # ================================================================
 # Heroku 部署
-# 需要 Java 21 支持（Heroku 默认 Java 17 需额外配置）
+# 需要 Java 26 支持（Heroku 默认 Java 17 需额外配置）
 # 安装: heroku create webchat-app
 #       heroku stack:set container
 #       git push heroku main

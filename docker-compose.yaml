@@ -39,7 +39,7 @@ services:
       - redis_data:/data
 
   # ============================================================
-  # Backend — Spring Boot (Java 21)
+  # Backend — Spring Boot (Java 26)
   # ============================================================
   backend:
     build:
