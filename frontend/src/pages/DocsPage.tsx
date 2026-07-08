@@ -10,8 +10,18 @@ const SECTIONS = [
   ]},
   { id: 'quickstart',       title: '快速开始', children: [
     { id: 'setup',           title: '环境准备' },
-    { id: 'running',         title: '启动项目' },
+    { id: 'docker-deploy',   title: 'Docker 一键启动' },
+    { id: 'manual-start',    title: '手动启动' },
     { id: 'first-chat',      title: '第一次聊天' },
+  ]},
+  { id: 'api',              title: 'API 参考', children: [
+    { id: 'api-auth',        title: '认证' },
+    { id: 'api-users',       title: '用户与好友' },
+    { id: 'api-groups',      title: '群组' },
+    { id: 'api-messages',    title: '消息' },
+    { id: 'api-settings',    title: '设置' },
+    { id: 'api-ws',          title: 'WebSocket' },
+    { id: 'api-errors',      title: '错误处理' },
   ]},
   { id: 'design',           title: '设计语言', children: [
     { id: 'design-philosophy', title: '一、设计原则' },
@@ -21,26 +31,31 @@ const SECTIONS = [
     { id: 'design-components', title: '五、组件规范' },
     { id: 'design-specs',      title: '六、设计稿尺寸' },
   ]},
-  { id: 'api',              title: 'API 参考', children: [
-    { id: 'api-auth',        title: '认证' },
-    { id: 'api-users',       title: '用户与好友' },
-    { id: 'api-groups',      title: '群组' },
-    { id: 'api-chat',        title: '聊天' },
-    { id: 'api-ws',          title: 'WebSocket' },
-  ]},
   { id: 'tech',             title: '技术栈', children: [
     { id: 'tech-frontend',   title: '前端' },
     { id: 'tech-backend',    title: '后端' },
     { id: 'tech-storage',    title: '存储层' },
+    { id: 'tech-arch',       title: '数据流' },
+  ]},
+  { id: 'deploy',           title: '部署指南', children: [
+    { id: 'deploy-summary',  title: '部署方式总览' },
+    { id: 'deploy-docker',   title: 'Docker 部署' },
+    { id: 'deploy-k8s',      title: 'Kubernetes 部署' },
+    { id: 'deploy-vps',      title: 'VPS 部署' },
   ]},
 ];
 
 export default function DocsPage() {
   const [activeSection, setActiveSection] = useState('what-is-webchat');
 
+  const scrollTo = (id: string) => {
+    setActiveSection(id);
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+  };
+
   return (
     <div className={styles.page}>
-      {/* Top nav */}
+      {/* =============== Topbar =============== */}
       <header className={styles.topbar}>
         <div className={styles.topbarInner}>
           <Link to="/" className={styles.topbarBrand}>
@@ -57,14 +72,8 @@ export default function DocsPage() {
       </header>
 
       <div className={styles.layout}>
-        {/* Left sidebar */}
+        {/* =============== Left sidebar =============== */}
         <aside className={styles.sidebar}>
-          <div className={styles.sidebarSearch}>
-            <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor" style={{flexShrink:0}}>
-              <path d="M8.5 3a5.5 5.5 0 0 1 4.23 9.02l4.12 4.13a.5.5 0 0 1-.7.7l-4.13-4.12A5.5 5.5 0 1 1 8.5 3Zm0 1a4.5 4.5 0 1 0 0 9 4.5 4.5 0 0 0 0-9Z"/>
-            </svg>
-            <input className={styles.sidebarSearchInput} type="text" placeholder="搜索文档..." readOnly />
-          </div>
           <nav className={styles.sidebarNav}>
             {SECTIONS.map((section) => (
               <div key={section.id} className={styles.sidebarGroup}>
@@ -74,7 +83,7 @@ export default function DocsPage() {
                     key={child.id}
                     href={`#${child.id}`}
                     className={`${styles.sidebarItem} ${activeSection === child.id ? styles.sidebarItemActive : ''}`}
-                    onClick={(e) => { e.preventDefault(); setActiveSection(child.id); document.getElementById(child.id)?.scrollIntoView({ behavior: 'smooth' }); }}
+                    onClick={(e) => { e.preventDefault(); scrollTo(child.id); }}
                   >
                     {child.title}
                   </a>
@@ -84,15 +93,19 @@ export default function DocsPage() {
           </nav>
         </aside>
 
-        {/* Content */}
+        {/* =============== Main content =============== */}
         <main className={styles.content}>
           <article className={styles.article}>
-            {/* ============= Overview ============= */}
+
+            {/* ============================================= */}
+            {/* 概览                                          */}
+            {/* ============================================= */}
             <section id="overview" className={styles.section}>
               <h1 className={styles.h1}>WebChat 文档</h1>
               <p className={styles.lead}>
-                WebChat 是一款基于 Web 的即时通讯系统。本文档涵盖架构说明、快速上手、
-                设计语言规范、API 参考及技术栈详情。
+                WebChat 是一款基于 Web 的即时通讯系统，支持实时私聊、群组聊天、
+                好友管理、在线状态同步和消息分级存储。本文档涵盖架构说明、
+                快速上手、API 参考、设计语言规范及技术栈详情。
               </p>
             </section>
 
@@ -100,7 +113,7 @@ export default function DocsPage() {
               <h2 className={styles.h2}>什么是 WebChat</h2>
               <p className={styles.p}>
                 WebChat 是一个全栈即时通讯应用，前端使用 React 19 + TypeScript + Webpack 5，
-                后端基于 Java 26 + Spring Boot 3.4，数据存储采用 MySQL + MongoDB + Redis
+                后端基于 Java 21 + Spring Boot 3.4，数据存储采用 MySQL + MongoDB + Redis
                 三层架构。支持实时私聊、群组聊天、好友管理、在线状态同步等核心功能。
               </p>
               <div className={styles.stats}>
@@ -109,11 +122,11 @@ export default function DocsPage() {
                   <span className={styles.statLabel}>存储引擎</span>
                 </div>
                 <div className={styles.stat}>
-                  <span className={styles.statValue}>6</span>
+                  <span className={styles.statValue}>7</span>
                   <span className={styles.statLabel}>API 模块</span>
                 </div>
                 <div className={styles.stat}>
-                  <span className={styles.statValue}>100</span>
+                  <span className={styles.statValue}>50</span>
                   <span className={styles.statLabel}>ms 延迟</span>
                 </div>
               </div>
@@ -140,7 +153,17 @@ export default function DocsPage() {
                 <div className={styles.fcard}>
                   <div className={styles.fcardIcon}>📦</div>
                   <h3 className={styles.fcardTitle}>热冷分级存储</h3>
-                  <p className={styles.fcardDesc}>最近 100 条消息在 Redis，历史消息持久化 MongoDB，查詢秒級回源。</p>
+                  <p className={styles.fcardDesc}>最近 100 条消息在 Redis 热缓存，历史消息持久化到 MongoDB，查询秒级回源。</p>
+                </div>
+                <div className={styles.fcard}>
+                  <div className={styles.fcardIcon}>🟢</div>
+                  <h3 className={styles.fcardTitle}>在线状态</h3>
+                  <p className={styles.fcardDesc}>WebSocket 连接后自动广播在线状态，断线自动标记离线，Redis 持久化状态。</p>
+                </div>
+                <div className={styles.fcard}>
+                  <div className={styles.fcardIcon}>✏️</div>
+                  <h3 className={styles.fcardTitle}>输入状态</h3>
+                  <p className={styles.fcardDesc}>对方正在输入实时提示，通过 Redis 临时缓存 + WebSocket 推送。</p>
                 </div>
               </div>
             </section>
@@ -154,91 +177,493 @@ export default function DocsPage() {
                     <span className={styles.archBox}>React 19</span>
                     <span className={styles.archBox}>CSS Modules</span>
                     <span className={styles.archBox}>WebSocket</span>
+                    <span className={styles.archBox}>React Router</span>
                   </div>
                 </div>
-                <div className={styles.archArrow}>↓ HTTP / WS</div>
+                <div className={styles.archArrow}>↓ HTTP / WebSocket</div>
                 <div className={styles.archLayer}>
                   <div className={styles.archLabel}>服务层</div>
                   <div className={styles.archBoxes}>
-                    <span className={styles.archBox}>Spring Boot</span>
+                    <span className={styles.archBox}>Spring Boot 3.4</span>
                     <span className={styles.archBox}>REST API</span>
+                    <span className={styles.archBox}>WebSocket</span>
                     <span className={styles.archBox}>JWT Auth</span>
+                    <span className={styles.archBox}>Redis Pub/Sub</span>
                   </div>
                 </div>
                 <div className={styles.archArrow}>↓ JDBC / Mongo Driver / Redis</div>
                 <div className={styles.archLayer}>
                   <div className={styles.archLabel}>存储层</div>
                   <div className={styles.archBoxes}>
-                    <span className={styles.archBox}>MySQL</span>
-                    <span className={styles.archBox}>MongoDB</span>
-                    <span className={styles.archBox}>Redis</span>
+                    <span className={styles.archBox}>MySQL 8.0</span>
+                    <span className={styles.archBox}>MongoDB 7</span>
+                    <span className={styles.archBox}>Redis 7</span>
                   </div>
                 </div>
               </div>
+              <p className={styles.p}>
+                各层职责明确：MySQL 存储用户、好友关系、群组等元数据；MongoDB 持久化消息本体；
+                Redis 承载热消息缓存、在线状态、输入状态、未读计数及 Pub/Sub 实时推送。
+              </p>
             </section>
 
-            {/* ============= Quickstart ============= */}
+            {/* ============================================= */}
+            {/* 快速开始                                      */}
+            {/* ============================================= */}
             <section id="quickstart" className={styles.section}>
               <h2 className={styles.h2}>快速开始</h2>
+              <p className={styles.p}>
+                推荐使用 Docker Compose 一键启动全部服务，也可以手动启动各组件。
+              </p>
             </section>
 
             <section id="setup" className={styles.section}>
               <h3 className={styles.h3}>环境准备</h3>
+              <p className={styles.p}>确保机器上安装以下依赖：</p>
               <div className={styles.codeBlock}>
-                <div className={styles.codeHeader}>依赖</div>
-                <pre className={styles.code}><code>{`# 确保已安装以下服务
-redis-server --version    # >= 7.0
-mysql --version           # >= 8.0
-mongod --version          # >= 7.0
-java -version             # >= 21
-mvn --version             # >= 3.9`}</code></pre>
+                <div className={styles.codeHeader}>依赖检查</div>
+                <pre className={styles.code}><code>{`# Docker 方式（推荐）
+docker --version              # >= 24.0
+docker compose version        # >= 2.20
+
+# 手动方式
+redis-server --version        # >= 7.0
+mysql --version               # >= 8.0
+mongod --version              # >= 7.0
+java -version                 # >= 21 (JVM)
+mvn --version                 # >= 3.9 (Maven)
+node --version                # >= 22 (前端构建)
+npm --version                 # >= 10`}</code></pre>
               </div>
             </section>
 
-            <section id="running" className={styles.section}>
-              <h3 className={styles.h3}>启动项目</h3>
+            <section id="docker-deploy" className={styles.section}>
+              <h3 className={styles.h3}>Docker 一键启动</h3>
+              <p className={styles.p}>无需安装任何运行时依赖，只需要 Docker：</p>
               <div className={styles.codeBlock}>
-                <div className={styles.codeHeader}>启动后端</div>
-                <pre className={styles.code}><code>{`# 1. 启动数据库
-redis-server --daemonize yes
-service mysql start
-mongod --dbpath /data/db --fork --logpath /tmp/mongod.log
-
-# 2. 编译 & 运行
+                <div className={styles.codeHeader}>启动</div>
+                <pre className={styles.code}><code>{`git clone https://github.com/DingdingOvO/webchat.git
 cd webchat
-mvn clean compile
-JAVA_HOME=/path/to/jdk-26 java -cp "target/classes:$(cat /tmp/cp.txt)" com.webchat.WebChatApplication`}</code></pre>
+
+# 构建并启动所有服务（后端 + 前端 + MySQL + MongoDB + Redis）
+docker compose up -d --build
+
+# 查看状态
+docker compose ps
+
+# 查看日志
+docker compose logs -f
+
+# 打开浏览器
+open http://localhost:3000`}</code></pre>
+              </div>
+              <p className={styles.p}>
+                更多部署方式（Kubernetes、Helm、Swarm、Ansible、VPS 等 19 种）见{'\u00A0'}
+                <a href="https://github.com/DingdingOvO/webchat/blob/main/DEPLOY.md" target="_blank" rel="noopener noreferrer" className={styles.inlineLink}>DEPLOY.md</a>
+                。
+              </p>
+            </section>
+
+            <section id="manual-start" className={styles.section}>
+              <h3 className={styles.h3}>手动启动</h3>
+              <div className={styles.codeBlock}>
+                <div className={styles.codeHeader}>1. 启动数据库</div>
+                <pre className={styles.code}><code>{`# 方式 A：Docker 只跑数据库（推荐）
+docker compose -f deploy/scripts/docker-db-only.yaml up -d
+
+# 方式 B：本地安装
+redis-server --daemonize yes
+sudo service mysql start
+sudo mongod --dbpath /data/db --fork --logpath /tmp/mongod.log`}</code></pre>
               </div>
               <div className={styles.codeBlock}>
-                <div className={styles.codeHeader}>启动前端</div>
-                <pre className={styles.code}><code>{`cd frontend
+                <div className={styles.codeHeader}>2. 启动后端（终端 1）</div>
+                <pre className={styles.code}><code>{`cd webchat
+mvn clean compile -q
+mvn spring-boot:run
+# → http://localhost:8080`}</code></pre>
+              </div>
+              <div className={styles.codeBlock}>
+                <div className={styles.codeHeader}>3. 启动前端（终端 2）</div>
+                <pre className={styles.code}><code>{`cd webchat/frontend
 npm install
-npm run dev    # 开发模式, localhost:3000
-npm run build  # 生产构建, 输出 dist/`}</code></pre>
+npm run dev
+# → http://localhost:3000`}</code></pre>
               </div>
             </section>
 
             <section id="first-chat" className={styles.section}>
               <h3 className={styles.h3}>第一次聊天</h3>
               <ol className={styles.steps}>
-                <li>打开浏览器访问 <code className={styles.inlineCode}>http://localhost:3000</code>，进入介绍页</li>
+                <li>打开浏览器访问 <code className={styles.inlineCode}>http://localhost:3000</code></li>
                 <li>点击「免费开始使用」注册账号（或使用测试账号 <code className={styles.inlineCode}>alice / 1234</code>）</li>
-                <li>登录后自动进入聊天界面</li>
-                <li>点击侧栏搜索按钮 🔍，搜索另一用户并加好友</li>
-                <li>点击好友开始聊天</li>
+                <li>登录后进入聊天界面，点击搜索按钮 🔍 搜索另一用户</li>
+                <li>发送好友请求 → 对方接受 → 点击好友开始聊天</li>
+                <li>也可以点击「创建群组」填入成员开始群聊</li>
               </ol>
             </section>
 
-            {/* ============= Design Language ============= */}
+            {/* ============================================= */}
+            {/* API 参考                                      */}
+            {/* ============================================= */}
+            <section id="api" className={styles.section}>
+              <h2 className={styles.h2}>API 参考</h2>
+              <p className={styles.p}>
+                所有 API（除注册/登录外）需要在 HTTP Header 中携带 JWT token：
+              </p>
+              <div className={styles.codeBlock}>
+                <div className={styles.codeHeader}>请求头格式</div>
+                <pre className={styles.code}><code>{'Authorization: Bearer <token>'}</code></pre>
+              </div>
+            </section>
+
+            {/* ---- 认证 ---- */}
+            <section id="api-auth" className={styles.section}>
+              <h3 className={styles.h3}>认证</h3>
+
+              <h4 className={styles.h4}>注册</h4>
+              <div className={styles.endpoint}>
+                <span className={styles.endpointMethod}>POST</span>
+                <span className={styles.endpointPath}>/api/auth/register</span>
+              </div>
+              <div className={styles.codeBlock}>
+                <div className={styles.codeHeader}>Request Body</div>
+                <pre className={styles.code}><code>{`{
+  "username": "alice",      // 必填，3-50 字符
+  "password": "1234",        // 必填，4-100 字符
+  "nickname": "爱丽丝"       // 可选
+}`}</code></pre>
+              </div>
+              <div className={styles.codeBlock}>
+                <div className={styles.codeHeader}>Response 200</div>
+                <pre className={styles.code}><code>{`{
+  "token": "eyJhbGciOiJIUzUxMiJ9...",
+  "userId": 1,
+  "username": "alice",
+  "nickname": "爱丽丝"
+}`}</code></pre>
+              </div>
+
+              <h4 className={styles.h4}>登录</h4>
+              <div className={styles.endpoint}>
+                <span className={styles.endpointMethod}>POST</span>
+                <span className={styles.endpointPath}>/api/auth/login</span>
+              </div>
+              <div className={styles.codeBlock}>
+                <div className={styles.codeHeader}>Request Body</div>
+                <pre className={styles.code}><code>{`{
+  "username": "alice",
+  "password": "1234"
+}`}</code></pre>
+              </div>
+              <div className={styles.codeBlock}>
+                <div className={styles.codeHeader}>Response 200</div>
+                <pre className={styles.code}><code>{`{
+  "token": "eyJhbGciOiJIUzUxMiJ9...",
+  "userId": 1,
+  "username": "alice",
+  "nickname": "爱丽丝"
+}`}</code></pre>
+              </div>
+
+              <h4 className={styles.h4}>当前用户信息</h4>
+              <div className={styles.endpoint}>
+                <span className={styles.endpointMethod}>GET</span>
+                <span className={styles.endpointPath}>/api/auth/me</span>
+              </div>
+              <div className={styles.codeBlock}>
+                <div className={styles.codeHeader}>Response 200</div>
+                <pre className={styles.code}><code>{`{
+  "id": 1,
+  "username": "alice",
+  "nickname": "爱丽丝",
+  "avatar": ""
+}`}</code></pre>
+              </div>
+            </section>
+
+            {/* ---- 用户与好友 ---- */}
+            <section id="api-users" className={styles.section}>
+              <h3 className={styles.h3}>用户与好友</h3>
+
+              <h4 className={styles.h4}>搜索用户</h4>
+              <div className={styles.endpoint}>
+                <span className={styles.endpointMethod}>GET</span>
+                <span className={styles.endpointPath}>/api/users/search?q=关键字</span>
+              </div>
+              <div className={styles.codeBlock}>
+                <div className={styles.codeHeader}>Response 200</div>
+                <pre className={styles.code}><code>{`[
+  {
+    "id": 2,
+    "username": "bob",
+    "nickname": "鲍勃",
+    "online": true,
+    "avatar": null
+  }
+]`}</code></pre>
+              </div>
+
+              <h4 className={styles.h4}>好友列表</h4>
+              <div className={styles.endpoint}>
+                <span className={styles.endpointMethod}>GET</span>
+                <span className={styles.endpointPath}>/api/users/friends</span>
+              </div>
+
+              <h4 className={styles.h4}>发送好友请求</h4>
+              <div className={styles.endpoint}>
+                <span className={styles.endpointMethod}>POST</span>
+                <span className={styles.endpointPath}>/api/users/friend-request</span>
+              </div>
+              <div className={styles.codeBlock}>
+                <div className={styles.codeHeader}>Body</div>
+                <pre className={styles.code}><code>{`{ "userId": 2 }`}</code></pre>
+              </div>
+
+              <h4 className={styles.h4}>查看待处理请求</h4>
+              <div className={styles.endpoint}>
+                <span className={styles.endpointMethod}>GET</span>
+                <span className={styles.endpointPath}>/api/users/friend-requests/pending</span>
+              </div>
+
+              <h4 className={styles.h4}>接受好友请求</h4>
+              <div className={styles.endpoint}>
+                <span className={styles.endpointMethod}>POST</span>
+                <span className={styles.endpointPath}>/api/users/friend-requests/{'{id}'}/accept</span>
+              </div>
+
+              <h4 className={styles.h4}>拒绝好友请求</h4>
+              <div className={styles.endpoint}>
+                <span className={styles.endpointMethod}>POST</span>
+                <span className={styles.endpointPath}>/api/users/friend-requests/{'{id}'}/reject</span>
+              </div>
+
+              <h4 className={styles.h4}>最近联系人</h4>
+              <div className={styles.endpoint}>
+                <span className={styles.endpointMethod}>GET</span>
+                <span className={styles.endpointPath}>/api/users/contacts</span>
+              </div>
+              <p className={styles.p}>返回最近交互过的联系人 ID 集合（上限 50 条）。</p>
+            </section>
+
+            {/* ---- 群组 ---- */}
+            <section id="api-groups" className={styles.section}>
+              <h3 className={styles.h3}>群组</h3>
+
+              <h4 className={styles.h4}>创建群组</h4>
+              <div className={styles.endpoint}>
+                <span className={styles.endpointMethod}>POST</span>
+                <span className={styles.endpointPath}>/api/groups</span>
+              </div>
+              <div className={styles.codeBlock}>
+                <div className={styles.codeHeader}>Request Body</div>
+                <pre className={styles.code}><code>{`{
+  "name": "技术部群聊",
+  "memberIds": [1, 2, 3]   // 可选，初始成员 ID 列表
+}`}</code></pre>
+              </div>
+              <div className={styles.codeBlock}>
+                <div className={styles.codeHeader}>Response 200</div>
+                <pre className={styles.code}><code>{`{
+  "id": 1,
+  "name": "技术部群聊",
+  "ownerId": 1,
+  "createdAt": "2026-07-07T12:00:00Z"
+}`}</code></pre>
+              </div>
+
+              <h4 className={styles.h4}>我的群组列表</h4>
+              <div className={styles.endpoint}>
+                <span className={styles.endpointMethod}>GET</span>
+                <span className={styles.endpointPath}>/api/groups</span>
+              </div>
+
+              <h4 className={styles.h4}>群成员列表</h4>
+              <div className={styles.endpoint}>
+                <span className={styles.endpointMethod}>GET</span>
+                <span className={styles.endpointPath}>/api/groups/{'{id}'}/members</span>
+              </div>
+            </section>
+
+            {/* ---- 消息 ---- */}
+            <section id="api-messages" className={styles.section}>
+              <h3 className={styles.h3}>消息</h3>
+
+              <h4 className={styles.h4}>获取历史消息</h4>
+              <div className={styles.endpoint}>
+                <span className={styles.endpointMethod}>GET</span>
+                <span className={styles.endpointPath}>/api/chat/messages?convKey=X</span>
+              </div>
+              <p className={styles.p}>
+                <code className={styles.inlineCode}>convKey</code> 是会话键，格式为
+                <code className={styles.inlineCode}>P2P:{'{minUserId}'}-{'{maxUserId}'}</code>
+                或 <code className={styles.inlineCode}>GROUP:{'{groupId}'}</code>。
+                消息优先从 Redis 热缓存读取，未命中则回源 MongoDB。
+              </p>
+              <div className={styles.codeBlock}>
+                <div className={styles.codeHeader}>Response 200</div>
+                <pre className={styles.code}><code>{`[
+  {
+    "id": "66f1a...",
+    "senderId": 1,
+    "senderName": "爱丽丝",
+    "receiverId": 2,
+    "type": "P2P",
+    "content": "你好",
+    "conversationKey": "P2P:1-2",
+    "createdAt": "2026-07-07T12:00:00Z"
+  }
+]`}</code></pre>
+              </div>
+            </section>
+
+            {/* ---- 设置 ---- */}
+            <section id="api-settings" className={styles.section}>
+              <h3 className={styles.h3}>设置</h3>
+
+              <h4 className={styles.h4}>修改用户名</h4>
+              <div className={styles.endpoint}>
+                <span className={styles.endpointMethod}>PUT</span>
+                <span className={styles.endpointPath}>/api/users/profile/username</span>
+              </div>
+              <div className={styles.codeBlock}>
+                <div className={styles.codeHeader}>Body</div>
+                <pre className={styles.code}><code>{`{ "username": "new-alice" }`}</code></pre>
+              </div>
+
+              <h4 className={styles.h4}>上传头像</h4>
+              <div className={styles.endpoint}>
+                <span className={styles.endpointMethod}>POST</span>
+                <span className={styles.endpointPath}>/api/users/profile/avatar</span>
+              </div>
+              <div className={styles.codeBlock}>
+                <div className={styles.codeHeader}>Body</div>
+                <pre className={styles.code}><code>{`{ "avatar": "data:image/png;base64,..." }`}</code></pre>
+              </div>
+              <p className={styles.p}>base64 编码图像，大小限制 512KB。</p>
+
+              <h4 className={styles.h4}>修改密码</h4>
+              <div className={styles.endpoint}>
+                <span className={styles.endpointMethod}>PUT</span>
+                <span className={styles.endpointPath}>/api/users/profile/password</span>
+              </div>
+              <div className={styles.codeBlock}>
+                <div className={styles.codeHeader}>Body</div>
+                <pre className={styles.code}><code>{`{
+  "oldPassword": "1234",
+  "newPassword": "5678"
+}`}</code></pre>
+              </div>
+            </section>
+
+            {/* ---- WebSocket ---- */}
+            <section id="api-ws" className={styles.section}>
+              <h3 className={styles.h3}>WebSocket</h3>
+              <p className={styles.p}>WebSocket 连接地址，token 通过查询参数传递：</p>
+              <div className={styles.codeBlock}>
+                <div className={styles.codeHeader}>连接</div>
+                <pre className={styles.code}><code>{`ws://host:port/ws/chat?token=<jwt_token>`}</code></pre>
+              </div>
+
+              <h4 className={styles.h4}>发送消息（Client → Server）</h4>
+              <div className={styles.codeBlock}>
+                <div className={styles.codeHeader}>Send JSON</div>
+                <pre className={styles.code}><code>{`// 私聊
+{ "type": "p2p",  "receiverId": 2, "content": "你好" }
+
+// 群聊
+{ "type": "group", "receiverId": 1, "content": "大家好" }
+
+// 输入状态
+{ "type": "typing", "receiverId": 2 }
+
+// 已读回执
+{ "type": "read", "conversationKey": "P2P:1-2" }`}</code></pre>
+              </div>
+
+              <h4 className={styles.h4}>接收消息（Server → Client）</h4>
+              <div className={styles.codeBlock}>
+                <div className={styles.codeHeader}>Receive JSON</div>
+                <pre className={styles.code}><code>{`// 新消息
+{
+  "action": "message",
+  "data": {
+    "senderId": 1,
+    "senderName": "爱丽丝",
+    "receiverId": 2,
+    "type": "P2P",
+    "content": "你好",
+    "conversationKey": "P2P:1-2",
+    "createdAt": "2026-07-07T12:00:00Z"
+  }
+}
+
+// 在线状态变更
+{
+  "action": "online",
+  "userId": 2,
+  "nickname": "鲍勃",
+  "online": true
+}
+
+// 正在输入
+{
+  "action": "typing",
+  "userId": 2,
+  "conversationKey": "P2P:1-2"
+}`}</code></pre>
+              </div>
+
+              <h4 className={styles.h4}>WebSocket 事件汇总</h4>
+              <table className={styles.table}>
+                <thead><tr><th>方向</th><th>Action/Type</th><th>说明</th></tr></thead>
+                <tbody>
+                  <tr><td>C→S</td><td><code>p2p</code></td><td>发送私聊消息</td></tr>
+                  <tr><td>C→S</td><td><code>group</code></td><td>发送群聊消息</td></tr>
+                  <tr><td>C→S</td><td><code>typing</code></td><td>输入状态提示</td></tr>
+                  <tr><td>C→S</td><td><code>read</code></td><td>已读回执</td></tr>
+                  <tr><td>S→C</td><td><code>message</code></td><td>新消息推送</td></tr>
+                  <tr><td>S→C</td><td><code>online</code></td><td>好友在线/离线通知</td></tr>
+                  <tr><td>S→C</td><td><code>typing</code></td><td>对方正在输入</td></tr>
+                </tbody>
+              </table>
+            </section>
+
+            {/* ---- 错误处理 ---- */}
+            <section id="api-errors" className={styles.section}>
+              <h3 className={styles.h3}>错误处理</h3>
+              <p className={styles.p}>API 使用 HTTP 状态码表示操作结果：</p>
+              <table className={styles.table}>
+                <thead><tr><th>状态码</th><th>含义</th><th>说明</th></tr></thead>
+                <tbody>
+                  <tr><td><code className={styles.inlineCode}>200</code></td><td>成功</td><td>请求正常处理</td></tr>
+                  <tr><td><code className={styles.inlineCode}>400</code></td><td>请求参数错误</td><td>缺少字段、格式错误、用户名重复等</td></tr>
+                  <tr><td><code className={styles.inlineCode}>401</code></td><td>未授权</td><td>Token 缺失或无效</td></tr>
+                  <tr><td><code className={styles.inlineCode}>404</code></td><td>资源不存在</td><td>用户/群组/好友请求不存在</td></tr>
+                  <tr><td><code className={styles.inlineCode}>409</code></td><td>冲突</td><td>已发送好友请求、已是好友等</td></tr>
+                  <tr><td><code className={styles.inlineCode}>500</code></td><td>服务器内部错误</td><td>请查看后端日志</td></tr>
+                </tbody>
+              </table>
+              <p className={styles.p}>错误响应体格式：</p>
+              <div className={styles.codeBlock}>
+                <div className={styles.codeHeader}>Error Response</div>
+                <pre className={styles.code}><code>{`{
+  "error": "用户名已被使用"
+}`}</code></pre>
+              </div>
+            </section>
+
+            {/* ============================================= */}
+            {/* 设计语言                                      */}
+            {/* ============================================= */}
             <section id="design" className={styles.section}>
               <h2 className={styles.h2}>设计语言</h2>
               <p className={styles.p}>
-                Aero Design System 是 WebChat 的设计语言，核心理念是<b>简洁、可靠、有节奏</b>。
+                <b>Aero Design System</b> 是 WebChat 的设计语言，核心理念是<b>简洁、可靠、有节奏</b>。
                 本规范定义了颜色、字体、间距、组件等设计基础，供开发者遵循一致的界面标准。
               </p>
             </section>
 
-            {/* 一、设计原则 */}
             <section id="design-philosophy" className={styles.section}>
               <h3 className={styles.h3}>一、设计原则</h3>
               <div className={styles.principleGrid}>
@@ -265,7 +690,6 @@ npm run build  # 生产构建, 输出 dist/`}</code></pre>
               </div>
             </section>
 
-            {/* 二、色板 */}
             <section id="design-colors" className={styles.section}>
               <h3 className={styles.h3}>二、色板</h3>
               <table className={styles.table}>
@@ -285,10 +709,13 @@ npm run build  # 生产构建, 输出 dist/`}</code></pre>
               </table>
             </section>
 
-            {/* 三、字体 */}
             <section id="design-typography" className={styles.section}>
               <h3 className={styles.h3}>三、字体</h3>
-              <p className={styles.p}>字体使用系统字体栈，保证各平台最优渲染。常用字号如下：</p>
+              <p className={styles.p}>字体使用系统字体栈，保证各平台最优渲染：</p>
+              <div className={styles.codeBlock}>
+                <div className={styles.codeHeader}>字体栈</div>
+                <pre className={styles.code}><code>{`-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans SC", sans-serif`}</code></pre>
+              </div>
               <table className={styles.table}>
                 <thead><tr><th>字号</th><th>CSS</th><th>行高</th><th>使用场景</th></tr></thead>
                 <tbody>
@@ -302,13 +729,12 @@ npm run build  # 生产构建, 输出 dist/`}</code></pre>
               </table>
             </section>
 
-            {/* 四、间距与布局 */}
             <section id="design-spacing" className={styles.section}>
               <h3 className={styles.h3}>四、间距与布局</h3>
               <p className={styles.p}>
                 采用 <b>4px 基线网格</b>，所有边距、间隔、内边距均为 4 的倍数。
                 页面内容区与屏幕边缘保持至少 <b>16px 安全边距</b>（Apple HIG 标准），
-                阅读类页面内容宽度不超过 <b>680px</b>。
+                阅读类页面内容宽度不超过 <b>720px</b>。
               </p>
               <table className={styles.table}>
                 <thead><tr><th>Token</th><th>值</th><th>使用场景</th></tr></thead>
@@ -322,7 +748,6 @@ npm run build  # 生产构建, 输出 dist/`}</code></pre>
               </table>
             </section>
 
-            {/* 五、组件规范 */}
             <section id="design-components" className={styles.section}>
               <h3 className={styles.h3}>五、组件规范</h3>
 
@@ -366,136 +791,41 @@ npm run build  # 生产构建, 输出 dist/`}</code></pre>
 
               <h4 className={styles.h4}>5.5 图标</h4>
               <p className={styles.p}>所有图标为自绘 SVG 路径，统一 20×20 viewBox，颜色继承当前文字色。不使用 emoji 或图片。</p>
+
+              <h4 className={styles.h4}>5.6 弹窗</h4>
+              <table className={styles.table}>
+                <thead><tr><th>属性</th><th>值</th></tr></thead>
+                <tbody>
+                  <tr><td>背景遮罩</td><td>rgba(0,0,0,0.4)</td></tr>
+                  <tr><td>弹窗宽度</td><td>360px</td></tr>
+                  <tr><td>弹窗圆角</td><td>12px</td></tr>
+                  <tr><td>动画</td><td>fadeIn 0.15s + scale(0.95→1)</td></tr>
+                </tbody>
+              </table>
             </section>
 
-            {/* 六、设计稿尺寸 */}
             <section id="design-specs" className={styles.section}>
               <h3 className={styles.h3}>六、设计稿尺寸</h3>
               <p className={styles.p}>
                 桌面端设计以 <b>1200px</b> 为内容最大宽度（聊天布局），
                 侧栏 320px，聊天区自适应剩余空间。
-                文档阅读页内容区最大 680px，保持舒适阅读宽度。
+                文档阅读页内容区最大 720px，保持舒适阅读宽度。
               </p>
+              <table className={styles.table}>
+                <thead><tr><th>布局</th><th>宽度</th></tr></thead>
+                <tbody>
+                  <tr><td>聊天布局最大宽度</td><td>1200px</td></tr>
+                  <tr><td>侧栏 (联系人/群组)</td><td>320px</td></tr>
+                  <tr><td>聊天消息区</td><td>自适应剩余空间</td></tr>
+                  <tr><td>文档阅读区</td><td>720px max</td></tr>
+                  <tr><td>浮动弹窗</td><td>360px</td></tr>
+                </tbody>
+              </table>
             </section>
 
-            {/* ============= API Reference ============= */}
-            <section id="api" className={styles.section}>
-              <h2 className={styles.h2}>API 参考</h2>
-            </section>
-
-            <section id="api-auth" className={styles.section}>
-              <h3 className={styles.h3}>认证</h3>
-              <p className={styles.p}>所有 API 需要在 Header 中携带 JWT token：</p>
-              <div className={styles.codeBlock}>
-                <div className={styles.codeHeader}>Header 格式</div>
-                <pre className={styles.code}><code>{`Authorization: Bearer &lt;token&gt;`}</code></pre>
-              </div>
-
-              <h4 className={styles.h4}>注册</h4>
-              <div className={styles.endpoint}>
-                <span className={styles.endpointMethod}>POST</span>
-                <span className={styles.endpointPath}>/api/auth/register</span>
-              </div>
-              <div className={styles.codeBlock}>
-                <div className={styles.codeHeader}>Request</div>
-                <pre className={styles.code}><code>{`{
-  "username": "alice",
-  "password": "1234",
-  "nickname": "爱丽丝"   // optional
-}`}</code></pre>
-              </div>
-              <div className={styles.codeBlock}>
-                <div className={styles.codeHeader}>Response 200</div>
-                <pre className={styles.code}><code>{`{
-  "token": "eyJhbGciOiJIUzUxMiJ9...",
-  "userId": 1,
-  "username": "alice",
-  "nickname": "爱丽丝"
-}`}</code></pre>
-              </div>
-
-              <h4 className={styles.h4}>登录</h4>
-              <div className={styles.endpoint}>
-                <span className={styles.endpointMethod}>POST</span>
-                <span className={styles.endpointPath}>/api/auth/login</span>
-              </div>
-              <div className={styles.codeBlock}>
-                <div className={styles.codeHeader}>Request</div>
-                <pre className={styles.code}><code>{`{
-  "username": "alice",
-  "password": "1234"
-}`}</code></pre>
-              </div>
-            </section>
-
-            <section id="api-users" className={styles.section}>
-              <h3 className={styles.h3}>用户与好友</h3>
-
-              <h4 className={styles.h4}>搜索用户</h4>
-              <div className={styles.endpoint}>
-                <span className={styles.endpointMethod}>GET</span>
-                <span className={styles.endpointPath}>/api/users/search?q=关键字</span>
-              </div>
-              <div className={styles.codeBlock}>
-                <div className={styles.codeHeader}>Response 200</div>
-                <pre className={styles.code}><code>{`[
-  { "id": 2, "username": "bob", "nickname": "鲍勃", "online": true, ... }
-]`}</code></pre>
-              </div>
-
-              <h4 className={styles.h4}>好友列表</h4>
-              <div className={styles.endpoint}>
-                <span className={styles.endpointMethod}>GET</span>
-                <span className={styles.endpointPath}>/api/users/friends</span>
-              </div>
-
-              <h4 className={styles.h4}>发送好友请求</h4>
-              <div className={styles.endpoint}>
-                <span className={styles.endpointMethod}>POST</span>
-                <span className={styles.endpointPath}>/api/users/friend-request</span>
-              </div>
-              <div className={styles.codeBlock}>
-                <div className={styles.codeHeader}>Body</div>
-                <pre className={styles.code}><code>{`{ "userId": 2 }`}</code></pre>
-              </div>
-            </section>
-
-            <section id="api-ws" className={styles.section}>
-              <h3 className={styles.h3}>WebSocket</h3>
-              <p className={styles.p}>WebSocket 连接地址：</p>
-              <div className={styles.codeBlock}>
-                <div className={styles.codeHeader}>连接</div>
-                <pre className={styles.code}><code>{`ws://host:port/ws/chat?token=&lt;jwt_token&gt;`}</code></pre>
-              </div>
-
-              <h4 className={styles.h4}>发送消息</h4>
-              <div className={styles.codeBlock}>
-                <div className={styles.codeHeader}>Send (JSON)</div>
-                <pre className={styles.code}><code>{`// 私聊
-{ "type": "p2p",  "receiverId": 2, "content": "你好" }
-
-// 群聊
-{ "type": "group", "receiverId": 1, "content": "大家好" }`}</code></pre>
-              </div>
-
-              <h4 className={styles.h4}>接收消息</h4>
-              <div className={styles.codeBlock}>
-                <div className={styles.codeHeader}>Receive (JSON)</div>
-                <pre className={styles.code}><code>{`{
-  "action": "message",
-  "data": {
-    "senderId": 1,
-    "senderName": "爱丽丝",
-    "receiverId": 2,
-    "type": "P2P",
-    "content": "你好",
-    "createdAt": "2026-07-07T12:00:00Z"
-  }
-}`}</code></pre>
-              </div>
-            </section>
-
-            {/* ============= Tech Stack ============= */}
+            {/* ============================================= */}
+            {/* 技术栈                                        */}
+            {/* ============================================= */}
             <section id="tech" className={styles.section}>
               <h2 className={styles.h2}>技术栈</h2>
             </section>
@@ -508,7 +838,8 @@ npm run build  # 生产构建, 输出 dist/`}</code></pre>
                   <tr><td>React</td><td>19</td><td>UI 框架</td></tr>
                   <tr><td>TypeScript</td><td>5.5</td><td>类型安全</td></tr>
                   <tr><td>Webpack</td><td>5.108</td><td>构建 + HMR + CSS Modules</td></tr>
-                  <tr><td>React Router</td><td>6</td><td>路由</td></tr>
+                  <tr><td>React Router</td><td>6</td><td>客户端路由</td></tr>
+                  <tr><td>Fluent UI Icons</td><td>—</td><td>图标库</td></tr>
                 </tbody>
               </table>
             </section>
@@ -518,12 +849,14 @@ npm run build  # 生产构建, 输出 dist/`}</code></pre>
               <table className={styles.table}>
                 <thead><tr><th>技术</th><th>版本</th><th>用途</th></tr></thead>
                 <tbody>
-                  <tr><td>Java</td><td>26</td><td>运行时</td></tr>
-                  <tr><td>Spring Boot</td><td>3.4.5</td><td>REST + WebSocket</td></tr>
+                  <tr><td>Java</td><td>21</td><td>运行时 (LTS)</td></tr>
+                  <tr><td>Spring Boot</td><td>3.4.5</td><td>REST + WebSocket + JPA</td></tr>
                   <tr><td>JPA / Hibernate</td><td>—</td><td>MySQL ORM</td></tr>
                   <tr><td>Spring Data MongoDB</td><td>—</td><td>MongoDB 消息存储</td></tr>
                   <tr><td>Spring Data Redis</td><td>—</td><td>热缓存 + Pub/Sub</td></tr>
                   <tr><td>JWT (jjwt)</td><td>0.12.6</td><td>登录认证</td></tr>
+                  <tr><td>Spring Security Crypto</td><td>—</td><td>BCrypt 密码加密</td></tr>
+                  <tr><td>Maven</td><td>3.9</td><td>构建工具</td></tr>
                 </tbody>
               </table>
             </section>
@@ -533,27 +866,139 @@ npm run build  # 生产构建, 输出 dist/`}</code></pre>
               <table className={styles.table}>
                 <thead><tr><th>数据库</th><th>角色</th><th>数据</th></tr></thead>
                 <tbody>
-                  <tr><td>MySQL 8.0</td><td>元数据</td><td>用户、好友、群组、关系链</td></tr>
+                  <tr><td>MySQL 8.0</td><td>元数据</td><td>用户、好友关系、群组、群成员</td></tr>
                   <tr><td>MongoDB 7.0</td><td>消息冷存</td><td>聊天记录（带 conversationKey 索引）</td></tr>
-                  <tr><td>Redis 7.x</td><td>热缓存 + 实时</td><td>热消息、在线状态、未读计数、Pub/Sub</td></tr>
+                  <tr><td>Redis 7.x</td><td>热缓存 + 实时</td><td>热消息（每会话 100 条）、在线状态、输入状态、未读计数、Pub/Sub</td></tr>
                 </tbody>
               </table>
+              <p className={styles.p}>
+                <b>消息分级存储策略</b>：发送消息时同时写入 Redis（热）和 MongoDB（持久）。
+                查询历史时优先读取 Redis，未命中则回源 MongoDB 并回填缓存。
+              </p>
+            </section>
+
+            <section id="tech-arch" className={styles.section}>
+              <h3 className={styles.h3}>数据流</h3>
+              <div className={styles.arch} style={{gap:'var(--p3)'}}>
+                <div className={styles.archLayer}>
+                  <div className={styles.archLabel}>用户发送消息</div>
+                  <div className={styles.archBoxes}>
+                    <span className={styles.archBox}>React 前端</span>
+                    <span className={styles.archBox} style={{borderColor:'var(--green)'}}>WebSocket</span>
+                    <span className={styles.archBox}>Spring Boot</span>
+                  </div>
+                </div>
+                <div className={styles.archArrow}>↓ 并行写入</div>
+                <div className={styles.archLayer}>
+                  <div className={styles.archBoxes}>
+                    <span className={styles.archBox} style={{borderColor:'#f59e0b'}}>Redis（热）</span>
+                    <span className={styles.archBox} style={{borderColor:'#22c55e'}}>MongoDB（持久）</span>
+                  </div>
+                </div>
+                <div className={styles.archArrow}>↓ Redis Pub/Sub</div>
+                <div className={styles.archLayer}>
+                  <div className={styles.archBoxes}>
+                    <span className={styles.archBox} style={{borderColor:'var(--primary)'}}>接收方前端</span>
+                  </div>
+                </div>
+              </div>
+              <p className={styles.p}>
+                私聊消息通过 <code className={styles.inlineCode}>WebSocketSessionManager</code> 直接推送到目标用户的 WebSocket 连接；
+                群聊消息通过 Redis Pub/Sub 广播到所有群成员实例。
+              </p>
+            </section>
+
+            {/* ============================================= */}
+            {/* 部署指南                                      */}
+            {/* ============================================= */}
+            <section id="deploy" className={styles.section}>
+              <h2 className={styles.h2}>部署指南</h2>
+              <p className={styles.p}>
+                WebChat 提供了 <b>19 种部署方式</b>，从本地开发到生产级集群全覆盖。
+                完整文档见 <a href="https://github.com/DingdingOvO/webchat/blob/main/DEPLOY.md" target="_blank" rel="noopener noreferrer" className={styles.inlineLink}>DEPLOY.md</a>。
+              </p>
+            </section>
+
+            <section id="deploy-summary" className={styles.section}>
+              <h3 className={styles.h3}>部署方式总览</h3>
+              <table className={styles.table}>
+                <thead><tr><th>类别</th><th>方式</th><th>适用场景</th><th>复杂度</th></tr></thead>
+                <tbody>
+                  <tr><td rowSpan={3}>容器编排</td><td>Docker Compose</td><td>本地测试、单机生产</td><td>⭐</td></tr>
+                  <tr><td>Docker Swarm</td><td>多节点容器集群</td><td>⭐⭐⭐</td></tr>
+                  <tr><td>Kubernetes + Helm</td><td>K8s 集群生产部署</td><td>⭐⭐⭐⭐</td></tr>
+                  <tr><td rowSpan={3}>物理机/VPS</td><td>一键部署脚本</td><td>裸机/VPS 快速部署</td><td>⭐</td></tr>
+                  <tr><td>Systemd</td><td>Linux 服务管理</td><td>⭐⭐</td></tr>
+                  <tr><td>Ansible</td><td>批量自动化部署</td><td>⭐⭐⭐</td></tr>
+                  <tr><td rowSpan={5}>云平台</td><td>Fly.io</td><td>全球边缘部署</td><td>⭐⭐</td></tr>
+                  <tr><td>Railway</td><td>快速托管</td><td>⭐</td></tr>
+                  <tr><td>Render</td><td>基础设施即代码</td><td>⭐⭐</td></tr>
+                  <tr><td>Zeabur</td><td>国内友好托管</td><td>⭐</td></tr>
+                  <tr><td>Heroku</td><td>传统 PaaS</td><td>⭐⭐</td></tr>
+                  <tr><td>CI/CD</td><td>GitHub Actions</td><td>自动构建+部署</td><td>⭐⭐⭐</td></tr>
+                </tbody>
+              </table>
+            </section>
+
+            <section id="deploy-docker" className={styles.section}>
+              <h3 className={styles.h3}>Docker 部署</h3>
+              <div className={styles.codeBlock}>
+                <div className={styles.codeHeader}>单机 Docker Compose</div>
+                <pre className={styles.code}><code>{`# 标准部署
+docker compose up -d --build
+
+# 生产优化版（资源限制 + 日志轮转 + 健康检查）
+docker compose -f deploy/scripts/docker-compose-prod.yaml up -d
+
+# Swarm 多节点
+docker stack deploy -c deploy/swarm/docker-stack.yaml webchat`}</code></pre>
+              </div>
+            </section>
+
+            <section id="deploy-k8s" className={styles.section}>
+              <h3 className={styles.h3}>Kubernetes 部署</h3>
+              <div className={styles.codeBlock}>
+                <div className={styles.codeHeader}>Kustomize</div>
+                <pre className={styles.code}><code>{`kubectl apply -k deploy/kubernetes/`}</code></pre>
+              </div>
+              <div className={styles.codeBlock}>
+                <div className={styles.codeHeader}>Helm</div>
+                <pre className={styles.code}><code>{`helm upgrade --install webchat deploy/helm/webchat \\
+  --namespace webchat --create-namespace`}</code></pre>
+              </div>
+            </section>
+
+            <section id="deploy-vps" className={styles.section}>
+              <h3 className={styles.h3}>VPS 部署</h3>
+              <p className={styles.p}>适用于 Ubuntu 20.04+ / CentOS 7+ 裸机或 VPS：</p>
+              <div className={styles.codeBlock}>
+                <div className={styles.codeHeader}>一键脚本</div>
+                <pre className={styles.code}><code>{`git clone https://github.com/DingdingOvO/webchat.git
+cd webchat
+sudo bash deploy/scripts/deploy.sh`}</code></pre>
+              </div>
+              <p className={styles.p}>
+                脚本自动安装 Java 21、MySQL、MongoDB、Redis、Nginx、Certbot，
+                初始化数据库，配置 Systemd 服务和 Nginx 反向代理。
+                详细文档见 <a href="https://github.com/DingdingOvO/webchat/blob/main/DEPLOY.md" target="_blank" rel="noopener noreferrer" className={styles.inlineLink}>DEPLOY.md</a>。
+              </p>
             </section>
 
             {/* Footer */}
             <div className={styles.docFooter}>
               <Link to="/register" className={styles.ctaBtn}>开始使用 WebChat</Link>
               <Link to="/" className={styles.ctaLink}>返回首页</Link>
+              <a href="https://github.com/DingdingOvO/webchat" target="_blank" rel="noopener noreferrer" className={styles.ctaLink}>GitHub</a>
             </div>
           </article>
 
-          {/* Right sidebar — on this page */}
+          {/* =============== Right sidebar =============== */}
           <aside className={styles.onThisPage}>
             <span className={styles.onThisPageTitle}>本页内容</span>
             {SECTIONS.flatMap(s => s.children).map(c => (
               <a key={c.id} href={`#${c.id}`}
                 className={`${styles.onThisPageItem} ${activeSection === c.id ? styles.onThisPageItemActive : ''}`}
-                onClick={(e) => { e.preventDefault(); setActiveSection(c.id); document.getElementById(c.id)?.scrollIntoView({ behavior: 'smooth' }); }}
+                onClick={(e) => { e.preventDefault(); scrollTo(c.id); }}
               >
                 {c.title}
               </a>
