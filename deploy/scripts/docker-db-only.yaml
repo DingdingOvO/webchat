@@ -1,0 +1,42 @@
+# ================================================================
+# Docker Compose — 仅数据库模式
+# 适合本地开发：宿主机运行 Spring Boot，容器只跑数据库
+# 用法: docker compose -f deploy/scripts/docker-db-only.yaml up -d
+#       然后 mvn spring-boot:run
+# ================================================================
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: webchat-mysql-dev
+    restart: unless-stopped
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_dev_data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: webchat2026
+      MYSQL_DATABASE: webchat
+
+  mongodb:
+    image: mongo:7
+    container_name: webchat-mongodb-dev
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_dev_data:/data/db
+
+  redis:
+    image: redis:7-alpine
+    container_name: webchat-redis-dev
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_dev_data:/data
+
+volumes:
+  mysql_dev_data:
+  mongo_dev_data:
+  redis_dev_data:

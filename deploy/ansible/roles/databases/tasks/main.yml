@@ -1,0 +1,42 @@
+---
+- name: 安装 MySQL
+  apt:
+    name: mysql-server
+    state: present
+
+- name: 启动并启用 MySQL
+  systemd:
+    name: mysql
+    state: started
+    enabled: yes
+
+- name: 安装 MongoDB
+  apt:
+    name: mongodb-mongosh
+    state: present
+
+- name: 安装 Redis
+  apt:
+    name: redis-server
+    state: present
+
+- name: 启动并启用 Redis
+  systemd:
+    name: redis-server
+    state: started
+    enabled: yes
+
+- name: 初始化 MySQL 数据库
+  mysql_db:
+    name: "{{ mysql_database }}"
+    state: present
+    encoding: utf8mb4
+    collation: utf8mb4_unicode_ci
+
+- name: 设置 MySQL root 密码
+  mysql_user:
+    name: root
+    host: localhost
+    password: "{{ mysql_root_password }}"
+    priv: "*.*:ALL,GRANT"
+    state: present

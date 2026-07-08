@@ -1,0 +1,52 @@
+---
+- name: 安装 Node.js
+  shell: |
+    curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
+    apt-get install -y nodejs
+  args:
+    creates: /usr/bin/node
+
+- name: 安装前端依赖
+  shell: |
+    cd /tmp/webchat-build/frontend
+    npm ci
+  args:
+    chdir: /tmp/webchat-build/frontend
+    creates: /tmp/webchat-build/frontend/node_modules
+
+- name: 构建前端
+  shell: |
+    cd /tmp/webchat-build/frontend
+    npm run build
+  args:
+    chdir: /tmp/webchat-build/frontend
+    creates: /tmp/webchat-build/frontend/dist
+
+- name: 复制前端构建产物
+  copy:
+    src: /tmp/webchat-build/frontend/dist/
+    dest: "{{ webchat_home }}/frontend/dist/"
+    owner: "{{ webchat_user }}"
+    group: "{{ webchat_group }}"
+
+- name: 安装 Nginx 配置
+  template:
+    src: webchat.nginx.j2
+    dest: /etc/nginx/sites-available/webchat.conf
+
+- name: 启用 Nginx 站点
+  file:
+    src: /etc/nginx/sites-available/webchat.conf
+    dest: /etc/nginx/sites-enabled/webchat.conf
+    state: link
+
+- name: 移除默认站点
+  file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+
+- name: 重启 Nginx
+  systemd:
+    name: nginx
+    state: restarted
+    enabled: yes

@@ -7,6 +7,8 @@ frontend/dist/
 *.png
 *.yaml
 !docker-compose.yaml
+!deploy/**/*.yaml
+!deploy/**/*.yml
 frontend/ssl/
 nohup.out
 .playwright-cli/

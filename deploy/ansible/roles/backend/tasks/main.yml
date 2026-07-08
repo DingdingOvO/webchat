@@ -1,0 +1,37 @@
+---
+- name: 克隆项目代码
+  git:
+    repo: "{{ github_repo }}"
+    dest: /tmp/webchat-build
+    version: main
+    force: yes
+
+- name: 构建后端 JAR
+  shell: |
+    cd /tmp/webchat-build
+    mvn clean package -DskipTests
+  args:
+    creates: /tmp/webchat-build/target/*.jar
+  environment:
+    JAVA_HOME: /usr/lib/jvm/java-21-openjdk-amd64
+
+- name: 复制 JAR 到目标目录
+  copy:
+    src: "/tmp/webchat-build/target/webchat-server-{{ webchat_version }}.jar"
+    dest: "{{ webchat_home }}/app.jar"
+    owner: "{{ webchat_user }}"
+    group: "{{ webchat_group }}"
+    mode: '0755'
+  notify: restart webchat
+
+- name: 安装 Systemd 服务
+  template:
+    src: webchat.service.j2
+    dest: /etc/systemd/system/webchat.service
+  notify: reload systemd
+
+- name: 启动并启用 webchat 服务
+  systemd:
+    name: webchat
+    state: started
+    enabled: yes

@@ -1,0 +1,33 @@
+# ================================================================
+# Railway 部署配置
+# 使用 Railway 的 Nixpacks 自动检测构建
+# Push 到 GitHub 后，在 Railway 面板连接仓库即可自动部署
+# ================================================================
+
+[build]
+  builder = "nixpacks"
+  buildCommand = "cd frontend && npm ci && npm run build && cd .. && mvn clean package -DskipTests"
+
+[deploy]
+  numReplicas = 1
+  startCommand = "java -jar target/webchat-server-*.jar"
+  healthcheckPath = "/actuator/health"
+  healthcheckTimeout = 60
+
+# 环境变量在 Railway Dashboard 中设置:
+# RAILWAY_ENVIRONMENT=production
+# MYSQL_HOST=     ← 使用 Railway MySQL 插件
+# MYSQL_PORT=3306
+# MYSQL_USER=root
+# MYSQL_PASSWORD= ← Railway 自动提供
+# MYSQL_DATABASE=webchat
+# MONGO_HOST=     ← 使用 Railway MongoDB 插件
+# MONGO_PORT=27017
+# REDIS_HOST=     ← 使用 Railway Redis 插件
+# REDIS_PORT=6379
+# JWT_SECRET=your-jwt-secret
+
+# 前置依赖（在 Railway Dashboard 中添加）:
+# 1. MySQL 插件
+# 2. MongoDB 插件
+# 3. Redis 插件
