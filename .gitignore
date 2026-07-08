@@ -1,0 +1,11 @@
+node_modules/
+target/
+dist/
+*.log
+.DS_Store
+frontend/dist/
+*.png
+*.yaml
+frontend/ssl/
+nohup.out
+.playwright-cli/
