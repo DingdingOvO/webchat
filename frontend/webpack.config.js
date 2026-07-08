@@ -12,7 +12,10 @@ module.exports = (env, argv) => {
       clean: true,
     },
     resolve: {
-      extensions: ['.ts', '.tsx', '.js', '.jsx'],
+      extensions: ['.ts', '.tsx', '.js', '.jsx', '.md'],
+      alias: {
+        '@docs': path.resolve(__dirname, '../docs'),
+      },
     },
     module: {
       rules: [
@@ -45,6 +48,10 @@ module.exports = (env, argv) => {
               use: ['style-loader', 'css-loader'],
             },
           ],
+        },
+        {
+          test: /\.md$/,
+          type: 'asset/source',
         },
       ],
     },
