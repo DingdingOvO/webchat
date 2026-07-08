@@ -487,10 +487,118 @@ def suite_message_order_and_dedup(users, edges, groups):
         ok(f'完整性: {total_stored} 条消息, 0 重复')
     return total_stored
 
+def suite_concurrent_messages(users):
+    """并发消息发送测试（多线程同时发送）"""
+    print(f'\n{"="*60}')
+    print(f'[9] 并发消息压力测试')
+    print(f'{"="*60}')
+
+    errors = []
+    def send_worker(sender, receiver, idx):
+        try:
+            ws = websocket.create_connection(f'{WS_BASE}?token={sender["token"]}', timeout=5)
+            ws.send(json.dumps({
+                'type': 'p2p', 'receiverId': receiver['id'],
+                'content': f'CONCUR:{sender["nickname"]}->{receiver["nickname"]} #{idx} [{TAG}]'
+            }))
+            ws.close()
+        except Exception as e:
+            with lock: errors.append(str(e))
+
+    threads = []
+    concurrency = 5  # 5 concurrent pairs
+    for i in range(concurrency):
+        s = users[i * 2]
+        r = users[i * 2 + 1]
+        for j in range(4):  # each sends 4 messages
+            t = threading.Thread(target=send_worker, args=(s, r, j))
+            threads.append(t)
+            t.start()
+
+    for t in threads:
+        t.join()
+
+    time.sleep(2)
+
+    if not errors:
+        ok(f'并发: {concurrency} 对 x 4条 = {concurrency*4} 条全部成功')
+    else:
+        fail(f'并发: {len(errors)} 个错误: {errors[0][:80]}')
+
+    # Verify stored
+    stored = 0
+    for i in range(concurrency):
+        s, r = users[i * 2], users[i * 2 + 1]
+        ck = conv_key_p2p(s['id'], r['id'])
+        msgs = api('GET', f'/api/chat/messages?convKey={quote(ck)}', None, s['token'])
+        if isinstance(msgs, list):
+            concur_msgs = [m for m in msgs if 'CONCUR:' in m.get('content', '') and TAG in m.get('content', '')]
+            stored += len(concur_msgs)
+
+    if stored >= concurrency * 4 - 1:
+        ok(f'并发存储: {stored}/{concurrency*4} 条持久化')
+    else:
+        fail(f'并发存储: 仅 {stored}/{concurrency*4} 条')
+    return concurrency * 4
+
+def suite_settings_api(users):
+    """用户设置 API 测试"""
+    print(f'\n{"="*60}')
+    print(f'[10] 用户设置 API')
+    print(f'{"="*60}')
+
+    u0 = users[0]
+    orig_name = u0['username']
+
+    # Change username
+    r = api('PUT', '/api/users/profile/username',
+            {'username': orig_name + '_renamed'}, u0['token'])
+    if isinstance(r, dict) and r.get('ok'):
+        ok('设置: 修改用户名成功')
+    else:
+        fail(f'设置: 修改用户名失败 {r}')
+
+    # Change back
+    api('PUT', '/api/users/profile/username', {'username': orig_name}, u0['token'])
+
+    # Too short username
+    r2 = api('PUT', '/api/users/profile/username', {'username': 'ab'}, u0['token'])
+    if isinstance(r2, dict) and r2.get('_error'):
+        ok('设置: 过短用户名被拒绝')
+    else:
+        fail('设置: 过短用户名应被拒绝')
+
+    # Change password
+    r3 = api('PUT', '/api/users/profile/password',
+             {'oldPassword': 'pass1234', 'newPassword': 'newpass' + TAG[-4:]}, u0['token'])
+    if isinstance(r3, dict) and r3.get('ok'):
+        ok('设置: 修改密码成功')
+    else:
+        fail(f'设置: 修改密码失败 {r3}')
+
+    # Change back
+    api('PUT', '/api/users/profile/password',
+        {'oldPassword': 'newpass' + TAG[-4:], 'newPassword': 'pass1234'}, u0['token'])
+
+    # Wrong old password
+    r4 = api('PUT', '/api/users/profile/password',
+             {'oldPassword': 'wrongpass', 'newPassword': 'newpass'}, u0['token'])
+    if isinstance(r4, dict) and '_error' in r4:
+        ok('设置: 错误原密码被拒绝')
+    else:
+        fail('设置: 错误原密码应被拒绝')
+
+    # Unauthenticated settings request
+    r5 = api('PUT', '/api/users/profile/username', {'username': 'hacker'})
+    if isinstance(r5, dict) and r5.get('_code') == 401:
+        ok('设置: 未认证请求被拒绝 (401)')
+    else:
+        fail('设置: 未认证应返回 401')
+
 def suite_main_summary(users, edges, groups, p2p_sent, group_sent, ws_ok):
     """最终汇总"""
     print(f'\n{"="*60}')
-    print(f'[9] \u603b\u7ed3\u62a5\u544a')
+    print(f'[11] \u603b\u7ed3\u62a5\u544a')
     print(f'{"="*60}')
 
     # Count all stored messages
@@ -542,14 +650,20 @@ def main():
     # Phase 5: Integrity
     suite_message_order_and_dedup(users, edges, groups)
 
-    # Phase 6: Summary
+    # Phase 6: Concurrent stress
+    concurrency_total = suite_concurrent_messages(users)
+
+    # Phase 7: Settings API
+    suite_settings_api(users)
+
+    # Phase 8: Summary
     suite_main_summary(users, edges, groups, p2p_sent, group_sent, ws_ok)
 
     # Summary
-    total_sent = p2p_sent + group_sent
+    total_sent = p2p_sent + group_sent + concurrency_total
     print('\n' + '=' * 60)
     print(f'  暴力测试完成')
-    print(f'  共发送: {total_sent} 条消息')
+    print(f'  共发送: {total_sent} 条消息 + 设置测试')
     print(f'  通过: {PASS}  |  失败: {FAIL}')
     print(f'  状态: {"✅ 全部通过" if FAIL == 0 else "❌ 存在失败"}')
     print('=' * 60)

@@ -37,7 +37,6 @@ public class WebSocketSessionManager {
     public WebSocketSession getSession(Long userId) {
         var map = sessions.get(userId);
         if (map == null || map.isEmpty()) return null;
-        // 返回第一个可用会话
         return map.values().stream().filter(WebSocketSession::isOpen).findFirst().orElse(null);
     }
 

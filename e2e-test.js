@@ -269,6 +269,47 @@ async function typeAndSend(page, text) {
     fail('API确认: 未找到消息记录');
   }
 
+  // ==================== 8. Group chat E2E ====================
+  console.log('\n[8] 群组聊天测试');
+
+  // Create group via API, then verify UI reflects it
+  var group = await api('POST', '/api/users/groups', { name: 'E2E群组_' + TAG, memberIds: [rB.userId] }, rA.token);
+  if (group && group.id) {
+    ok('群组创建成功 ID=' + group.id + ' 成员=' + group.memberCount);
+
+    // Alice sends group message via WS
+    var wsUrl = 'ws://127.0.0.1:8080/ws/chat?token=' + rA.token;
+    var ws = new (require('ws'))(wsUrl);
+    await new Promise(function(resolve) { ws.on('open', resolve); setTimeout(resolve, 2000); });
+    ws.send(JSON.stringify({ type: 'group', receiverId: group.id, content: '大家好，这是群组E2E测试消息！' }));
+    ws.close();
+    await sleep(2000);
+
+    // Verify via API
+    var gMsgs = await api('GET', '/api/chat/messages?convKey=group:' + group.id, null, rA.token);
+    if (Array.isArray(gMsgs) && gMsgs.length >= 1) {
+      ok('群组: 消息已存储（' + gMsgs.length + '条）');
+    } else {
+      fail('群组: 消息未存储');
+    }
+  } else {
+    fail('群组: 创建失败');
+  }
+
+  // ==================== 9. Settings page E2E ====================
+  console.log('\n[9] 设置页面测试');
+
+  // Navigate to settings page
+  await pageA.goto(BASE + '/app/settings');
+  await pageA.waitForTimeout(2000);
+  var settingsBody = await pageA.textContent('body');
+  if (settingsBody && (settingsBody.indexOf('设置') >= 0 || settingsBody.indexOf('用户名') >= 0)) {
+    ok('设置页: 页面渲染正确');
+  } else {
+    fail('设置页: 页面渲染异常');
+  }
+  await pageA.screenshot({ path: '/workspace/webchat/settings-page.png' });
+
   // ==================== Cleanup ====================
   await browser.close();
 

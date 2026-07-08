@@ -1,12 +1,12 @@
 package com.webchat.controller;
 
-import com.webchat.model.User;
+import com.webchat.dto.MessageDTO;
 import com.webchat.service.AuthService;
 import com.webchat.service.ChatService;
-import org.springframework.http.ResponseEntity;
+import com.webchat.util.UnauthorizedException;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/chat")
@@ -21,13 +21,12 @@ public class ChatController {
     }
 
     @GetMapping("/messages")
-    public ResponseEntity<?> messages(@RequestParam("convKey") String convKey,
-                                       @RequestHeader("Authorization") String auth) {
-        try {
-            authService.validateToken(auth.replace("Bearer ", ""));
-            return ResponseEntity.ok(chatService.getMessages(convKey));
-        } catch (Exception e) {
-            return ResponseEntity.status(401).body(Map.of("error", "未授权"));
+    public List<MessageDTO> messages(@RequestParam("convKey") String convKey,
+                                      @RequestHeader("Authorization") String auth) {
+        if (auth == null || !auth.startsWith("Bearer ")) {
+            throw new UnauthorizedException("未授权");
         }
+        authService.validateToken(auth.substring(7));
+        return chatService.getMessages(convKey);
     }
 }

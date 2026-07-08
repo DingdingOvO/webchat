@@ -5,10 +5,12 @@ import com.webchat.dto.LoginRequest;
 import com.webchat.dto.RegisterRequest;
 import com.webchat.model.User;
 import com.webchat.service.AuthService;
+import com.webchat.util.UnauthorizedException;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -22,41 +24,27 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest req) {
-        try {
-            AuthResponse res = authService.register(req);
-            return ResponseEntity.ok(res);
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
-        }
+    public AuthResponse register(@Valid @RequestBody RegisterRequest req) {
+        return authService.register(req);
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest req) {
-        try {
-            AuthResponse res = authService.login(req);
-            return ResponseEntity.ok(res);
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
-        }
+    public AuthResponse login(@Valid @RequestBody LoginRequest req) {
+        return authService.login(req);
     }
 
     @GetMapping("/me")
     public ResponseEntity<?> me(@RequestHeader(value = "Authorization", required = false) String auth) {
         if (auth == null || !auth.startsWith("Bearer ")) {
-            return ResponseEntity.status(401).body(Map.of("error", "未授权"));
+            throw new UnauthorizedException("未授权");
         }
-        try {
-            String token = auth.replace("Bearer ", "");
-            User user = authService.validateToken(token);
-            var resp = new java.util.HashMap<String, Object>();
-            resp.put("id", user.getId());
-            resp.put("username", user.getUsername());
-            resp.put("nickname", user.getNickname());
-            resp.put("avatar", user.getAvatar() != null ? user.getAvatar() : "");
-            return ResponseEntity.ok(resp);
-        } catch (Exception e) {
-            return ResponseEntity.status(401).body(Map.of("error", "未授权"));
-        }
+        String token = auth.substring(7);
+        User user = authService.validateToken(token);
+        var resp = new HashMap<String, Object>();
+        resp.put("id", user.getId());
+        resp.put("username", user.getUsername());
+        resp.put("nickname", user.getNickname());
+        resp.put("avatar", user.getAvatar() != null ? user.getAvatar() : "");
+        return ResponseEntity.ok(resp);
     }
 }

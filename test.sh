@@ -35,6 +35,7 @@ assert_contains() {
 echo ""
 echo "=========================================="
 echo " WebChat 功能测试 (时间戳: $TS)"
+echo "  8个模块 → 9个模块 (新增: 用户设置)"
 echo "=========================================="
 echo ""
 
@@ -158,9 +159,59 @@ assert_contains "无效 token 拒绝" "未授权" "$R13"
 
 assert_eq "无认证返回 401" "401" "$(curl -s -o /dev/null -w '%{http_code}' $BASE/api/auth/me)"
 
-# ---- 8. 综合 ----
+# 扩展安全校验
+R13b=$(curl -s "$BASE/api/users/friends" \
+  -H "Authorization: Bearer ")
+assert_contains "空 token 拒绝" "未授权" "$R13b"
+
+R13c=$(curl -s "$BASE/api/users/search?q=test" \
+  -H "Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.malformed")
+assert_contains "伪造 token 拒绝" "未授权" "$R13c"
+
+# ---- 8. Settings ----
 echo ""
-echo "【8/8】综合验证"
+echo "【8/9】用户设置"
+R15=$(curl -s -X PUT "$BASE/api/users/profile/username" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $AUTH" \
+  -d "{\"username\":\"${U1}_renamed\"}")
+assert_contains "修改用户名成功" "true" "$R15"
+
+# 改回原用户名
+curl -s -X PUT "$BASE/api/users/profile/username" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $AUTH" \
+  -d "{\"username\":\"$U1\"}" > /dev/null
+
+# 过短用户名
+R15b=$(curl -s -X PUT "$BASE/api/users/profile/username" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $AUTH" \
+  -d "{\"username\":\"ab\"}")
+assert_contains "过短用户名拒绝" "至少" "$R15b"
+
+R16=$(curl -s -X PUT "$BASE/api/users/profile/password" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $AUTH" \
+  -d "{\"oldPassword\":\"test1234\",\"newPassword\":\"newpass5678\"}")
+assert_contains "修改密码成功" "true" "$R16"
+
+# 改回原密码
+curl -s -X PUT "$BASE/api/users/profile/password" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $AUTH" \
+  -d "{\"oldPassword\":\"newpass5678\",\"newPassword\":\"test1234\"}" > /dev/null
+
+# 错误原密码
+R16b=$(curl -s -X PUT "$BASE/api/users/profile/password" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $AUTH" \
+  -d "{\"oldPassword\":\"wrongpass\",\"newPassword\":\"newpass5678\"}")
+assert_contains "错误原密码拒绝" "错误" "$R16b"
+
+# ---- 9. 综合 ----
+echo ""
+echo "【9/9】综合验证"
 R14=$(curl -s "$BASE/api/auth/me" \
   -H "Authorization: Bearer $AUTH")
 assert_contains "获取当前用户" "$U1" "$R14"
