@@ -7,6 +7,7 @@ import RegisterPage from './pages/RegisterPage';
 import ChatPage from './pages/ChatPage';
 import SettingsPage from './pages/SettingsPage';
 import DocsPage from './pages/DocsPage';
+import FeedbackPage from './pages/FeedbackPage';
 import styles from './App.module.css';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -39,6 +40,7 @@ export default function App() {
               <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
               <Route path="/register" element={<PublicRoute><RegisterPage /></PublicRoute>} />
               <Route path="/docs" element={<DocsPage />} />
+              <Route path="/feedback" element={<FeedbackPage />} />
 
               {/* 应用（需登录） */}
               <Route path="/app" element={<ProtectedRoute><Navigate to="/app/chat" replace /></ProtectedRoute>} />

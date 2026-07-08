@@ -88,6 +88,7 @@ export default function DocsPage() {
           <nav className={styles.topbarNav}>
             <Link to="/" className={styles.topbarLink}>首页</Link>
             <span className={styles.topbarLinkActive}>文档</span>
+            <Link to="/feedback" className={styles.topbarLink}>反馈</Link>
             <Link to="/login" className={styles.topbarLink}>登录</Link>
           </nav>
         </div>

@@ -11,6 +11,7 @@ export default function LandingPage() {
           <span className={styles.logoText}>WebChat</span>
           <div className={styles.navLinks}>
             <Link to="/docs" className={styles.navLink}>文档</Link>
+            <Link to="/feedback" className={styles.navLink}>反馈</Link>
             <Link to="/login" className={styles.navLink}>登录</Link>
             <Link to="/register" className={styles.navBtn}>开始使用</Link>
           </div>
@@ -78,6 +79,8 @@ export default function LandingPage() {
         <div className={styles.footerInner}>
           <div className={styles.footerLinks}>
             <Link to="/docs" className={styles.footerLink}>文档</Link>
+            <span className={styles.footerDot}>·</span>
+            <Link to="/feedback" className={styles.footerLink}>反馈</Link>
             <span className={styles.footerDot}>·</span>
             <Link to="/login" className={styles.footerLink}>登录</Link>
             <span className={styles.footerDot}>·</span>
