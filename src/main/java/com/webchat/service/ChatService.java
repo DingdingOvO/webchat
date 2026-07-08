@@ -45,11 +45,19 @@ public class ChatService {
         String convKey = conversationKey(type, senderId, receiverId);
         User sender = userRepo.findById(senderId).orElseThrow();
 
-        MessageDoc doc = new MessageDoc(senderId, sender.getNickname(), convKey, type, content);
+        // 群聊权限检查：只有群成员才能发送
+        if ("GROUP".equals(type)) {
+            List<Long> memberIds = groupService.getGroupMemberIds(receiverId);
+            if (!memberIds.contains(senderId)) {
+                throw new RuntimeException("你不是该群成员，无法发送消息");
+            }
+        }
+
+        MessageDoc doc = new MessageDoc(senderId, sender.getNickname(), receiverId, convKey, type, content);
         doc = msgRepo.save(doc);
 
         MessageDTO dto = new MessageDTO(
-                null, senderId, sender.getNickname(), receiverId, type, content, doc.getCreatedAt());
+                doc.getId(), senderId, sender.getNickname(), receiverId, type, content, doc.getCreatedAt());
 
         try {
             stateStore.pushHotMessage(convKey, mapper.writeValueAsString(dto));
@@ -82,8 +90,8 @@ public class ChatService {
         }
         List<MessageDoc> docs = msgRepo.findByConversationKeyOrderByCreatedAtAsc(conversationKey);
         return docs.stream().map(d -> new MessageDTO(
-                null, d.getSenderId(), d.getSenderName(),
-                null, d.getType(), d.getContent(), d.getCreatedAt()))
+                d.getId(), d.getSenderId(), d.getSenderName(),
+                d.getReceiverId(), d.getType(), d.getContent(), d.getCreatedAt()))
                 .collect(Collectors.toList());
     }
 }

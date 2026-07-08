@@ -190,8 +190,8 @@ GET /api/chat/messages?convKey=X
 ```
 
 `convKey` 是会话键，格式为：
-- `P2P:{minUserId}-{maxUserId}` — 私聊
-- `GROUP:{groupId}` — 群聊
+- `p2p:{minUserId}:{maxUserId}` — 私聊（小的用户 ID 在前）
+- `group:{groupId}` — 群聊
 
 消息优先从 Redis 热缓存读取，未命中则回源 MongoDB。
 

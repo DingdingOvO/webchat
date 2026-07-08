@@ -35,7 +35,7 @@ function CreateGroupModal({ friends, onClose, onCreated }: {
     if (!name.trim() || !auth) return;
     setLoading(true);
     try {
-      const res = await fetch('/api/users/groups', {
+      const res = await fetch('/api/groups', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${auth.token}` },
         body: JSON.stringify({ name: name.trim(), memberIds: Array.from(selected) }),
@@ -129,7 +129,7 @@ function ChatPageInner() {
       try {
         const [fRes, gRes, pRes] = await Promise.all([
           fetch('/api/users/friends', { headers: { Authorization: `Bearer ${auth.token}` } }),
-          fetch('/api/users/groups', { headers: { Authorization: `Bearer ${auth.token}` } }),
+          fetch('/api/groups', { headers: { Authorization: `Bearer ${auth.token}` } }),
           fetch('/api/users/friend-requests/pending', { headers: { Authorization: `Bearer ${auth.token}` } }),
         ]);
         if (!fRes.ok || !gRes.ok) return;
@@ -292,9 +292,7 @@ function ChatPageInner() {
   function goBack() { setShowChat(false); }
 
   const sortedFriends = useMemo(() => {
-    return [...friends]
-      .filter((f) => /^[a-zA-Z]/.test(f.username))
-      .sort((a, b) => a.username.localeCompare(b.username));
+    return [...friends].sort((a, b) => a.username.localeCompare(b.username));
   }, [friends]);
 
   /* ---- render ---- */

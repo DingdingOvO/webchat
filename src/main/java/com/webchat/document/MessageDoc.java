@@ -19,6 +19,9 @@ public class MessageDoc {
 
     private String senderName;
 
+    /** 接收方 ID（P2P 为用户 ID，GROUP 为群组 ID） */
+    private Long receiverId;
+
     /**
      * 会话键：P2P 格式 "p2p:{uid1}:{uid2}"（uid1 < uid2），GROUP 格式 "group:{groupId}"
      */
@@ -35,9 +38,10 @@ public class MessageDoc {
 
     public MessageDoc() {}
 
-    public MessageDoc(Long senderId, String senderName, String conversationKey, String type, String content) {
+    public MessageDoc(Long senderId, String senderName, Long receiverId, String conversationKey, String type, String content) {
         this.senderId = senderId;
         this.senderName = senderName;
+        this.receiverId = receiverId;
         this.conversationKey = conversationKey;
         this.type = type;
         this.content = content;
@@ -50,6 +54,8 @@ public class MessageDoc {
     public void setSenderId(Long senderId) { this.senderId = senderId; }
     public String getSenderName() { return senderName; }
     public void setSenderName(String senderName) { this.senderName = senderName; }
+    public Long getReceiverId() { return receiverId; }
+    public void setReceiverId(Long receiverId) { this.receiverId = receiverId; }
     public String getConversationKey() { return conversationKey; }
     public void setConversationKey(String conversationKey) { this.conversationKey = conversationKey; }
     public String getType() { return type; }

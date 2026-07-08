@@ -39,7 +39,7 @@ export default function LandingPage() {
             </Link>
           </div>
           <div className={styles.heroBadge}>
-            <span className={styles.badgeDot} />
+            <span className={styles.heroBadgeDot} />
             当前在线 · 实时通讯
           </div>
         </div>
