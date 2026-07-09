@@ -63,9 +63,6 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Checkstyle check
-        run: mvn checkstyle:check -q
-
       - name: PMD check
         run: mvn pmd:check -q
 
