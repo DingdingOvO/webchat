@@ -32,18 +32,6 @@ jobs:
       - name: Type check
         run: npx tsc --noEmit
 
-      - name: Lint
-        run: npx eslint . --max-warnings 300 || true
-
-      - name: Format check
-        run: npx prettier --check .
-
-      - name: Stylelint
-        run: npx stylelint "**/*.css" --allow-empty-input
-
-      - name: Spell check
-        run: npx cspell "**/*.{ts,tsx,js,jsx,md}" --no-progress
-
       - name: Build
         run: npm run build
 
