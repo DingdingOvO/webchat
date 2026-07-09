@@ -5,9 +5,9 @@ import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import ChatPage from './pages/ChatPage';
-import SettingsPage from './pages/SettingsPage';
 import DocsPage from './pages/DocsPage';
 import FeedbackPage from './pages/FeedbackPage';
+import SettingsPage from './pages/SettingsPage';
 import styles from './App.module.css';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
