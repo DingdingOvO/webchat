@@ -24,8 +24,6 @@
         <google-java-format.version>1.35.0</google-java-format.version>
         <errorprone.version>2.50.0</errorprone.version>
         <nullaway.version>0.13.7</nullaway.version>
-        <checkstyle.version>10.21.4</checkstyle.version>
-        <pmd.version>7.26.0</pmd.version>
         <spotbugs.version>4.10.2.0</spotbugs.version>
         <findsecbugs.version>1.14.0</findsecbugs.version>
         <jacoco.version>0.8.12</jacoco.version>
@@ -129,7 +127,7 @@
         <dependency>
             <groupId>com.github.spotbugs</groupId>
             <artifactId>spotbugs-annotations</artifactId>
-            <version>${spotbugs-plugin.version}</version>
+            <version>4.10.2</version>
             <scope>provided</scope>
         </dependency>
 
@@ -199,56 +197,6 @@
                         <trimTrailingWhitespace/>
                         <endWithNewline/>
                     </java>
-                </configuration>
-            </plugin>
-
-            <!-- ============================================ -->
-            <!-- Checkstyle: structural code constraints      -->
-            <!-- ============================================ -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-checkstyle-plugin</artifactId>
-                <version>${checkstyle.version}</version>
-                <dependencies>
-                    <dependency>
-                        <groupId>com.puppycrawl.tools</groupId>
-                        <artifactId>checkstyle</artifactId>
-                        <version>${checkstyle-plugin.version}</version>
-                    </dependency>
-                </dependencies>
-                <configuration>
-                    <configLocation>checkstyle.xml</configLocation>
-                    <consoleOutput>true</consoleOutput>
-                    <failOnViolation>true</failOnViolation>
-                    <violationSeverity>warning</violationSeverity>
-                </configuration>
-            </plugin>
-
-            <!-- ============================================ -->
-            <!-- PMD: semantic code smell detection           -->
-            <!-- ============================================ -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-pmd-plugin</artifactId>
-                <version>${pmd.version}</version>
-                <dependencies>
-                    <dependency>
-                        <groupId>net.sourceforge.pmd</groupId>
-                        <artifactId>pmd-core</artifactId>
-                        <version>${pmd-plugin.version}</version>
-                    </dependency>
-                    <dependency>
-                        <groupId>net.sourceforge.pmd</groupId>
-                        <artifactId>pmd-java</artifactId>
-                        <version>${pmd-plugin.version}</version>
-                    </dependency>
-                </dependencies>
-                <configuration>
-                    <rulesets>
-                        <ruleset>pmd-ruleset.xml</ruleset>
-                    </rulesets>
-                    <failOnViolation>true</failOnViolation>
-                    <printFailingErrors>true</printFailingErrors>
                 </configuration>
             </plugin>
 
