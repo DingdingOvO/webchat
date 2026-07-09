@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import { createContext, type ReactNode, useContext, useEffect, useState } from 'react';
 import type { AuthInfo } from '../types';
 
 const AUTH_KEY = 'webchat_auth';
@@ -16,7 +16,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const raw = localStorage.getItem(AUTH_KEY);
       return raw ? JSON.parse(raw) : null;
-    } catch { return null; }
+    } catch {
+      return null;
+    }
   });
 
   function setAuth(a: AuthInfo | null) {
@@ -38,16 +40,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           headers: { Authorization: `Bearer ${auth.token}` },
         });
         if (!res.ok) setAuth(null);
-      } catch { setAuth(null); }
+      } catch {
+        setAuth(null);
+      }
     }, 60000);
     return () => clearInterval(id);
-  }, [auth]);
+  }, [auth, setAuth]);
 
-  return (
-    <AuthContext.Provider value={{ auth, setAuth, logout }}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={{ auth, setAuth, logout }}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {

@@ -31,7 +31,9 @@
   cursor: pointer;
   transition: background var(--fast);
 }
-.backBtn:hover { background: var(--bg-hover); }
+.backBtn:hover {
+  background: var(--bg-hover);
+}
 
 .title {
   font-size: var(--fs-lg);
@@ -47,8 +49,14 @@
   top: 52px;
   z-index: 9;
 }
-.msgOk { background: var(--green-bg); color: var(--green); }
-.msgErr { background: var(--red-bg); color: var(--red); }
+.msgOk {
+  background: var(--green-bg);
+  color: var(--green);
+}
+.msgErr {
+  background: var(--red-bg);
+  color: var(--red);
+}
 
 .body {
   padding: var(--p6) var(--p5);
@@ -57,14 +65,15 @@
   gap: var(--p8);
 }
 
-.section {}
+.section {
+}
 
 .sectionTitle {
   font-size: var(--fs-sm);
   font-weight: var(--weight-semibold);
   color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: .03em;
+  letter-spacing: 0.03em;
   margin-bottom: var(--p4);
 }
 
@@ -104,7 +113,7 @@
 .avatarOverlay {
   position: absolute;
   inset: 0;
-  background: rgba(0,0,0,.4);
+  background: rgba(0, 0, 0, 0.4);
   color: var(--white);
   display: flex;
   align-items: center;
@@ -114,7 +123,9 @@
   opacity: 0;
   transition: opacity var(--fast);
 }
-.avatarPreview:hover .avatarOverlay { opacity: 1; }
+.avatarPreview:hover .avatarOverlay {
+  opacity: 1;
+}
 
 .hint {
   font-size: var(--fs-xs);
@@ -145,8 +156,12 @@
   outline: none;
   transition: border-color var(--fast);
 }
-.input:focus { border-color: var(--primary); }
-.input::placeholder { color: var(--text-faint); }
+.input:focus {
+  border-color: var(--primary);
+}
+.input::placeholder {
+  color: var(--text-faint);
+}
 
 .btn {
   padding: 10px 20px;
@@ -160,5 +175,10 @@
   white-space: nowrap;
   transition: background var(--fast);
 }
-.btn:hover { background: var(--primary-hover); }
-.btn:disabled { opacity: .5; cursor: not-allowed; }
+.btn:hover {
+  background: var(--primary-hover);
+}
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

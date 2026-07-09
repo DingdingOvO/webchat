@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import styles from './AuthPage.module.css';
 
@@ -22,7 +22,11 @@ export default function LoginPage() {
         body: JSON.stringify({ username, password }),
       });
       const data = await res.json();
-      if (!res.ok) { setError(data.error || '登录失败'); setLoading(false); return; }
+      if (!res.ok) {
+        setError(data.error || '登录失败');
+        setLoading(false);
+        return;
+      }
       setAuth(data);
       navigate('/app');
     } catch {
@@ -41,13 +45,25 @@ export default function LoginPage() {
         <div className={styles.form}>
           <div className={styles.field}>
             <label className={styles.label}>用户名</label>
-            <input className={styles.input} type="text" placeholder="输入用户名"
-              value={username} onChange={(e) => setUsername(e.target.value)} required />
+            <input
+              className={styles.input}
+              type="text"
+              placeholder="输入用户名"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              required
+            />
           </div>
           <div className={styles.field}>
             <label className={styles.label}>密码</label>
-            <input className={styles.input} type="password" placeholder="输入密码"
-              value={password} onChange={(e) => setPassword(e.target.value)} required />
+            <input
+              className={styles.input}
+              type="password"
+              placeholder="输入密码"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
           </div>
           <button className={styles.btn} type="submit" disabled={loading}>
             {loading ? '登录中...' : '登录'}

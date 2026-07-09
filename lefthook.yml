@@ -1,29 +1,18 @@
-# lefthook.yml — Git hooks manager for WebChat (frontend + backend)
-# Docs: https://evilmartians.com/chronicles/lefthook-as-an-alternative-to-husky
+# lefthook.yml — Git hooks for WebChat (frontend + backend)
 
 pre-commit:
   parallel: true
   commands:
     frontend-lint:
       root: frontend/
-      glob: "*.{js,jsx,ts,tsx,mjs,cjs}"
-      run: npx eslint --fix {staged_files} || true
-      stage_fixed: true
-
-    frontend-format:
-      root: frontend/
-      glob: "*.{js,jsx,ts,tsx,mjs,cjs,json,css,scss,md}"
-      run: npx prettier --write {staged_files} || true
+      glob: "*.{js,jsx,ts,tsx,cjs}"
+      run: npx biome check --write --unsafe {staged_files} || true
       stage_fixed: true
 
     backend-format:
       glob: "*.java"
       run: mvn spotless:apply -q || true
       stage_fixed: true
-
-    backend-checkstyle:
-      glob: "*.java"
-      run: mvn checkstyle:check -q || true
 
 commit-msg:
   commands:
@@ -33,4 +22,4 @@ commit-msg:
 pre-push:
   commands:
     quality-check:
-      run: make lint typecheck format-check 2>&1 || true
+      run: make lint typecheck 2>&1 || true

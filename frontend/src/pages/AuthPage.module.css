@@ -43,9 +43,17 @@
   margin-bottom: var(--p8);
 }
 
-.form { display: flex; flex-direction: column; gap: var(--p4); }
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--p4);
+}
 
-.field { display: flex; flex-direction: column; gap: var(--px); }
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--px);
+}
 
 .label {
   font-size: var(--fs-xs);
@@ -62,9 +70,13 @@
   font-size: var(--fs-base);
   background: var(--bg-surface);
   color: var(--text);
-  transition: border-color var(--fast), box-shadow var(--fast);
+  transition:
+    border-color var(--fast),
+    box-shadow var(--fast);
 }
-.input::placeholder { color: var(--text-faint); }
+.input::placeholder {
+  color: var(--text-faint);
+}
 .input:focus {
   border-color: var(--primary);
   box-shadow: 0 0 0 3px var(--aero-200);
@@ -81,11 +93,22 @@
   font-weight: var(--weight-medium);
   cursor: pointer;
   margin-top: var(--p2);
-  transition: background var(--fast), transform var(--fast);
+  transition:
+    background var(--fast),
+    transform var(--fast);
 }
-.btn:hover { background: var(--primary-hover); }
-.btn:active { background: var(--primary-press); transform: scale(.99); }
-.btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+.btn:hover {
+  background: var(--primary-hover);
+}
+.btn:active {
+  background: var(--primary-press);
+  transform: scale(0.99);
+}
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
 
 .error {
   color: var(--rose);
@@ -102,4 +125,7 @@
   color: var(--text-muted);
   margin-top: var(--p6);
 }
-.footer a { color: var(--primary); font-weight: var(--weight-medium); }
+.footer a {
+  color: var(--primary);
+  font-weight: var(--weight-medium);
+}

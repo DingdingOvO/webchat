@@ -1,4 +1,4 @@
-import type { MessageDTO, Contact } from '../types';
+import type { Contact, MessageDTO } from '../types';
 
 export interface Conversation {
   key: string;
@@ -19,7 +19,7 @@ export function buildConversations(
     if (msgs.length === 0) continue;
     const last = msgs[msgs.length - 1];
     if (!last) continue;
-    const contact = contacts.find(c => c.key === key);
+    const contact = contacts.find((c) => c.key === key);
     result.push({
       key,
       name: contact?.name || key,

@@ -11,7 +11,7 @@ jobs:
   # Frontend Quality
   # ================================================================
   frontend-quality:
-    name: Frontend — TypeCheck + Lint + Format + Stylelint + Spell
+    name: Frontend — TypeCheck + Biome + Build
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -31,6 +31,9 @@ jobs:
 
       - name: Type check
         run: npx tsc --noEmit
+
+      - name: Biome check
+        run: npx biome check src/
 
       - name: Build
         run: npm run build

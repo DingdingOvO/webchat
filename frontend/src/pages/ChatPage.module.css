@@ -73,9 +73,14 @@
   background: transparent;
   color: var(--text-muted);
   cursor: pointer;
-  transition: background var(--fast), color var(--fast);
+  transition:
+    background var(--fast),
+    color var(--fast);
 }
-.iconBtn:hover { background: var(--bg-hover); color: var(--text); }
+.iconBtn:hover {
+  background: var(--bg-hover);
+  color: var(--text);
+}
 
 /* Tab 切换栏 */
 .tabBar {
@@ -97,13 +102,15 @@
   position: relative;
   transition: color var(--fast);
 }
-.tab:hover { color: var(--text); }
+.tab:hover {
+  color: var(--text);
+}
 .tabActive {
   color: var(--primary);
   font-weight: var(--weight-semibold);
 }
 .tabActive::after {
-  content: '';
+  content: "";
   position: absolute;
   bottom: 0;
   left: 20%;
@@ -135,7 +142,11 @@
   background: var(--bg-surface);
 }
 
-.searchIcon { color: var(--text-faint); flex-shrink: 0; display: flex; }
+.searchIcon {
+  color: var(--text-faint);
+  flex-shrink: 0;
+  display: flex;
+}
 
 .searchInput {
   flex: 1;
@@ -146,7 +157,9 @@
   color: var(--text);
   outline: none;
 }
-.searchInput::placeholder { color: var(--text-faint); }
+.searchInput::placeholder {
+  color: var(--text-faint);
+}
 
 /* 好友请求横幅 */
 .requestBanner {
@@ -161,18 +174,38 @@
   color: var(--primary);
   margin-bottom: var(--px);
 }
-.requestActions { display: flex; flex-direction: column; gap: var(--px); margin-top: var(--px); }
+.requestActions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--px);
+  margin-top: var(--px);
+}
 .requestItem {
-  display: flex; align-items: center; gap: var(--p2);
-  font-size: var(--fs-xs); color: var(--gray-600);
+  display: flex;
+  align-items: center;
+  gap: var(--p2);
+  font-size: var(--fs-xs);
+  color: var(--gray-600);
 }
-.requestAccept, .requestReject {
-  width: 22px; height: 22px;
-  display: flex; align-items: center; justify-content: center;
-  border: none; border-radius: var(--r-sm); cursor: pointer;
+.requestAccept,
+.requestReject {
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: var(--r-sm);
+  cursor: pointer;
 }
-.requestAccept { background: var(--green-bg); color: var(--green); }
-.requestReject { background: var(--red-bg); color: var(--red); }
+.requestAccept {
+  background: var(--green-bg);
+  color: var(--green);
+}
+.requestReject {
+  background: var(--red-bg);
+  color: var(--red);
+}
 
 /* 会话列表 */
 .list {
@@ -189,8 +222,12 @@
   transition: background var(--fast);
   border-bottom: 1px solid var(--border-light);
 }
-.convItem:hover { background: var(--bg-hover); }
-.convItemActive { background: var(--primary-light) !important; }
+.convItem:hover {
+  background: var(--bg-hover);
+}
+.convItemActive {
+  background: var(--primary-light);
+}
 
 .convAvatar {
   width: 44px;
@@ -274,20 +311,37 @@
   border-bottom: 1.5px solid var(--border-light);
 }
 .searchResultItem {
-  display: flex; align-items: center; gap: var(--p2);
-  padding: var(--p2) var(--p4); font-size: var(--fs-sm);
+  display: flex;
+  align-items: center;
+  gap: var(--p2);
+  padding: var(--p2) var(--p4);
+  font-size: var(--fs-sm);
 }
 .searchResultAvatar {
-  width: 28px; height: 28px; border-radius: var(--r-full);
-  background: var(--primary-light); color: var(--primary);
-  display: flex; align-items: center; justify-content: center;
-  font-size: var(--fs-xs); font-weight: var(--weight-semibold);
+  width: 28px;
+  height: 28px;
+  border-radius: var(--r-full);
+  background: var(--primary-light);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--fs-xs);
+  font-weight: var(--weight-semibold);
 }
-.searchResultName { flex: 1; color: var(--text); }
+.searchResultName {
+  flex: 1;
+  color: var(--text);
+}
 .addBtn {
-  padding: 3px 12px; background: var(--primary); color: var(--white);
-  border: none; border-radius: var(--r-sm); font-size: var(--fs-2xs);
-  font-weight: var(--weight-medium); cursor: pointer;
+  padding: 3px 12px;
+  background: var(--primary);
+  color: var(--white);
+  border: none;
+  border-radius: var(--r-sm);
+  font-size: var(--fs-2xs);
+  font-weight: var(--weight-medium);
+  cursor: pointer;
 }
 
 /* 联系人列表 */
@@ -297,7 +351,7 @@
   color: var(--text-faint);
   font-weight: var(--weight-semibold);
   text-transform: uppercase;
-  letter-spacing: .05em;
+  letter-spacing: 0.05em;
 }
 
 .contactItem {
@@ -308,32 +362,51 @@
   cursor: pointer;
   transition: background var(--fast);
 }
-.contactItem:hover { background: var(--bg-hover); }
-.contactItemActive { background: var(--primary-light) !important; }
+.contactItem:hover {
+  background: var(--bg-hover);
+}
+.contactItemActive {
+  background: var(--primary-light);
+}
 
 .contactAvatar {
-  width: 36px; height: 36px; border-radius: var(--r-full);
-  background: var(--primary); color: var(--white);
-  display: flex; align-items: center; justify-content: center;
-  font-size: var(--fs-sm); font-weight: var(--weight-semibold);
+  width: 36px;
+  height: 36px;
+  border-radius: var(--r-full);
+  background: var(--primary);
+  color: var(--white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--fs-sm);
+  font-weight: var(--weight-semibold);
   flex-shrink: 0;
   position: relative;
 }
 .statusDot {
-  position: absolute; bottom: 0; right: 0;
-  width: 10px; height: 10px; border-radius: var(--r-full);
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: var(--r-full);
   border: 2px solid var(--bg-surface);
 }
-.statusOnline { background: var(--green); }
-.statusOffline { background: var(--gray-300); }
+.statusOnline {
+  background: var(--green);
+}
+.statusOffline {
+  background: var(--gray-300);
+}
 
 .contactName {
-  font-size: var(--fs-base); font-weight: var(--weight-medium);
+  font-size: var(--fs-base);
+  font-weight: var(--weight-medium);
   color: var(--text);
 }
 
 .groupAvatar {
-  background: var(--gray-500) !important;
+  background: var(--gray-500);
 }
 
 /* 加载 / 空状态 */
@@ -393,24 +466,44 @@
 
 .chatBackBtn {
   display: none; /* 仅在移动端显示 */
-  width: 32px; height: 32px;
-  align-items: center; justify-content: center;
-  border: none; border-radius: var(--r-sm);
-  background: transparent; color: var(--text-muted);
+  width: 32px;
+  height: 32px;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--text-muted);
   cursor: pointer;
 }
 
 .chatAvatar {
-  width: 36px; height: 36px; border-radius: var(--r-full);
-  background: var(--primary); color: var(--white);
-  display: flex; align-items: center; justify-content: center;
-  font-weight: var(--weight-semibold); font-size: var(--fs-sm);
+  width: 36px;
+  height: 36px;
+  border-radius: var(--r-full);
+  background: var(--primary);
+  color: var(--white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: var(--weight-semibold);
+  font-size: var(--fs-sm);
   flex-shrink: 0;
 }
 
-.chatInfo { flex: 1; min-width: 0; }
-.chatName { font-weight: var(--weight-semibold); font-size: var(--fs-base); color: var(--text); }
-.chatMeta { font-size: var(--fs-xs); color: var(--text-muted); }
+.chatInfo {
+  flex: 1;
+  min-width: 0;
+}
+.chatName {
+  font-weight: var(--weight-semibold);
+  font-size: var(--fs-base);
+  color: var(--text);
+}
+.chatMeta {
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+}
 
 .messages {
   flex: 1;
@@ -439,22 +532,45 @@
   background: var(--bg-input);
   color: var(--text);
   outline: none;
-  transition: border-color var(--fast), background var(--fast);
+  transition:
+    border-color var(--fast),
+    background var(--fast);
 }
-.inputField:focus { border-color: var(--primary); background: var(--bg-surface); }
-.inputField::placeholder { color: var(--text-faint); }
+.inputField:focus {
+  border-color: var(--primary);
+  background: var(--bg-surface);
+}
+.inputField::placeholder {
+  color: var(--text-faint);
+}
 
 .sendBtn {
-  width: 38px; height: 38px;
-  display: flex; align-items: center; justify-content: center;
-  border: none; border-radius: var(--r-full);
-  background: var(--primary); color: var(--white);
-  cursor: pointer; flex-shrink: 0;
-  transition: opacity var(--fast), transform var(--fast);
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: var(--r-full);
+  background: var(--primary);
+  color: var(--white);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition:
+    opacity var(--fast),
+    transform var(--fast);
 }
-.sendBtn:hover { opacity: .9; }
-.sendBtn:active { transform: scale(.95); }
-.sendBtn:disabled { opacity: .3; cursor: not-allowed; transform: none; }
+.sendBtn:hover {
+  opacity: 0.9;
+}
+.sendBtn:active {
+  transform: scale(0.95);
+}
+.sendBtn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  transform: none;
+}
 
 /* ========== Responsive ========== */
 

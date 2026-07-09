@@ -1,4 +1,4 @@
-import { createContext, useContext, useRef, useState, useEffect, useCallback, type ReactNode } from 'react';
+import { createContext, type ReactNode, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { useAuth } from './AuthContext';
 
 type WsMessage = Record<string, unknown>;
@@ -27,7 +27,7 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
     const host = location.host;
     // 保留页面 URL 中的 sandbox 路由参数（预览环境需要）
     const sandboxParams = location.search || '';
-    const wsUrl = `${protocol}//${host}/ws/chat?token=${auth.token}${sandboxParams ? '&' + sandboxParams.slice(1) : ''}`;
+    const wsUrl = `${protocol}//${host}/ws/chat?token=${auth.token}${sandboxParams ? `&${sandboxParams.slice(1)}` : ''}`;
     const ws = new WebSocket(wsUrl);
 
     ws.onopen = () => {
@@ -45,7 +45,9 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
         const action = msg.action as string;
         const handlers = handlersRef.current.get(action);
         if (handlers) handlers.forEach((fn) => fn(msg));
-      } catch { /* ignore parse errors */ }
+      } catch {
+        /* ignore parse errors */
+      }
     };
 
     ws.onclose = () => {
@@ -85,15 +87,13 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
     if (!handlersRef.current.has(action)) {
       handlersRef.current.set(action, new Set());
     }
-    handlersRef.current.get(action)!.add(handler);
-    return () => { handlersRef.current.get(action)?.delete(handler); };
+    handlersRef.current.get(action)?.add(handler);
+    return () => {
+      handlersRef.current.get(action)?.delete(handler);
+    };
   }, []);
 
-  return (
-    <WsContext.Provider value={{ connected, send, subscribe }}>
-      {children}
-    </WsContext.Provider>
-  );
+  return <WsContext.Provider value={{ connected, send, subscribe }}>{children}</WsContext.Provider>;
 }
 
 export function useWs() {
