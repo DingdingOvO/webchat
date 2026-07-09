@@ -16,15 +16,15 @@ export default function FeedbackPage() {
       alignItems: 'center',
       justifyContent: 'center',
       minHeight: '100vh',
-      color: '#868e96',
-      fontSize: 15,
-      gap: 16,
+      color: 'var(--text-faint)',
+      fontSize: 'var(--text-base)',
+      gap: 'var(--p4)',
     }}>
       <span style={{ fontSize: 32 }}>📋</span>
       <span>正在跳转到 Microsoft Forms 反馈页面...</span>
       <a
         href={FEEDBACK_URL}
-        style={{ color: '#2563eb', fontSize: 13 }}
+        style={{ color: 'var(--primary)', fontSize: 'var(--text-sm)' }}
       >
         如果未自动跳转，请点击此处
       </a>

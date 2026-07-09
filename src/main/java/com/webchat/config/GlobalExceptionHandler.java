@@ -1,5 +1,6 @@
 package com.webchat.config;
 
+import com.webchat.util.BusinessException;
 import com.webchat.util.UnauthorizedException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MissingRequestHeaderException;
@@ -19,6 +20,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MissingRequestHeaderException.class)
     public ResponseEntity<?> handleMissingHeader(MissingRequestHeaderException e) {
         return ResponseEntity.status(401).body(Map.of("error", "未授权"));
+    }
+
+    @ExceptionHandler(BusinessException.class)
+    public ResponseEntity<?> handleBusiness(BusinessException e) {
+        return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
     }
 
     @ExceptionHandler(RuntimeException.class)

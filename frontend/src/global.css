@@ -40,32 +40,34 @@
   --gray-800:   #212529;
   --gray-900:   #111827;
 
-  --text:         var(--gray-800);
-  --text-secondary: var(--gray-500);
-  --text-tertiary:  var(--gray-400);
-  --text-faint:     var(--gray-400);
+  --text:             var(--gray-800);
+  --text-secondary:   var(--gray-500);
+  --text-tertiary:    var(--gray-400);
+  --text-faint:       var(--gray-400);
 
-  --border:       var(--gray-200);
-  --border-light: var(--gray-100);
+  --border:           var(--gray-200);
+  --border-light:     var(--gray-100);
 
-  --surface:      var(--white);
-  --background:   var(--gray-50);
-  --bg-chat:      #f8f9fa;
+  --surface:          var(--white);
+  --background:       var(--gray-50);
+  --bg-chat:          #f8f9fa;
 
-  --hover:        var(--gray-100);
-  --active:       var(--gray-200);
+  --hover:            var(--gray-100);
+  --active:           var(--gray-200);
 
   /* ---- 聊天气泡 ---- */
-  --bubble-self:    linear-gradient(135deg, #2563eb, #1d4ed8);
-  --bubble-self-text: var(--white);
-  --bubble-other:   var(--white);
-  --bubble-other-text: var(--text);
+  --bubble-mine-bg:     linear-gradient(135deg, #2563eb, #1d4ed8);
+  --bubble-mine-text:   var(--white);
+  --bubble-mine-shadow: 0 2px 8px rgba(37,99,235,.25);
+  --bubble-other-bg:    var(--white);
+  --bubble-other-text:  var(--text);
+  --bubble-other-shadow: 0 1px 3px rgba(0,0,0,.06);
 
   /* ---- 间距 (4px 网格) ---- */
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
-  --space-4: 16px;   /* 内容安全边距 */
+  --space-4: 16px;
   --space-5: 20px;
   --space-6: 24px;
   --space-8: 32px;
@@ -95,7 +97,34 @@
   --text-2xl:  28px;
   --text-3xl:  36px;
 
-  /* ---- 兼容别名（旧版 --fs-* 仍可用） ---- */
+  --weight-normal: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+
+  --leading-tight: 1.25;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.65;
+
+  --shadow-xs:  0 1px 2px rgba(37,99,235,.04);
+  --shadow-sm:  0 1px 3px rgba(37,99,235,.06);
+  --shadow-md:  0 4px 12px rgba(37,99,235,.08);
+  --shadow-lg:  0 8px 24px rgba(37,99,235,.1);
+  --shadow-xl:  0 12px 40px rgba(0,0,0,.14);
+
+  /* ---- 动画 ---- */
+  --ease:         cubic-bezier(.4,0,.2,1);
+  --ease-out:     cubic-bezier(0,0,.2,1);
+  --ease-in-out:  cubic-bezier(.4,0,.2,1);
+
+  --duration-fast:   .12s;
+  --duration-normal: .2s;
+  --duration-slow:   .35s;
+
+  /* ================================================ */
+  /* 兼容别名（旧版 --fs-* / --p* / --r* / --bg-surface / --aero-* 等） */
+  /* ================================================ */
+
   --fs-2xs: var(--text-xs);
   --fs-xs:  var(--text-xs);
   --fs-sm:  var(--text-sm);
@@ -106,76 +135,40 @@
   --fs-2xl: var(--text-2xl);
   --fs-3xl: var(--text-3xl);
 
-  /* ---- 兼容别名（旧版 --p* / --r* / --weight* / --leading*） ---- */
-  --p1: var(--space-1);
-  --p2: var(--space-2);
-  --p3: var(--space-3);
-  --p4: var(--space-4);
-  --p5: var(--space-5);
-  --p6: var(--space-6);
-  --p8: var(--space-8);
+  --p1:  var(--space-1);
+  --p2:  var(--space-2);
+  --p3:  var(--space-3);
+  --p4:  var(--space-4);
+  --p5:  var(--space-5);
+  --p6:  var(--space-6);
+  --p8:  var(--space-8);
   --p10: var(--space-10);
   --p12: var(--space-12);
   --p16: var(--space-16);
 
-  --r-sm: var(--radius-sm);
-  --r-md: var(--radius-md);
-  --r-lg: var(--radius-lg);
-  --r-xl: var(--radius-xl);
-  --r-2xl: var(--radius-2xl);
+  --r-sm:   var(--radius-sm);
+  --r-md:   var(--radius-md);
+  --r-lg:   var(--radius-lg);
+  --r-xl:   var(--radius-xl);
+  --r-2xl:  var(--radius-2xl);
   --r-full: var(--radius-full);
 
-  --weight-normal: 400;
-  --weight-medium: 500;
-  --weight-semibold: 600;
-  --weight-bold: 700;
+  --bg-surface: var(--surface);
+  --bg-hover:   var(--gray-50);
+  --bg-input:   var(--gray-50);
+  --primary-bg: var(--primary-light);
+  --text-muted: var(--text-secondary);
+  --mono:       var(--font-mono);
 
-  --leading-tight: 1.25;
-  --leading-normal: 1.5;
-  --leading-relaxed: 1.65;
+  --fast:  var(--duration-fast) var(--ease-in-out);
+  --normal: var(--duration-normal) var(--ease-in-out);
+  --slow:  var(--duration-slow) var(--ease-in-out);
 
-  --ease: cubic-bezier(.4,0,.2,1);
-  --ease-out: cubic-bezier(0,0,.2,1);
-  --ease-in-out: cubic-bezier(.4,0,.2,1);
-
-  --fast:  .12s var(--ease-in-out);
-  --normal: .2s var(--ease-in-out);
-  --slow:  .35s var(--ease-in-out);
-  --duration-fast: .12s;
-  --duration-normal: .2s;
-  --duration-slow: .35s;
-
-  /* ---- 兼容别名（旧版 --bg-surface / --text-muted 等） ---- */
-  --bg-surface:   var(--surface);
-  --bg-hover:     var(--gray-50);
-  --bg-input:     var(--gray-50);
-  --bg-chat:      #f8f9fa;
-  --primary-bg:   var(--primary-light);
-  --text-muted:   var(--text-secondary);
-  --border:       var(--gray-200);
-  --border-light: var(--gray-100);
-  --px:           var(--space-1);
-  --mono:         var(--font-mono);
-
-  /* Chat bubble aliases */
-  --bubble-mine-bg:     linear-gradient(135deg, #2563eb, #1d4ed8);
-  --bubble-mine-text:   var(--white);
-  --bubble-mine-shadow: 0 2px 8px rgba(37,99,235,.25);
-  --bubble-other-bg:    var(--bubble-other);
-  --bubble-other-shadow: 0 1px 3px rgba(0,0,0,.06);
-
-  /* Color aliases */
   --emerald:    var(--green);
   --emerald-bg: var(--green-bg);
   --rose:       var(--red);
   --rose-bg:    var(--red-bg);
 
-  --shadow-sm:  0 1px 2px rgba(37,99,235,.04);
-  --shadow-md:  0 4px 12px rgba(37,99,235,.08);
-  --shadow-lg:  0 8px 24px rgba(37,99,235,.1);
-  --shadow-xl:  0 12px 40px rgba(0,0,0,.12);
-
-  /* ---- 兼容别名（旧版 --aero-* 仍可用） ---- */
   --aero-50:  var(--blue-50);
   --aero-100: var(--blue-100);
   --aero-200: var(--blue-200);
@@ -186,28 +179,6 @@
   --aero-700: #1d4ed8;
   --aero-800: #1e40af;
   --aero-900: #1e3a8a;
-
-  --shadow-xs:  0 1px 2px rgba(37,99,235,.04);
-  --shadow-sm:  0 1px 3px rgba(37,99,235,.06);
-  --shadow-md:  0 4px 12px rgba(37,99,235,.08);
-  --shadow-lg:  0 8px 24px rgba(37,99,235,.1);
-  --shadow-xl:  0 12px 40px rgba(0,0,0,.12);
-
-  --leading-tight: 1.25;
-  --leading-normal: 1.5;
-  --leading-relaxed: 1.65;
-
-  /* ---- 阴影 ---- */
-  --shadow-sm:  0 1px 2px rgba(0,0,0,.05);
-  --shadow-md:  0 4px 12px rgba(0,0,0,.08);
-  --shadow-lg:  0 8px 24px rgba(0,0,0,.1);
-  --shadow-xl:  0 12px 40px rgba(0,0,0,.14);
-
-  /* ---- 动画 ---- */
-  --ease: cubic-bezier(.4,0,.2,1);
-  --duration-fast:  .12s;
-  --duration-normal: .2s;
-  --duration-slow:  .35s;
 }
 
 /* ---- Reset ---- */

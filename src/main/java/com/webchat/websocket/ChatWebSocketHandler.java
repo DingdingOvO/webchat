@@ -29,13 +29,13 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
     private final ObjectMapper mapper;
 
     public ChatWebSocketHandler(AuthService authService, ChatService chatService,
-                                WebSocketSessionManager sessionManager, RedisStateStore stateStore) {
+                                WebSocketSessionManager sessionManager, RedisStateStore stateStore,
+                                ObjectMapper mapper) {
         this.authService = authService;
         this.chatService = chatService;
         this.sessionManager = sessionManager;
         this.stateStore = stateStore;
-        this.mapper = new ObjectMapper();
-        mapper.findAndRegisterModules();
+        this.mapper = mapper;
     }
 
     @Override
@@ -70,8 +70,9 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
                 case "p2p", "group" -> handleChatMessage(userId, payload, type);
                 case "typing" -> handleTyping(userId, payload);
                 case "read" -> handleRead(userId, payload);
+                default -> log.warn("未知 WS 消息类型: {}", type);
             }
-        } catch (Exception e) { log.error("WS 消息失败", e); }
+        } catch (Exception e) { log.error("WS 消息处理失败", e); }
     }
 
     @Override

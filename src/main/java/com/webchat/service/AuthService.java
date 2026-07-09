@@ -5,6 +5,7 @@ import com.webchat.dto.LoginRequest;
 import com.webchat.dto.RegisterRequest;
 import com.webchat.model.User;
 import com.webchat.repository.UserRepository;
+import com.webchat.util.BusinessException;
 import com.webchat.util.JwtUtil;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -14,16 +15,17 @@ public class AuthService {
 
     private final UserRepository userRepo;
     private final JwtUtil jwtUtil;
-    private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+    private final BCryptPasswordEncoder encoder;
 
-    public AuthService(UserRepository userRepo, JwtUtil jwtUtil) {
+    public AuthService(UserRepository userRepo, JwtUtil jwtUtil, BCryptPasswordEncoder encoder) {
         this.userRepo = userRepo;
         this.jwtUtil = jwtUtil;
+        this.encoder = encoder;
     }
 
     public AuthResponse register(RegisterRequest req) {
         if (userRepo.existsByUsername(req.username())) {
-            throw new RuntimeException("用户名已存在");
+            throw new BusinessException("用户名已存在");
         }
         String nickname = req.nickname() != null && !req.nickname().isBlank()
                 ? req.nickname() : req.username();
@@ -35,17 +37,17 @@ public class AuthService {
 
     public AuthResponse login(LoginRequest req) {
         User user = userRepo.findByUsername(req.username())
-                .orElseThrow(() -> new RuntimeException("用户名或密码错误"));
+                .orElseThrow(() -> new BusinessException("用户名或密码错误"));
         if (!encoder.matches(req.password(), user.getPassword())) {
-            throw new RuntimeException("用户名或密码错误");
+            throw new BusinessException("用户名或密码错误");
         }
         String token = jwtUtil.generateToken(user.getId(), user.getUsername());
         return new AuthResponse(token, user.getId(), user.getUsername(), user.getNickname());
     }
 
     public User validateToken(String token) {
-        if (!jwtUtil.validateToken(token)) throw new RuntimeException("无效 token");
+        if (!jwtUtil.validateToken(token)) throw new BusinessException("无效 token");
         Long userId = jwtUtil.getUserIdFromToken(token);
-        return userRepo.findById(userId).orElseThrow(() -> new RuntimeException("用户不存在"));
+        return userRepo.findById(userId).orElseThrow(() -> new BusinessException("用户不存在"));
     }
 }
