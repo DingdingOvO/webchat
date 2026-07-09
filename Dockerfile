@@ -10,7 +10,10 @@ WORKDIR /app/frontend
 COPY frontend/package.json frontend/package-lock.json ./
 RUN npm ci
 
-COPY frontend/ .
+COPY frontend/ ./
+# @docs alias (../docs) 在 WORKDIR=/app/frontend 时指向 /app/docs，
+# 需将仓库根 docs/ 复制到该位置，否则前端嵌入 JAR 的构建会失败。
+COPY docs /app/docs
 RUN npm run build
 
 # ---- Stage 2: 构建后端 ----
