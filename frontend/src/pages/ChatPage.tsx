@@ -1,16 +1,21 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { WebSocketProvider, useWs } from '../context/WebSocketContext';
-import { MessageList } from '../components/MessageList';
-import { buildConversations } from '../components/conversations';
 import CreateGroupModal from '../components/CreateGroupModal';
-import { useIsMobile } from '../hooks/useIsMobile';
+import { buildConversations } from '../components/conversations';
 import {
-  SearchIcon, SignOutIcon, ChatIcon, SendIcon,
-  CheckmarkIcon, DismissIcon, ArrowLeftIcon,
+  ArrowLeftIcon,
+  ChatIcon,
+  CheckmarkIcon,
+  DismissIcon,
+  SearchIcon,
+  SendIcon,
+  SignOutIcon,
 } from '../components/Icons';
-import type { UserDTO, MessageDTO, GroupDTO, Contact } from '../types';
+import { MessageList } from '../components/MessageList';
+import { useAuth } from '../context/AuthContext';
+import { useWs, WebSocketProvider } from '../context/WebSocketContext';
+import { useIsMobile } from '../hooks/useIsMobile';
+import type { Contact, GroupDTO, MessageDTO, UserDTO } from '../types';
 import styles from './ChatPage.module.css';
 
 /* ============ Inner (with WebSocket) ============ */
@@ -79,8 +84,7 @@ function ChatPageInner() {
             group: g,
           })),
         ]);
-      } catch (err) {
-        console.error('加载初始数据失败', err);
+      } catch (_err) {
       } finally {
         setDataLoading(false);
       }
@@ -88,34 +92,36 @@ function ChatPageInner() {
   }, [auth, userId]);
 
   /* ---- load messages ---- */
-  const loadMessages = useCallback(async (convKey: string) => {
-    if (!auth) return;
-    setMessageLoading(true);
-    try {
-      const res = await fetch(`/api/chat/messages?convKey=${encodeURIComponent(convKey)}`, {
-        headers: { Authorization: `Bearer ${auth.token}` },
-      });
-      if (!res.ok) {
-        console.warn('加载消息失败', res.status);
-        return;
+  const loadMessages = useCallback(
+    async (convKey: string) => {
+      if (!auth) return;
+      setMessageLoading(true);
+      try {
+        const res = await fetch(`/api/chat/messages?convKey=${encodeURIComponent(convKey)}`, {
+          headers: { Authorization: `Bearer ${auth.token}` },
+        });
+        if (!res.ok) {
+          return;
+        }
+        const text = await res.text();
+        let data: MessageDTO[];
+        try {
+          data = JSON.parse(text);
+        } catch {
+          return;
+        }
+        setConvMessages((prev) => {
+          const n = new Map(prev);
+          n.set(convKey, data);
+          return n;
+        });
+      } catch (_err) {
+      } finally {
+        setMessageLoading(false);
       }
-      const text = await res.text();
-      let data: MessageDTO[];
-      try { data = JSON.parse(text); } catch {
-        console.warn('消息数据解析失败');
-        return;
-      }
-      setConvMessages((prev) => {
-        const n = new Map(prev);
-        n.set(convKey, data);
-        return n;
-      });
-    } catch (err) {
-      console.error('加载消息异常', err);
-    } finally {
-      setMessageLoading(false);
-    }
-  }, [auth]);
+    },
+    [auth],
+  );
 
   useEffect(() => {
     if (activeConvKey) {
@@ -135,16 +141,20 @@ function ChatPageInner() {
       try {
         const data = msg.data as MessageDTO;
         if (!data || typeof data.senderId !== 'number') return;
-        const convKey = data.type === 'P2P'
-          ? `p2p:${Math.min(data.senderId, data.receiverId!)}:${Math.max(data.senderId, data.receiverId!)}`
-          : `group:${data.receiverId}`;
+        const convKey =
+          data.type === 'P2P'
+            ? `p2p:${Math.min(data.senderId, data.receiverId!)}:${Math.max(data.senderId, data.receiverId!)}`
+            : `group:${data.receiverId}`;
         setConvMessages((prev) => {
           const n = new Map(prev);
           const ex = n.get(convKey) || [];
           // 用 message id 去重
           if (data.id && ex.some((m) => m.id === data.id)) return prev;
           // 兜底：用时间+内容去重
-          if (ex.some((m) => m.createdAt === data.createdAt && m.senderId === data.senderId && m.content === data.content)) return prev;
+          if (
+            ex.some((m) => m.createdAt === data.createdAt && m.senderId === data.senderId && m.content === data.content)
+          )
+            return prev;
           n.set(convKey, [...ex, data]);
           return n;
         });
@@ -155,32 +165,37 @@ function ChatPageInner() {
             return n;
           });
         }
-      } catch (err) {
-        console.error('处理 WS 消息失败', err);
-      }
+      } catch (_err) {}
     });
 
     const unsub2 = subscribe('online', (msg) => {
       try {
         const uid = msg.userId as number;
         const online = msg.online as boolean;
-        setFriends((prev) => prev.map((f) => f.id === uid ? { ...f, online } : f));
-        setContacts((prev) => prev.map((c) => {
-          if (c.user?.id === uid) return { ...c, user: { ...c.user, online } };
-          return c;
-        }));
-      } catch (err) {
-        console.error('处理在线状态失败', err);
-      }
+        setFriends((prev) => prev.map((f) => (f.id === uid ? { ...f, online } : f)));
+        setContacts((prev) =>
+          prev.map((c) => {
+            if (c.user?.id === uid) return { ...c, user: { ...c.user, online } };
+            return c;
+          }),
+        );
+      } catch (_err) {}
     });
 
-    return () => { unsub1(); unsub2(); };
+    return () => {
+      unsub1();
+      unsub2();
+    };
   }, [subscribe, activeConvKey]);
 
   /* ---- search ---- */
   async function handleSearch(q: string) {
     setSearchQuery(q);
-    if (!q.trim() || !auth) { setSearchResults([]); setSearchError(''); return; }
+    if (!q.trim() || !auth) {
+      setSearchResults([]);
+      setSearchError('');
+      return;
+    }
     setSearchError('');
     try {
       const res = await fetch(`/api/users/search?q=${encodeURIComponent(q)}`, {
@@ -188,8 +203,7 @@ function ChatPageInner() {
       });
       if (res.ok) setSearchResults(await res.json());
       else setSearchError('搜索失败');
-    } catch (err) {
-      console.error('搜索异常', err);
+    } catch (_err) {
       setSearchResults([]);
       setSearchError('网络错误');
     }
@@ -203,10 +217,10 @@ function ChatPageInner() {
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${auth.token}` },
         body: JSON.stringify({ userId: uid }),
       });
-      if (!res.ok) console.warn('添加好友失败', res.status);
-    } catch (err) {
-      console.error('添加好友异常', err);
-    }
+      if (!res.ok) {
+        console.warn('添加好友失败', res.status);
+      }
+    } catch {}
   }
 
   async function handleRequestAction(id: number, action: 'accept' | 'reject') {
@@ -221,9 +235,7 @@ function ChatPageInner() {
         const fRes = await fetch('/api/users/friends', { headers: { Authorization: `Bearer ${auth.token}` } });
         if (fRes.ok) setFriends(await fRes.json());
       }
-    } catch (err) {
-      console.error('处理好友请求失败', err);
-    }
+    } catch (_err) {}
   }
 
   /* ---- send message ---- */
@@ -233,7 +245,11 @@ function ChatPageInner() {
     const isGroup = activeConvKey.startsWith('group:');
     const receiverId = isGroup
       ? parseInt(activeConvKey.replace('group:', ''), 10)
-      : activeConvKey.replace('p2p:', '').split(':').map(Number).find((id) => id !== userId)!;
+      : activeConvKey
+          .replace('p2p:', '')
+          .split(':')
+          .map(Number)
+          .find((id) => id !== userId)!;
     wsSend({ type: isGroup ? 'group' : 'p2p', receiverId, content: trimmed });
     setInputText('');
   }
@@ -252,7 +268,9 @@ function ChatPageInner() {
     if (isMobile) setShowChat(true);
   }
 
-  function goBack() { setShowChat(false); }
+  function goBack() {
+    setShowChat(false);
+  }
 
   const sortedFriends = useMemo(() => {
     return [...friends].sort((a, b) => a.username.localeCompare(b.username));
@@ -266,21 +284,34 @@ function ChatPageInner() {
         {/* top bar */}
         <div className={styles.topbar}>
           <div className={styles.userInfo} onClick={() => navigate('/app/settings')}>
-            <div className={styles.userAvatar}>
-              {auth?.nickname?.charAt(0).toUpperCase() || 'U'}
-            </div>
+            <div className={styles.userAvatar}>{auth?.nickname?.charAt(0).toUpperCase() || 'U'}</div>
             <span className={styles.userName}>{auth?.nickname || auth?.username}</span>
             {!connected && <span className={styles.offlineBadge}>未连接</span>}
           </div>
           <div className={styles.toolbar}>
-            <button className={styles.iconBtn} onClick={() => setShowSearch(!showSearch)} title="搜索"><SearchIcon /></button>
+            <button className={styles.iconBtn} onClick={() => setShowSearch(!showSearch)} title="搜索">
+              <SearchIcon />
+            </button>
             <button className={styles.iconBtn} onClick={() => setShowGroupModal(true)} title="建群">
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><path d="M10 2.5a.5.5 0 0 0-1 0V9H2.5a.5.5 0 0 0 0 1H9v6.5a.5.5 0 0 0 1 0V10h6.5a.5.5 0 0 0 0-1H10V2.5Z"/></svg>
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M10 2.5a.5.5 0 0 0-1 0V9H2.5a.5.5 0 0 0 0 1H9v6.5a.5.5 0 0 0 1 0V10h6.5a.5.5 0 0 0 0-1H10V2.5Z" />
+              </svg>
             </button>
             <button className={styles.iconBtn} onClick={() => navigate('/app/settings')} title="设置">
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><path d="M10 2a8 8 0 1 0 0 16 8 8 0 0 0 0-16ZM9 5.5a1 1 0 1 1 2 0V9h3a1 1 0 1 1 0 2h-3v3a1 1 0 1 1-2 0v-3H6a1 1 0 1 1 0-2h3V5.5Z"/></svg>
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M10 2a8 8 0 1 0 0 16 8 8 0 0 0 0-16ZM9 5.5a1 1 0 1 1 2 0V9h3a1 1 0 1 1 0 2h-3v3a1 1 0 1 1-2 0v-3H6a1 1 0 1 1 0-2h3V5.5Z" />
+              </svg>
             </button>
-            <button className={styles.iconBtn} onClick={() => { logout(); navigate('/'); }} title="退出"><SignOutIcon /></button>
+            <button
+              className={styles.iconBtn}
+              onClick={() => {
+                logout();
+                navigate('/');
+              }}
+              title="退出"
+            >
+              <SignOutIcon />
+            </button>
           </div>
         </div>
 
@@ -306,24 +337,40 @@ function ChatPageInner() {
 
         {/* tabs */}
         <div className={styles.tabBar}>
-          <button className={`${styles.tab} ${tab === '消息' ? styles.tabActive : ''}`} onClick={() => setTab('消息')}>消息</button>
-          <button className={`${styles.tab} ${tab === '联系人' ? styles.tabActive : ''}`} onClick={() => setTab('联系人')}>联系人</button>
+          <button className={`${styles.tab} ${tab === '消息' ? styles.tabActive : ''}`} onClick={() => setTab('消息')}>
+            消息
+          </button>
+          <button
+            className={`${styles.tab} ${tab === '联系人' ? styles.tabActive : ''}`}
+            onClick={() => setTab('联系人')}
+          >
+            联系人
+          </button>
         </div>
 
         {/* search */}
         {showSearch && (
           <div className={styles.searchBox}>
             <div className={styles.searchInputWrap}>
-              <span className={styles.searchIcon}><SearchIcon size={16} /></span>
-              <input className={styles.searchInput} type="text" placeholder="搜索用户..."
-                value={searchQuery} onChange={(e) => handleSearch(e.target.value)} autoFocus />
+              <span className={styles.searchIcon}>
+                <SearchIcon size={16} />
+              </span>
+              <input
+                className={styles.searchInput}
+                type="text"
+                placeholder="搜索用户..."
+                value={searchQuery}
+                onChange={(e) => handleSearch(e.target.value)}
+              />
             </div>
             {searchError && <p style={{ color: 'var(--red)', padding: 'var(--p2)' }}>{searchError}</p>}
             {searchResults.map((u) => (
               <div key={u.id} className={styles.searchResultItem}>
                 <span className={styles.searchResultAvatar}>{u.nickname?.charAt(0).toUpperCase()}</span>
                 <span className={styles.searchResultName}>{u.nickname || u.username}</span>
-                <button className={styles.addBtn} onClick={() => addFriend(u.id)}>加好友</button>
+                <button className={styles.addBtn} onClick={() => addFriend(u.id)}>
+                  加好友
+                </button>
               </div>
             ))}
           </div>
@@ -334,14 +381,16 @@ function ChatPageInner() {
           <div className={styles.loadingState}>加载中...</div>
         ) : (
           <div className={styles.list}>
-            {tab === '消息' && (
-              conversations.length === 0 ? (
+            {tab === '消息' &&
+              (conversations.length === 0 ? (
                 <div className={styles.emptyState}>暂无消息</div>
               ) : (
                 conversations.map((conv) => (
-                  <div key={conv.key}
+                  <div
+                    key={conv.key}
                     className={`${styles.convItem} ${conv.key === activeConvKey ? styles.convItemActive : ''}`}
-                    onClick={() => selectConv(conv.key)}>
+                    onClick={() => selectConv(conv.key)}
+                  >
                     <div className={styles.convAvatar}>{conv.name.charAt(0).toUpperCase()}</div>
                     <div className={styles.convInfo}>
                       <div className={styles.convTop}>
@@ -352,13 +401,14 @@ function ChatPageInner() {
                       </div>
                       <div className={styles.convBottom}>
                         <span className={styles.convLast}>{conv.lastMessage}</span>
-                        {conv.unread > 0 && <span className={styles.convBadge}>{conv.unread > 99 ? '99+' : conv.unread}</span>}
+                        {conv.unread > 0 && (
+                          <span className={styles.convBadge}>{conv.unread > 99 ? '99+' : conv.unread}</span>
+                        )}
                       </div>
                     </div>
                   </div>
                 ))
-              )
-            )}
+              ))}
 
             {tab === '联系人' && (
               <>
@@ -368,11 +418,16 @@ function ChatPageInner() {
                     {sortedFriends.map((f) => {
                       const ck = `p2p:${Math.min(userId, f.id)}:${Math.max(userId, f.id)}`;
                       return (
-                        <div key={f.id} className={`${styles.contactItem} ${ck === activeConvKey ? styles.contactItemActive : ''}`}
-                          onClick={() => selectConv(ck)}>
+                        <div
+                          key={f.id}
+                          className={`${styles.contactItem} ${ck === activeConvKey ? styles.contactItemActive : ''}`}
+                          onClick={() => selectConv(ck)}
+                        >
                           <div className={styles.contactAvatar}>
                             {f.nickname?.charAt(0).toUpperCase()}
-                            <span className={`${styles.statusDot} ${f.online ? styles.statusOnline : styles.statusOffline}`} />
+                            <span
+                              className={`${styles.statusDot} ${f.online ? styles.statusOnline : styles.statusOffline}`}
+                            />
                           </div>
                           <span className={styles.contactName}>{f.nickname || f.username}</span>
                         </div>
@@ -386,8 +441,11 @@ function ChatPageInner() {
                     {groups.map((g) => {
                       const ck = `group:${g.id}`;
                       return (
-                        <div key={g.id} className={`${styles.contactItem} ${ck === activeConvKey ? styles.contactItemActive : ''}`}
-                          onClick={() => selectConv(ck)}>
+                        <div
+                          key={g.id}
+                          className={`${styles.contactItem} ${ck === activeConvKey ? styles.contactItemActive : ''}`}
+                          onClick={() => selectConv(ck)}
+                        >
                           <div className={`${styles.contactAvatar} ${styles.groupAvatar}`}>
                             {g.name.charAt(0).toUpperCase()}
                           </div>
@@ -397,9 +455,7 @@ function ChatPageInner() {
                     })}
                   </>
                 )}
-                {friends.length === 0 && groups.length === 0 && (
-                  <div className={styles.emptyState}>暂无联系人</div>
-                )}
+                {friends.length === 0 && groups.length === 0 && <div className={styles.emptyState}>暂无联系人</div>}
               </>
             )}
           </div>
@@ -412,14 +468,18 @@ function ChatPageInner() {
           <>
             <header className={styles.chatHeader}>
               {isMobile && (
-                <button className={styles.chatBackBtn} onClick={goBack}><ArrowLeftIcon /></button>
+                <button className={styles.chatBackBtn} onClick={goBack}>
+                  <ArrowLeftIcon />
+                </button>
               )}
               <div className={styles.chatAvatar}>{activeContact.name.charAt(0).toUpperCase()}</div>
               <div className={styles.chatInfo}>
                 <div className={styles.chatName}>{activeContact.name}</div>
                 <div className={styles.chatMeta}>
                   {activeContact.type === 'p2p'
-                    ? (activeContact.user?.online ? '在线' : '离线')
+                    ? activeContact.user?.online
+                      ? '在线'
+                      : '离线'
                     : `群组 · ${activeContact.group?.memberCount || '?'} 人`}
                 </div>
               </div>
@@ -432,9 +492,19 @@ function ChatPageInner() {
               )}
             </div>
             <div className={styles.inputArea}>
-              <input className={styles.inputField} type="text" placeholder="输入消息..."
-                value={inputText} onChange={(e) => setInputText(e.target.value)}
-                onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }}} />
+              <input
+                className={styles.inputField}
+                type="text"
+                placeholder="输入消息..."
+                value={inputText}
+                onChange={(e) => setInputText(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSend();
+                  }
+                }}
+              />
               <button className={styles.sendBtn} onClick={handleSend} disabled={!inputText.trim()}>
                 <SendIcon size={18} />
               </button>
@@ -454,9 +524,15 @@ function ChatPageInner() {
           onClose={() => setShowGroupModal(false)}
           onCreated={(g) => {
             setGroups((prev) => [...prev, g]);
-            setContacts((prev) => [...prev, {
-              key: `group:${g.id}`, type: 'group' as const, name: g.name, group: g,
-            }]);
+            setContacts((prev) => [
+              ...prev,
+              {
+                key: `group:${g.id}`,
+                type: 'group' as const,
+                name: g.name,
+                group: g,
+              },
+            ]);
           }}
         />
       )}

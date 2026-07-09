@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import styles from './AuthPage.module.css';
 
@@ -23,7 +23,11 @@ export default function RegisterPage() {
         body: JSON.stringify({ username, password, nickname: nickname || undefined }),
       });
       const data = await res.json();
-      if (!res.ok) { setError(data.error || '注册失败'); setLoading(false); return; }
+      if (!res.ok) {
+        setError(data.error || '注册失败');
+        setLoading(false);
+        return;
+      }
       setAuth(data);
       navigate('/app');
     } catch {
@@ -42,18 +46,35 @@ export default function RegisterPage() {
         <div className={styles.form}>
           <div className={styles.field}>
             <label className={styles.label}>用户名</label>
-            <input className={styles.input} type="text" placeholder="3~50 个字符"
-              value={username} onChange={(e) => setUsername(e.target.value)} required />
+            <input
+              className={styles.input}
+              type="text"
+              placeholder="3~50 个字符"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              required
+            />
           </div>
           <div className={styles.field}>
             <label className={styles.label}>昵称</label>
-            <input className={styles.input} type="text" placeholder="可选，默认使用用户名"
-              value={nickname} onChange={(e) => setNickname(e.target.value)} />
+            <input
+              className={styles.input}
+              type="text"
+              placeholder="可选，默认使用用户名"
+              value={nickname}
+              onChange={(e) => setNickname(e.target.value)}
+            />
           </div>
           <div className={styles.field}>
             <label className={styles.label}>密码</label>
-            <input className={styles.input} type="password" placeholder="至少 4 个字符"
-              value={password} onChange={(e) => setPassword(e.target.value)} required />
+            <input
+              className={styles.input}
+              type="password"
+              placeholder="至少 4 个字符"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
           </div>
           <button className={styles.btn} type="submit" disabled={loading}>
             {loading ? '注册中...' : '注册'}

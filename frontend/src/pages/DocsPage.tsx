@@ -1,33 +1,36 @@
-import { useState, useMemo } from 'react';
-import { Link } from 'react-router-dom';
-import { Marked, Renderer } from 'marked';
-import styles from './DocsPage.module.css';
-import type { DocsConfig, Section } from '../types/docs';
-
+import apiMd from '@docs/api/README.md';
+import deployMd from '@docs/deploy/README.md';
+import designMd from '@docs/design/README.md';
 // 导入 docs.config.json
 import docsConfig from '@docs/docs.config.json';
 // 导入 markdown 文件（webpack asset/source 会导入为字符串）
 import overviewMd from '@docs/overview/README.md';
 import quickstartMd from '@docs/quickstart/README.md';
-import apiMd from '@docs/api/README.md';
-import designMd from '@docs/design/README.md';
 import techMd from '@docs/tech/README.md';
-import deployMd from '@docs/deploy/README.md';
+import { Marked, Renderer } from 'marked';
+import { useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
+import type { DocsConfig, Section } from '../types/docs';
+import styles from './DocsPage.module.css';
 
 const config = docsConfig as DocsConfig;
 
 const mdMap: Record<string, string> = {
-  'overview': overviewMd,
-  'quickstart': quickstartMd,
-  'api': apiMd,
-  'design': designMd,
-  'tech': techMd,
-  'deploy': deployMd,
+  overview: overviewMd,
+  quickstart: quickstartMd,
+  api: apiMd,
+  design: designMd,
+  tech: techMd,
+  deploy: deployMd,
 };
 
 // 简单但够用的锚点 slug
 function slugify(text: string): string {
-  return text.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^\w\u4e00-\u9fff-]/g, '');
+  return text
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, '-')
+    .replace(/[^\w\u4e00-\u9fff-]/g, '');
 }
 
 export default function DocsPage() {
@@ -36,7 +39,7 @@ export default function DocsPage() {
   // 创建带自定义 heading 渲染的 marked 实例
   const marked = useMemo(() => {
     const renderer = new Renderer();
-    renderer.heading = function ({ tokens, depth }: { tokens: any; depth: number }) {
+    renderer.heading = ({ tokens, depth }: { tokens: any; depth: number }) => {
       const text = tokens.map((t: any) => t.text || t.raw || '').join('');
       const id = slugify(text);
       return `<h${depth} id="${id}">${text}</h${depth}>`;
@@ -86,10 +89,16 @@ export default function DocsPage() {
             <span className={styles.topbarBadge}>文档 v1.0</span>
           </Link>
           <nav className={styles.topbarNav}>
-            <Link to="/" className={styles.topbarLink}>首页</Link>
+            <Link to="/" className={styles.topbarLink}>
+              首页
+            </Link>
             <span className={styles.topbarLinkActive}>文档</span>
-            <Link to="/feedback" className={styles.topbarLink}>反馈</Link>
-            <Link to="/login" className={styles.topbarLink}>登录</Link>
+            <Link to="/feedback" className={styles.topbarLink}>
+              反馈
+            </Link>
+            <Link to="/login" className={styles.topbarLink}>
+              登录
+            </Link>
           </nav>
         </div>
       </header>
@@ -121,28 +130,27 @@ export default function DocsPage() {
 
         {/* =============== Main content =============== */}
         <main className={styles.content}>
-          <article
-            className={styles.article}
-            dangerouslySetInnerHTML={{ __html: html }}
-          />
+          <article className={styles.article} dangerouslySetInnerHTML={{ __html: html }} />
 
           {/* =============== Right sidebar =============== */}
           <aside className={styles.onThisPage}>
             <span className={styles.onThisPageTitle}>本页内容</span>
             <div className={styles.onThisPageList}>
-              {config.sections.find(s => s.id === activeSection)?.children.map(child => (
-                <a
-                  key={child.id}
-                  href={`#${child.id}`}
-                  className={styles.onThisPageItem}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    scrollTo(child.id);
-                  }}
-                >
-                  {child.title}
-                </a>
-              ))}
+              {config.sections
+                .find((s) => s.id === activeSection)
+                ?.children.map((child) => (
+                  <a
+                    key={child.id}
+                    href={`#${child.id}`}
+                    className={styles.onThisPageItem}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      scrollTo(child.id);
+                    }}
+                  >
+                    {child.title}
+                  </a>
+                ))}
             </div>
           </aside>
         </main>

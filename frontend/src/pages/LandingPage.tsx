@@ -10,10 +10,18 @@ export default function LandingPage() {
         <div className={styles.navInner}>
           <span className={styles.logoText}>WebChat</span>
           <div className={styles.navLinks}>
-            <Link to="/docs" className={styles.navLink}>文档</Link>
-            <Link to="/feedback" className={styles.navLink}>反馈</Link>
-            <Link to="/login" className={styles.navLink}>登录</Link>
-            <Link to="/register" className={styles.navBtn}>开始使用</Link>
+            <Link to="/docs" className={styles.navLink}>
+              文档
+            </Link>
+            <Link to="/feedback" className={styles.navLink}>
+              反馈
+            </Link>
+            <Link to="/login" className={styles.navLink}>
+              登录
+            </Link>
+            <Link to="/register" className={styles.navBtn}>
+              开始使用
+            </Link>
           </div>
         </div>
       </nav>
@@ -27,8 +35,7 @@ export default function LandingPage() {
             <span className={styles.heroHighlight}>新一代即时通讯</span>
           </h1>
           <p className={styles.heroDesc}>
-            WebChat 是一款基于 Web 的即时通讯工具，支持实时私聊、群组聊天、
-            好友管理，数据加密传输，开箱即用。
+            WebChat 是一款基于 Web 的即时通讯工具，支持实时私聊、群组聊天、 好友管理，数据加密传输，开箱即用。
           </p>
           <div className={styles.heroActions}>
             <Link to="/register" className={styles.primaryBtn}>
@@ -78,17 +85,23 @@ export default function LandingPage() {
       <footer className={styles.footer}>
         <div className={styles.footerInner}>
           <div className={styles.footerLinks}>
-            <Link to="/docs" className={styles.footerLink}>文档</Link>
+            <Link to="/docs" className={styles.footerLink}>
+              文档
+            </Link>
             <span className={styles.footerDot}>·</span>
-            <Link to="/feedback" className={styles.footerLink}>反馈</Link>
+            <Link to="/feedback" className={styles.footerLink}>
+              反馈
+            </Link>
             <span className={styles.footerDot}>·</span>
-            <Link to="/login" className={styles.footerLink}>登录</Link>
+            <Link to="/login" className={styles.footerLink}>
+              登录
+            </Link>
             <span className={styles.footerDot}>·</span>
-            <Link to="/register" className={styles.footerLink}>注册</Link>
+            <Link to="/register" className={styles.footerLink}>
+              注册
+            </Link>
           </div>
-          <p className={styles.footerText}>
-            WebChat · 基于 Fluent Design + WeChat 设计语言
-          </p>
+          <p className={styles.footerText}>WebChat · 基于 Fluent Design + WeChat 设计语言</p>
         </div>
       </footer>
     </div>

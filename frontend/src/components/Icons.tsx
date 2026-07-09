@@ -10,12 +10,7 @@ interface IconProps {
   onClick?: () => void;
 }
 
-function Icon({
-  children,
-  size = 20,
-  className,
-  onClick,
-}: IconProps & { children: React.ReactNode }) {
+function Icon({ children, size = 20, className, onClick }: IconProps & { children: React.ReactNode }) {
   return (
     <svg
       width={size}
@@ -117,7 +112,10 @@ export function StatusOnlineIcon(props: IconProps & { filled?: boolean }) {
       {props.filled ? (
         <path d="M7.5 1a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13Zm3.1 4.6-4 4.5a.5.5 0 0 1-.74.02L3.76 8.05a.5.5 0 1 1 .72-.7L6.3 9.77l3.67-4.13a.5.5 0 0 1 .63-.03Z" />
       ) : (
-        <path d="M3.5 10a6.5 6.5 0 1 0 0-13 6.5 6.5 0 0 0 0 13Zm2.85-8.37 3.78 4.24a.5.5 0 0 1-.73.66l-3.1-3.48-1.6 1.59a.5.5 0 0 1-.7-.7l1.92-1.92a.5.5 0 0 1 .43-.16.5.5 0 0 1 .4.18Z" transform="translate(3.5, -0.5)" />
+        <path
+          d="M3.5 10a6.5 6.5 0 1 0 0-13 6.5 6.5 0 0 0 0 13Zm2.85-8.37 3.78 4.24a.5.5 0 0 1-.73.66l-3.1-3.48-1.6 1.59a.5.5 0 0 1-.7-.7l1.92-1.92a.5.5 0 0 1 .43-.16.5.5 0 0 1 .4.18Z"
+          transform="translate(3.5, -0.5)"
+        />
       )}
     </Icon>
   );

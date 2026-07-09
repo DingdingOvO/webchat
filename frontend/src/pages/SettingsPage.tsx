@@ -1,7 +1,7 @@
-import { useState, useRef, useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
 import { ArrowLeftIcon } from '../components/Icons';
+import { useAuth } from '../context/AuthContext';
 import styles from './SettingsPage.module.css';
 
 export default function SettingsPage() {
@@ -20,7 +20,9 @@ export default function SettingsPage() {
     if (!auth) return;
     fetch('/api/auth/me', { headers: { Authorization: `Bearer ${auth.token}` } })
       .then((r) => r.json())
-      .then((d) => { if (d.avatar) setAvatar(d.avatar); })
+      .then((d) => {
+        if (d.avatar) setAvatar(d.avatar);
+      })
       .catch(() => {});
   }, [auth]);
 
@@ -35,17 +37,27 @@ export default function SettingsPage() {
         body: JSON.stringify({ username: username.trim() }),
       });
       const data = await res.json();
-      if (!res.ok) { setMsg({ type: 'error', text: data.error }); setLoading(false); return; }
+      if (!res.ok) {
+        setMsg({ type: 'error', text: data.error });
+        setLoading(false);
+        return;
+      }
       setAuth({ ...auth, username: data.username });
       setMsg({ type: 'ok', text: '用户名已更新' });
       setLoading(false);
-    } catch { setMsg({ type: 'error', text: '网络错误' }); setLoading(false); }
+    } catch {
+      setMsg({ type: 'error', text: '网络错误' });
+      setLoading(false);
+    }
   }
 
   async function handleAvatar(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file || !auth) return;
-    if (file.size > 500_000) { setMsg({ type: 'error', text: '图片过大，请选择 500KB 以内的图片' }); return; }
+    if (file.size > 500_000) {
+      setMsg({ type: 'error', text: '图片过大，请选择 500KB 以内的图片' });
+      return;
+    }
 
     const reader = new FileReader();
     reader.onload = async () => {
@@ -59,19 +71,27 @@ export default function SettingsPage() {
           body: JSON.stringify({ avatar: base64 }),
         });
         const data = await res.json();
-        if (!res.ok) { setMsg({ type: 'error', text: data.error }); } else {
+        if (!res.ok) {
+          setMsg({ type: 'error', text: data.error });
+        } else {
           setAvatar(base64);
           setMsg({ type: 'ok', text: '头像已更新' });
         }
         setLoading(false);
-      } catch { setMsg({ type: 'error', text: '上传失败' }); setLoading(false); }
+      } catch {
+        setMsg({ type: 'error', text: '上传失败' });
+        setLoading(false);
+      }
     };
     reader.readAsDataURL(file);
   }
 
   async function handlePassword() {
     if (!auth) return;
-    if (newPw.length < 4) { setMsg({ type: 'error', text: '新密码至少 4 个字符' }); return; }
+    if (newPw.length < 4) {
+      setMsg({ type: 'error', text: '新密码至少 4 个字符' });
+      return;
+    }
     setLoading(true);
     setMsg(null);
     try {
@@ -81,12 +101,18 @@ export default function SettingsPage() {
         body: JSON.stringify({ oldPassword: oldPw, newPassword: newPw }),
       });
       const data = await res.json();
-      if (!res.ok) { setMsg({ type: 'error', text: data.error }); } else {
+      if (!res.ok) {
+        setMsg({ type: 'error', text: data.error });
+      } else {
         setMsg({ type: 'ok', text: '密码已更新' });
-        setOldPw(''); setNewPw('');
+        setOldPw('');
+        setNewPw('');
       }
       setLoading(false);
-    } catch { setMsg({ type: 'error', text: '网络错误' }); setLoading(false); }
+    } catch {
+      setMsg({ type: 'error', text: '网络错误' });
+      setLoading(false);
+    }
   }
 
   return (
@@ -98,11 +124,7 @@ export default function SettingsPage() {
         <h1 className={styles.title}>设置</h1>
       </header>
 
-      {msg && (
-        <div className={`${styles.msg} ${msg.type === 'ok' ? styles.msgOk : styles.msgErr}`}>
-          {msg.text}
-        </div>
-      )}
+      {msg && <div className={`${styles.msg} ${msg.type === 'ok' ? styles.msgOk : styles.msgErr}`}>{msg.text}</div>}
 
       <div className={styles.body}>
         {/* 头像 */}
@@ -126,8 +148,13 @@ export default function SettingsPage() {
         <section className={styles.section}>
           <h2 className={styles.sectionTitle}>用户名</h2>
           <div className={styles.fieldRow}>
-            <input className={styles.input} type="text" value={username}
-              onChange={(e) => setUsername(e.target.value)} placeholder="用户名" />
+            <input
+              className={styles.input}
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="用户名"
+            />
             <button className={styles.btn} onClick={handleUsername} disabled={loading || !username.trim()}>
               {loading ? '保存中...' : '保存'}
             </button>
@@ -138,12 +165,21 @@ export default function SettingsPage() {
         <section className={styles.section}>
           <h2 className={styles.sectionTitle}>修改密码</h2>
           <div className={styles.fieldGroup}>
-            <input className={styles.input} type="password" value={oldPw}
-              onChange={(e) => setOldPw(e.target.value)} placeholder="原密码" />
-            <input className={styles.input} type="password" value={newPw}
-              onChange={(e) => setNewPw(e.target.value)} placeholder="新密码（至少 4 位）" />
-            <button className={styles.btn} onClick={handlePassword}
-              disabled={loading || !oldPw || !newPw}>
+            <input
+              className={styles.input}
+              type="password"
+              value={oldPw}
+              onChange={(e) => setOldPw(e.target.value)}
+              placeholder="原密码"
+            />
+            <input
+              className={styles.input}
+              type="password"
+              value={newPw}
+              onChange={(e) => setNewPw(e.target.value)}
+              placeholder="新密码（至少 4 位）"
+            />
+            <button className={styles.btn} onClick={handlePassword} disabled={loading || !oldPw || !newPw}>
               {loading ? '保存中...' : '修改密码'}
             </button>
           </div>

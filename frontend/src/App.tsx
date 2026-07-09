@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import styles from './App.module.css';
 import ErrorBoundary from './components/ErrorBoundary';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -37,15 +37,50 @@ export default function App() {
             <Routes>
               {/* 公开页面 */}
               <Route path="/" element={<HomeRoute />} />
-              <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
-              <Route path="/register" element={<PublicRoute><RegisterPage /></PublicRoute>} />
+              <Route
+                path="/login"
+                element={
+                  <PublicRoute>
+                    <LoginPage />
+                  </PublicRoute>
+                }
+              />
+              <Route
+                path="/register"
+                element={
+                  <PublicRoute>
+                    <RegisterPage />
+                  </PublicRoute>
+                }
+              />
               <Route path="/docs" element={<DocsPage />} />
               <Route path="/feedback" element={<FeedbackPage />} />
 
               {/* 应用（需登录） */}
-              <Route path="/app" element={<ProtectedRoute><Navigate to="/app/chat" replace /></ProtectedRoute>} />
-              <Route path="/app/chat" element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
-              <Route path="/app/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
+              <Route
+                path="/app"
+                element={
+                  <ProtectedRoute>
+                    <Navigate to="/app/chat" replace />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/app/chat"
+                element={
+                  <ProtectedRoute>
+                    <ChatPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/app/settings"
+                element={
+                  <ProtectedRoute>
+                    <SettingsPage />
+                  </ProtectedRoute>
+                }
+              />
 
               {/* 回退 */}
               <Route path="*" element={<Navigate to="/" replace />} />
