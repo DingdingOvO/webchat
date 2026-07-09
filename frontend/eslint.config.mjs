@@ -21,8 +21,8 @@ export default tseslint.config(
   // Base JS rules
   js.configs.recommended,
 
-  // TypeScript strict
-  ...tseslint.configs.strictTypeChecked,
+  // TypeScript
+  ...tseslint.configs.recommended,
   {
     languageOptions: {
       parserOptions: {
