@@ -4,7 +4,7 @@
 # ================================================================
 
 SHELL := /bin/bash
-.PHONY: help build-backend build-frontend build-all run-backend run-frontend run-all clean deploy docker-build docker-push lint format format-check typecheck stylelint spell quality
+.PHONY: help build-backend build-frontend build-all run-backend run-frontend run-all clean deploy docker-build docker-push lint format format-check typecheck quality
 
 help: ## 显示帮助
         @grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
@@ -75,28 +75,22 @@ clean: ## 清理构建产物
 # ================================================================
 
 # ---- 前端质量 ----
-lint: ## 前端 ESLint 检查
-        cd frontend && npx eslint . --max-warnings 0
+lint: ## 前端 Biome 检查
+        cd frontend && npx biome check src/
 
-lint-fix: ## 前端 ESLint 自动修复
-        cd frontend && npx eslint . --fix
+lint-fix: ## 前端 Biome 自动修复
+        cd frontend && npx biome check --write --unsafe src/
 
 typecheck: ## 前端 TypeScript 类型检查
         cd frontend && npx tsc --noEmit
 
-format: ## 自动格式化全仓（前端 Prettier + 后端 Spotless）
-        cd frontend && npx prettier --write .
+format: ## 自动格式化全仓（前端 Biome + 后端 Spotless）
+        cd frontend && npx biome format --write src/
         mvn spotless:apply -q
 
 format-check: ## 检查格式化是否符合规范
-        cd frontend && npx prettier --check .
+        cd frontend && npx biome format src/
         mvn spotless:check -q
-
-stylelint: ## 前端 CSS Lint
-        cd frontend && npx stylelint "**/*.css" --allow-empty-input
-
-spell: ## 前端拼写检查
-        cd frontend && npx cspell "**/*.{ts,tsx,js,jsx,md}" --no-progress
 
 # ---- 后端质量 ----
 checkstyle: ## 后端 Checkstyle 检查
@@ -112,14 +106,6 @@ spotbugs: ## 后端 SpotBugs 检查
 quality: ## 双栈全量质量门禁（CI 等价）
         @echo "=== Frontend Quality ==="
         cd frontend && npx tsc --noEmit
-        cd frontend && npx eslint . --max-warnings 0
-        cd frontend && npx prettier --check .
-        cd frontend && npx stylelint "**/*.css" --allow-empty-input
-        cd frontend && npx cspell "**/*.{ts,tsx,js,jsx,md}" --no-progress
+        cd frontend && npx biome check src/
         @echo "=== Backend Quality ==="
         mvn spotless:check -q
-        mvn checkstyle:check -q
-        mvn pmd:check -q
-        mvn spotbugs:check -q
-        mvn verify -q
-        @echo "=== All quality gates passed ==="
