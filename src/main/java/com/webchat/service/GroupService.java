@@ -24,13 +24,13 @@ public class GroupService {
     private final ObjectMapper mapper;
 
     public GroupService(ChatGroupRepository groupRepo, ChatGroupMemberRepository memberRepo,
-                        UserRepository userRepo, StringRedisTemplate redis) {
+                        UserRepository userRepo, StringRedisTemplate redis,
+                        ObjectMapper mapper) {
         this.groupRepo = groupRepo;
         this.memberRepo = memberRepo;
         this.userRepo = userRepo;
         this.redis = redis;
-        this.mapper = new ObjectMapper();
-        mapper.findAndRegisterModules();
+        this.mapper = mapper;
     }
 
     @Transactional

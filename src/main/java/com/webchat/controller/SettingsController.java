@@ -16,11 +16,13 @@ public class SettingsController {
 
     private final AuthService authService;
     private final UserRepository userRepo;
-    private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+    private final BCryptPasswordEncoder encoder;
 
-    public SettingsController(AuthService authService, UserRepository userRepo) {
+    public SettingsController(AuthService authService, UserRepository userRepo,
+                              BCryptPasswordEncoder encoder) {
         this.authService = authService;
         this.userRepo = userRepo;
+        this.encoder = encoder;
     }
 
     private User authenticate(String auth) {

@@ -17,19 +17,19 @@ export default function ContactItem({ contact, active, unread, onClick }: Props)
 
   return (
     <div className={`${styles.item} ${active ? styles.active : ''}`} onClick={onClick}>
-      <div className={styles.avatarWrap}>
-        <div className={`${styles.avatar} ${contact.type === 'group' ? styles.groupAvatar : ''}`}>
+      <div className={styles['avatarWrap']}>
+        <div className={`${styles['avatar']} ${contact.type === 'group' ? styles['groupAvatar'] : ''}`}>
           {initial}
         </div>
         {contact.type === 'p2p' && (
-          <span className={`${styles.statusIndicator} ${isOnline ? styles.statusOnline : styles.statusOffline}`} />
+          <span className={`${styles['statusIndicator']} ${isOnline ? styles['statusOnline'] : styles['statusOffline']}`} />
         )}
       </div>
-      <div className={styles.info}>
-        <span className={styles.name}>{contact.name}</span>
-        <span className={styles.meta}>{meta}</span>
+      <div className={styles['info']}>
+        <span className={styles['name']}>{contact.name}</span>
+        <span className={styles['meta']}>{meta}</span>
       </div>
-      {unread > 0 && <span className={styles.badge}>{unread > 99 ? '99+' : unread}</span>}
+      {unread > 0 && <span className={styles['badge']}>{unread > 99 ? '99+' : unread}</span>}
     </div>
   );
 }

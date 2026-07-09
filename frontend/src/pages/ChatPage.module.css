@@ -332,6 +332,34 @@
   color: var(--text);
 }
 
+.groupAvatar {
+  background: var(--gray-500) !important;
+}
+
+/* 加载 / 空状态 */
+.loadingState {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-faint);
+  font-size: var(--fs-sm);
+  padding: var(--p8);
+}
+
+.emptyState {
+  text-align: center;
+  color: var(--text-faint);
+  font-size: var(--fs-sm);
+  padding: var(--p8) var(--p4);
+}
+
+.offlineBadge {
+  font-size: var(--fs-2xs);
+  color: var(--red);
+  margin-left: var(--p1);
+}
+
 /* ========== Right Panel ========== */
 
 .rightPanel {

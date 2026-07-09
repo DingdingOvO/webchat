@@ -32,8 +32,11 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
 
     ws.onopen = () => {
       setConnected(true);
-      reconnectDelay.current = 1000; // 连接成功，重置退避
-      if (reconnectTimer.current) clearTimeout(reconnectTimer.current);
+      reconnectDelay.current = 1000;
+      if (reconnectTimer.current) {
+        clearTimeout(reconnectTimer.current);
+        reconnectTimer.current = null;
+      }
     };
 
     ws.onmessage = (e) => {

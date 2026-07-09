@@ -2,16 +2,15 @@ package com.webchat.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.webchat.document.MessageDoc;
 import com.webchat.dto.MessageDTO;
 import com.webchat.kvstore.RedisStateStore;
 import com.webchat.model.User;
 import com.webchat.repository.MessageRepository;
 import com.webchat.repository.UserRepository;
+import com.webchat.util.BusinessException;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -27,12 +26,13 @@ public class ChatService {
     private final ObjectMapper mapper;
 
     public ChatService(MessageRepository msgRepo, UserRepository userRepo,
-                       GroupService groupService, RedisStateStore stateStore) {
+                       GroupService groupService, RedisStateStore stateStore,
+                       ObjectMapper mapper) {
         this.msgRepo = msgRepo;
         this.userRepo = userRepo;
         this.groupService = groupService;
         this.stateStore = stateStore;
-        this.mapper = new ObjectMapper().registerModule(new JavaTimeModule());
+        this.mapper = mapper;
     }
 
     public static String conversationKey(String type, Long id1, Long id2) {
@@ -45,11 +45,10 @@ public class ChatService {
         String convKey = conversationKey(type, senderId, receiverId);
         User sender = userRepo.findById(senderId).orElseThrow();
 
-        // 群聊权限检查：只有群成员才能发送
         if ("GROUP".equals(type)) {
             List<Long> memberIds = groupService.getGroupMemberIds(receiverId);
             if (!memberIds.contains(senderId)) {
-                throw new RuntimeException("你不是该群成员，无法发送消息");
+                throw new BusinessException("你不是该群成员，无法发送消息");
             }
         }
 

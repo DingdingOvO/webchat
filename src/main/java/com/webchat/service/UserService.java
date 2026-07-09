@@ -4,6 +4,7 @@ import com.webchat.dto.UserDTO;
 import com.webchat.kvstore.RedisStateStore;
 import com.webchat.model.*;
 import com.webchat.repository.*;
+import com.webchat.util.BusinessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,9 +28,7 @@ public class UserService {
     }
 
     public List<UserDTO> searchUsers(String keyword, Long excludeUserId) {
-        return userRepo.findAll().stream()
-                .filter(u -> !u.getId().equals(excludeUserId))
-                .filter(u -> u.getUsername().contains(keyword) || u.getNickname().contains(keyword))
+        return userRepo.searchByKeyword(keyword, excludeUserId).stream()
                 .map(this::toDTO)
                 .collect(Collectors.toList());
     }
@@ -44,11 +43,11 @@ public class UserService {
 
     @Transactional
     public void sendFriendRequest(Long fromUserId, Long toUserId) {
-        if (fromUserId.equals(toUserId)) throw new RuntimeException("不能加自己为好友");
+        if (fromUserId.equals(toUserId)) throw new BusinessException("不能加自己为好友");
         if (friendRepo.existsByUserIdAndFriendId(fromUserId, toUserId))
-            throw new RuntimeException("已是好友");
+            throw new BusinessException("已是好友");
         if (requestRepo.findByFromUserIdAndToUserId(fromUserId, toUserId).isPresent())
-            throw new RuntimeException("已发送过好友请求");
+            throw new BusinessException("已发送过好友请求");
         requestRepo.save(new FriendRequest(fromUserId, toUserId));
     }
 
@@ -59,7 +58,7 @@ public class UserService {
     @Transactional
     public void acceptFriendRequest(Long requestId) {
         FriendRequest req = requestRepo.findById(requestId)
-                .orElseThrow(() -> new RuntimeException("请求不存在"));
+                .orElseThrow(() -> new BusinessException("请求不存在"));
         req.setStatus(FriendRequest.Status.ACCEPTED);
         requestRepo.save(req);
         friendRepo.save(new Friend(req.getFromUserId(), req.getToUserId()));
@@ -69,7 +68,7 @@ public class UserService {
     @Transactional
     public void rejectFriendRequest(Long requestId) {
         FriendRequest req = requestRepo.findById(requestId)
-                .orElseThrow(() -> new RuntimeException("请求不存在"));
+                .orElseThrow(() -> new BusinessException("请求不存在"));
         req.setStatus(FriendRequest.Status.REJECTED);
         requestRepo.save(req);
     }
