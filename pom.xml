@@ -20,8 +20,8 @@
         <java.version>26</java.version>
         <jjwt.version>0.12.6</jjwt.version>
         <!-- Quality tool versions -->
-        <spotless.version>2.44.3</spotless.version>
-        <google-java-format.version>1.25.2</google-java-format.version>
+        <spotless.version>3.8.0</spotless.version>
+        <google-java-format.version>1.35.0</google-java-format.version>
         <checkstyle.version>3.6.0</checkstyle.version>
         <checkstyle-plugin.version>10.21.4</checkstyle-plugin.version>
         <pmd.version>3.26.0</pmd.version>
@@ -30,8 +30,8 @@
         <spotbugs-plugin.version>4.10.2</spotbugs-plugin.version>
         <findsecbugs.version>1.14.0</findsecbugs.version>
         <jacoco.version>0.8.12</jacoco.version>
-        <errorprone.version>2.36.0</errorprone.version>
-        <nullaway.version>0.12.3</nullaway.version>
+        <errorprone.version>2.50.0</errorprone.version>
+        <nullaway.version>0.12.8</nullaway.version>
         <!-- JaCoCo gate: start at 0% (report-only), climb to 60% → 80% -->
         <jacoco.min.line>0.0</jacoco.min.line>
         <!-- NullAway: disable initially, enable after annotating存量 code -->
