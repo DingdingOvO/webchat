@@ -30,8 +30,8 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Build with Maven
-        run: mvn clean package -DskipTests
+      - name: Build with Maven (verify — no skipTests)
+        run: mvn clean verify
 
       - name: Upload JAR artifact
         uses: actions/upload-artifact@v4
