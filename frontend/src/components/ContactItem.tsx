@@ -2,10 +2,10 @@ import type { Contact } from '../types';
 import styles from './ContactItem.module.css';
 
 interface Props {
-  contact: Contact;
-  active: boolean;
-  unread: number;
-  onClick: () => void;
+  readonly contact: Contact;
+  readonly active: boolean;
+  readonly unread: number;
+  readonly onClick: () => void;
 }
 
 export default function ContactItem({ contact, active, unread, onClick }: Props) {
@@ -13,10 +13,16 @@ export default function ContactItem({ contact, active, unread, onClick }: Props)
   const isOnline = contact.user?.online;
   const meta = contact.type === 'p2p'
     ? (isOnline ? '在线' : '离线')
-    : `${contact.group?.memberCount || 0} 人`;
+    : `${String(contact.group?.memberCount ?? 0)} 人`;
 
   return (
-    <div className={`${styles.item} ${active ? styles.active : ''}`} onClick={onClick}>
+    <div
+      className={`${styles.item} ${active ? styles.active : ''}`}
+      onClick={onClick}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(); } }}
+      role="button"
+      tabIndex={0}
+    >
       <div className={styles['avatarWrap']}>
         <div className={`${styles['avatar']} ${contact.type === 'group' ? styles['groupAvatar'] : ''}`}>
           {initial}
