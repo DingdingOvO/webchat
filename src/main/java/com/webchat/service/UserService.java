@@ -5,10 +5,8 @@ import com.webchat.kvstore.RedisStateStore;
 import com.webchat.model.*;
 import com.webchat.repository.*;
 import com.webchat.util.BusinessException;
-
 import java.util.*;
 import java.util.stream.Collectors;
-
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -79,7 +77,10 @@ public class UserService {
 
     private UserDTO toDTO(User u) {
         return new UserDTO(
-                u.getId(), u.getUsername(), u.getNickname(), u.getAvatar(),
+                u.getId(),
+                u.getUsername(),
+                u.getNickname(),
+                u.getAvatar(),
                 stateStore.isOnline(u.getId()),
                 u.getLastOnline() != null ? u.getLastOnline().toString() : null);
     }
