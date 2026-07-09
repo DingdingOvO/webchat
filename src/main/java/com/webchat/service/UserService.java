@@ -61,8 +61,8 @@ public class UserService {
 
     @Transactional
     public void acceptFriendRequest(Long requestId) {
-        FriendRequest req = requestRepo.findById(requestId)
-                .orElseThrow(() -> new BusinessException("请求不存在"));
+        FriendRequest req =
+                requestRepo.findById(requestId).orElseThrow(() -> new BusinessException("请求不存在"));
         req.setStatus(FriendRequest.Status.ACCEPTED);
         requestRepo.save(req);
         friendRepo.save(new Friend(req.getFromUserId(), req.getToUserId()));
@@ -71,8 +71,8 @@ public class UserService {
 
     @Transactional
     public void rejectFriendRequest(Long requestId) {
-        FriendRequest req = requestRepo.findById(requestId)
-                .orElseThrow(() -> new BusinessException("请求不存在"));
+        FriendRequest req =
+                requestRepo.findById(requestId).orElseThrow(() -> new BusinessException("请求不存在"));
         req.setStatus(FriendRequest.Status.REJECTED);
         requestRepo.save(req);
     }
