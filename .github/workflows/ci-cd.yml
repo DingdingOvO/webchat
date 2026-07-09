@@ -14,9 +14,6 @@ env:
   FRONTEND_IMAGE: ghcr.io/${{ github.repository }}-frontend
 
 jobs:
-  # ================================================================
-  # 构建后端
-  # ================================================================
   build-backend:
     name: Build Backend (Spring Boot)
     runs-on: ubuntu-latest
@@ -39,9 +36,6 @@ jobs:
           name: backend-jar
           path: target/*.jar
 
-  # ================================================================
-  # 构建前端
-  # ================================================================
   build-frontend:
     name: Build Frontend (React)
     runs-on: ubuntu-latest
@@ -70,9 +64,6 @@ jobs:
           name: frontend-dist
           path: frontend/dist
 
-  # ================================================================
-  # Docker 镜像构建 & 推送
-  # ================================================================
   docker:
     name: Build & Push Docker Images
     needs: [build-backend, build-frontend]
@@ -150,9 +141,6 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-  # ================================================================
-  # 部署到服务器（SSH）
-  # ================================================================
   deploy-ssh:
     name: Deploy via SSH
     needs: docker
@@ -171,9 +159,6 @@ jobs:
             docker compose up -d --remove-orphans
             docker image prune -f
 
-  # ================================================================
-  # 部署到 Kubernetes（kubectl）
-  # ================================================================
   deploy-k8s:
     name: Deploy to Kubernetes
     needs: docker
