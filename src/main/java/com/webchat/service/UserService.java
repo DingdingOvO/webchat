@@ -5,11 +5,12 @@ import com.webchat.kvstore.RedisStateStore;
 import com.webchat.model.*;
 import com.webchat.repository.*;
 import com.webchat.util.BusinessException;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class UserService {
@@ -19,8 +20,11 @@ public class UserService {
     private final FriendRequestRepository requestRepo;
     private final RedisStateStore stateStore;
 
-    public UserService(UserRepository userRepo, FriendRepository friendRepo,
-                       FriendRequestRepository requestRepo, RedisStateStore stateStore) {
+    public UserService(
+            UserRepository userRepo,
+            FriendRepository friendRepo,
+            FriendRequestRepository requestRepo,
+            RedisStateStore stateStore) {
         this.userRepo = userRepo;
         this.friendRepo = friendRepo;
         this.requestRepo = requestRepo;
