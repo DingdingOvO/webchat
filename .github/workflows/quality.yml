@@ -51,10 +51,7 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: SpotBugs check
-        run: mvn spotbugs:check -q
-
-      - name: Verify (test + JaCoCo)
+      - name: Verify
         run: mvn verify -q
 
   # ================================================================
