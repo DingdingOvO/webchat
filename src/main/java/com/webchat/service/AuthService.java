@@ -27,8 +27,10 @@ public class AuthService {
         if (userRepo.existsByUsername(req.username())) {
             throw new BusinessException("用户名已存在");
         }
-        String nickname = req.nickname() != null && !req.nickname().isBlank()
-                ? req.nickname() : req.username();
+        String nickname =
+                req.nickname() != null && !req.nickname().isBlank()
+                        ? req.nickname()
+                        : req.username();
         User user = new User(req.username(), encoder.encode(req.password()), nickname);
         user = userRepo.save(user);
         String token = jwtUtil.generateToken(user.getId(), user.getUsername());
@@ -36,8 +38,9 @@ public class AuthService {
     }
 
     public AuthResponse login(LoginRequest req) {
-        User user = userRepo.findByUsername(req.username())
-                .orElseThrow(() -> new BusinessException("用户名或密码错误"));
+        User user =
+                userRepo.findByUsername(req.username())
+                        .orElseThrow(() -> new BusinessException("用户名或密码错误"));
         if (!encoder.matches(req.password(), user.getPassword())) {
             throw new BusinessException("用户名或密码错误");
         }

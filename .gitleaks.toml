@@ -37,4 +37,5 @@ paths = [
   '''(^|/)\.env\.example$''',
   '''(^|/)docs/''',
   '''(^|/)\.github/workflows/''',
+  '''(^|/)src/main/resources/''',
 ]

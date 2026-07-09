@@ -18,6 +18,7 @@ export function buildConversations(
   for (const [key, msgs] of convMessages) {
     if (msgs.length === 0) continue;
     const last = msgs[msgs.length - 1];
+    if (!last) continue;
     const contact = contacts.find(c => c.key === key);
     result.push({
       key,

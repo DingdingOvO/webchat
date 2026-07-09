@@ -4,7 +4,7 @@ interface Props { children: ReactNode }
 interface State { hasError: boolean; error: Error | null }
 
 export default class ErrorBoundary extends Component<Props, State> {
-  state: State = { hasError: false, error: null };
+  override state: State = { hasError: false, error: null };
 
   static getDerivedStateFromError(error: Error): State {
     return { hasError: true, error };
@@ -12,7 +12,7 @@ export default class ErrorBoundary extends Component<Props, State> {
 
   handleReset = () => this.setState({ hasError: false, error: null });
 
-  render() {
+  override render() {
     if (this.state.hasError) {
       return (
         <div style={{

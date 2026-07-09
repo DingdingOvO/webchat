@@ -1,22 +1,22 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './context/AuthContext';
+import styles from './App.module.css';
 import ErrorBoundary from './components/ErrorBoundary';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import ChatPage from './pages/ChatPage';
+import DocsPage from './pages/DocsPage';
+import FeedbackPage from './pages/FeedbackPage';
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
-import ChatPage from './pages/ChatPage';
 import SettingsPage from './pages/SettingsPage';
-import DocsPage from './pages/DocsPage';
-import FeedbackPage from './pages/FeedbackPage';
-import styles from './App.module.css';
 
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
+function ProtectedRoute({ children }: { readonly children: React.ReactNode }) {
   const { auth } = useAuth();
   if (!auth) return <Navigate to="/login" replace />;
   return <>{children}</>;
 }
 
-function PublicRoute({ children }: { children: React.ReactNode }) {
+function PublicRoute({ children }: { readonly children: React.ReactNode }) {
   const { auth } = useAuth();
   if (auth) return <Navigate to="/app" replace />;
   return <>{children}</>;

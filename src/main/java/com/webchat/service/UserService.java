@@ -5,11 +5,10 @@ import com.webchat.kvstore.RedisStateStore;
 import com.webchat.model.*;
 import com.webchat.repository.*;
 import com.webchat.util.BusinessException;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.util.*;
 import java.util.stream.Collectors;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class UserService {
@@ -19,8 +18,11 @@ public class UserService {
     private final FriendRequestRepository requestRepo;
     private final RedisStateStore stateStore;
 
-    public UserService(UserRepository userRepo, FriendRepository friendRepo,
-                       FriendRequestRepository requestRepo, RedisStateStore stateStore) {
+    public UserService(
+            UserRepository userRepo,
+            FriendRepository friendRepo,
+            FriendRequestRepository requestRepo,
+            RedisStateStore stateStore) {
         this.userRepo = userRepo;
         this.friendRepo = friendRepo;
         this.requestRepo = requestRepo;
@@ -57,8 +59,8 @@ public class UserService {
 
     @Transactional
     public void acceptFriendRequest(Long requestId) {
-        FriendRequest req = requestRepo.findById(requestId)
-                .orElseThrow(() -> new BusinessException("请求不存在"));
+        FriendRequest req =
+                requestRepo.findById(requestId).orElseThrow(() -> new BusinessException("请求不存在"));
         req.setStatus(FriendRequest.Status.ACCEPTED);
         requestRepo.save(req);
         friendRepo.save(new Friend(req.getFromUserId(), req.getToUserId()));
@@ -67,15 +69,18 @@ public class UserService {
 
     @Transactional
     public void rejectFriendRequest(Long requestId) {
-        FriendRequest req = requestRepo.findById(requestId)
-                .orElseThrow(() -> new BusinessException("请求不存在"));
+        FriendRequest req =
+                requestRepo.findById(requestId).orElseThrow(() -> new BusinessException("请求不存在"));
         req.setStatus(FriendRequest.Status.REJECTED);
         requestRepo.save(req);
     }
 
     private UserDTO toDTO(User u) {
         return new UserDTO(
-                u.getId(), u.getUsername(), u.getNickname(), u.getAvatar(),
+                u.getId(),
+                u.getUsername(),
+                u.getNickname(),
+                u.getAvatar(),
                 stateStore.isOnline(u.getId()),
                 u.getLastOnline() != null ? u.getLastOnline().toString() : null);
     }

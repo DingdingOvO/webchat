@@ -3,9 +3,9 @@ import { useAuth } from '../context/AuthContext';
 import type { UserDTO, GroupDTO } from '../types';
 
 interface Props {
-  friends: UserDTO[];
-  onClose: () => void;
-  onCreated: (g: GroupDTO) => void;
+  readonly friends: UserDTO[];
+  readonly onClose: () => void;
+  readonly onCreated: (g: GroupDTO) => void;
 }
 
 export default function CreateGroupModal({ friends, onClose, onCreated }: Props) {
@@ -31,16 +31,17 @@ export default function CreateGroupModal({ friends, onClose, onCreated }: Props)
       const res = await fetch('/api/groups', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${auth.token}` },
-        body: JSON.stringify({ name: name.trim(), memberIds: Array.from(selected) }),
+        body: JSON.stringify({ name: name.trim(), memberIds: [...selected] }),
       });
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        setError(data.error || '创建失败');
+        const data: Record<string, string> = await res.json().catch(() => ({}));
+        setError(data['error'] || '创建失败');
         return;
       }
-      onCreated(await res.json());
+      const group: GroupDTO = await res.json();
+      onCreated(group);
       onClose();
-    } catch (err) {
+    } catch {
       setError('网络错误，请重试');
     } finally {
       setLoading(false);
@@ -54,13 +55,17 @@ export default function CreateGroupModal({ friends, onClose, onCreated }: Props)
         display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100,
       }}
       onClick={onClose}
+      onKeyDown={(e) => { if (e.key === 'Escape') onClose(); }}
+      role="dialog"
+      tabIndex={-1}
     >
       <div
         style={{
           width: 380, background: 'var(--bg-surface)', borderRadius: 'var(--r-xl)',
           boxShadow: 'var(--shadow-xl)', padding: 'var(--p5) var(--p6)',
         }}
-        onClick={(e) => e.stopPropagation()}
+          onClick={(e) => { e.stopPropagation(); }}
+          onKeyDown={(e) => { e.stopPropagation(); }}
       >
         <h2 style={{ fontSize: 'var(--fs-lg)', fontWeight: 600, marginBottom: 'var(--p4)' }}>
           创建群组
