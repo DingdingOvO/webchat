@@ -54,8 +54,8 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Spotless check
-        run: mvn spotless:check -q
+      - name: Spotless apply & check
+        run: mvn spotless:apply -q && mvn spotless:check -q
 
       - name: Checkstyle check
         run: mvn checkstyle:check -q
