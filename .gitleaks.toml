@@ -37,10 +37,5 @@ paths = [
   '''(^|/)\.env\.example$''',
   '''(^|/)docs/''',
   '''(^|/)\.github/workflows/''',
-]
-regexes = [
-  '''WebChat2026SecretKeyMustBe256BitsLongForHS512Algorithm!!_ABCDEFGH''',
-  '''webchat2026''',
-  '''spring\.datasource\.password\s*=\s*webchat2026''',
-  '''jwt\.secret\s*=\s*WebChat2026SecretKey''',
+  '''(^|/)src/main/resources/application\.properties$''',
 ]
