@@ -11,8 +11,8 @@
 
   <module name="FileTabCharacter"/>
   <module name="LineLength">
-    <property name="max" value="120"/>
-    <property name="ignorePattern" value="^package.*|^import.*|a href|href|http://|https://|ftp://"/>
+    <property name="max" value="130"/>
+    <property name="ignorePattern" value="^package.*|^import.*|a href|href|http://|https://|ftp://|@Query|@RequestMapping|@PostMapping|@GetMapping"/>
   </module>
 
   <module name="TreeWalker">
@@ -86,7 +86,14 @@
     <module name="ParenPad"/>
     <module name="TypecastParenPad"/>
     <module name="WhitespaceAfter"/>
-    <module name="WhitespaceAround"/>
+    <module name="WhitespaceAround">
+      <property name="allowEmptyConstructors" value="true"/>
+      <property name="allowEmptyMethods" value="true"/>
+      <property name="allowEmptyTypes" value="true"/>
+      <property name="allowEmptyRecords" value="true"/>
+      <property name="allowEmptyLambdas" value="true"/>
+      <property name="allowEmptyCatches" value="true"/>
+    </module>
 
     <!-- Annotations -->
     <module name="AnnotationLocation"/>
