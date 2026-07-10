@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: frontend
+        working-directory: packages/frontend
     steps:
       - uses: actions/checkout@v4
 
@@ -24,7 +24,7 @@ jobs:
         with:
           node-version: '22'
           cache: npm
-          cache-dependency-path: frontend/package-lock.json
+          cache-dependency-path: packages/frontend/package-lock.json
 
       - name: Install dependencies
         run: npm ci
@@ -55,19 +55,19 @@ jobs:
           cache: maven
 
       - name: Spotless apply & check
-        run: mvn spotless:apply -q && mvn spotless:check -q
+        run: cd packages/server && mvn spotless:apply -q && mvn spotless:check -q
 
       - name: Checkstyle check
-        run: mvn checkstyle:check -q
+        run: cd packages/server && mvn checkstyle:check -q
 
       - name: PMD check
-        run: mvn pmd:check -q || true
+        run: cd packages/server && mvn pmd:check -q || true
 
       - name: SpotBugs check
-        run: mvn spotbugs:check -q
+        run: cd packages/server && mvn spotbugs:check -q
 
       - name: Verify (test + JaCoCo)
-        run: mvn verify -q
+        run: cd packages/server && mvn verify -q
 
   # ================================================================
   # Secret Scan
@@ -117,7 +117,7 @@ jobs:
 
       - name: Build Java
         if: matrix.language == 'java'
-        run: mvn clean package -DskipTests -q
+        run: cd packages/server && mvn clean package -DskipTests -q
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v4

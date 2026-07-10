@@ -4,7 +4,7 @@ description: WebChat - Spring Boot + React 即时通讯应用
 type: application
 version: 0.1.0
 appVersion: "1.0.0"
-icon: https://raw.githubusercontent.com/DingdingOvO/webchat/main/frontend/public/favicon.ico
+icon: https://raw.githubusercontent.com/DingdingOvO/webchat/main/packages/frontend/public/favicon.ico
 
 keywords:
   - chat

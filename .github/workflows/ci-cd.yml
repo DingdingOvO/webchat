@@ -28,20 +28,20 @@ jobs:
           cache: maven
 
       - name: Build with Maven (verify — no skipTests)
-        run: mvn clean verify
+        run: cd packages/server && mvn clean verify
 
       - name: Upload JAR artifact
         uses: actions/upload-artifact@v4
         with:
           name: backend-jar
-          path: target/*.jar
+          path: packages/server/target/*.jar
 
   build-frontend:
     name: Build Frontend (React)
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: frontend
+        working-directory: packages/frontend
     steps:
       - uses: actions/checkout@v4
 
@@ -50,7 +50,7 @@ jobs:
         with:
           node-version: '22'
           cache: npm
-          cache-dependency-path: frontend/package-lock.json
+          cache-dependency-path: packages/frontend/package-lock.json
 
       - name: Install dependencies
         run: npm ci
@@ -62,7 +62,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: frontend-dist
-          path: frontend/dist
+          path: packages/frontend/dist
 
   docker:
     name: Build & Push Docker Images
@@ -79,13 +79,13 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: backend-jar
-          path: target/
+          path: packages/server/target/
 
       - name: Download frontend dist
         uses: actions/download-artifact@v4
         with:
           name: frontend-dist
-          path: frontend/dist/
+          path: packages/frontend/dist/
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
@@ -134,7 +134,7 @@ jobs:
       - name: Build & push frontend
         uses: docker/build-push-action@v6
         with:
-          context: frontend
+          context: packages/frontend
           push: true
           tags: ${{ steps.meta-frontend.outputs.tags }}
           labels: ${{ steps.meta-frontend.outputs.labels }}

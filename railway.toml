@@ -13,7 +13,7 @@
 [build]
   builder = "docker"
   dockerfile = "Dockerfile"
-  watch_patterns = ["src/**", "frontend/src/**", "pom.xml", "frontend/package.json"]
+  watch_patterns = ["packages/server/src/**", "packages/frontend/src/**", "packages/server/pom.xml", "packages/frontend/package.json"]
 
 [deploy]
   numReplicas = 1

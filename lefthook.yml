@@ -4,7 +4,7 @@ pre-commit:
   parallel: true
   commands:
     frontend-lint:
-      root: frontend/
+      root: packages/frontend/
       glob: "*.{js,jsx,ts,tsx,cjs}"
       run: npx biome check --write --unsafe {staged_files} || true
       stage_fixed: true

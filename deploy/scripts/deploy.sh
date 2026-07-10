@@ -80,7 +80,7 @@ if [ -d "$APP_DIR/frontend/dist" ] && [ -n "$(ls -A "$APP_DIR/frontend/dist")" ]
     log "前端文件已存在"
 else
     log "请将前端构建产物放到 ${APP_DIR}/frontend/dist/"
-    log "构建命令: cd webchat/frontend && npm install && npm run build && cp -r dist/* /opt/webchat/frontend/dist/"
+    log "构建命令: cd webchat/packages/frontend && npm install && npm run build && cp -r dist/* /opt/webchat/frontend/dist/"
 fi
 
 # ---- 10. 启动后端 ----
