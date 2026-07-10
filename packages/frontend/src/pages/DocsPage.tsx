@@ -10,6 +10,7 @@ import techMd from '@docs/tech/README.md';
 import { Marked, Renderer } from 'marked';
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { HomeIcon, DocsIcon, FeedbackIcon, GitHubIcon, PersonIcon } from '../components/Icons';
 import type { DocsConfig, Section } from '../types/docs';
 import styles from './DocsPage.module.css';
 
@@ -90,17 +91,24 @@ export default function DocsPage() {
           </Link>
           <nav className={styles.topbarNav}>
             <Link to="/" className={styles.topbarLink}>
-              首页
+              <HomeIcon size={18} />
+              <span className={styles.navLabel}>首页</span>
             </Link>
-            <span className={styles.topbarLinkActive}>文档</span>
+            <span className={styles.topbarLinkActive}>
+              <DocsIcon size={18} />
+              <span className={styles.navLabel}>文档</span>
+            </span>
             <Link to="/feedback" className={styles.topbarLink}>
-              反馈
+              <FeedbackIcon size={18} />
+              <span className={styles.navLabel}>反馈</span>
             </Link>
-            <Link to="/source" className={styles.topbarLink}>
-              源代码
-            </Link>
+            <a href="https://github.com/DingdingOvO/webchat" target="_blank" rel="noreferrer noopener" className={styles.topbarLink}>
+              <GitHubIcon size={18} />
+              <span className={styles.navLabel}>源代码</span>
+            </a>
             <Link to="/login" className={styles.topbarLink}>
-              登录
+              <PersonIcon size={18} />
+              <span className={styles.navLabel}>登录</span>
             </Link>
           </nav>
         </div>

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { HomeIcon, DocsIcon, FeedbackIcon, GitHubIcon, PersonIcon, ExternalIcon } from '../components/Icons';
 import styles from './FeedbackPage.module.css';
 
 const FEEDBACK_URL =
@@ -20,17 +21,24 @@ export default function FeedbackPage() {
           </Link>
           <nav className={styles.topbarNav}>
             <Link to="/" className={styles.topbarLink}>
-              首页
+              <HomeIcon size={18} />
+              <span className={styles.navLabel}>首页</span>
             </Link>
             <Link to="/docs" className={styles.topbarLink}>
-              文档
+              <DocsIcon size={18} />
+              <span className={styles.navLabel}>文档</span>
             </Link>
-            <span className={styles.topbarLinkActive}>反馈</span>
-            <Link to="/source" className={styles.topbarLink}>
-              源代码
-            </Link>
+            <span className={styles.topbarLinkActive}>
+              <FeedbackIcon size={18} />
+              <span className={styles.navLabel}>反馈</span>
+            </span>
+            <a href="https://github.com/DingdingOvO/webchat" target="_blank" rel="noreferrer noopener" className={styles.topbarLink}>
+              <GitHubIcon size={18} />
+              <span className={styles.navLabel}>源代码</span>
+            </a>
             <Link to="/login" className={styles.topbarLink}>
-              登录
+              <PersonIcon size={18} />
+              <span className={styles.navLabel}>登录</span>
             </Link>
             <a
               className={styles.topbarExternal}
@@ -38,7 +46,7 @@ export default function FeedbackPage() {
               target="_blank"
               rel="noreferrer noopener"
             >
-              在新窗口打开 ↗
+              <ExternalIcon size={16} />
             </a>
           </nav>
         </div>

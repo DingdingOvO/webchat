@@ -9,7 +9,6 @@ import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import SettingsPage from './pages/SettingsPage';
-import SourcePage from './pages/SourcePage';
 
 function ProtectedRoute({ children }: { readonly children: React.ReactNode }) {
   const { auth } = useAuth();
@@ -56,7 +55,6 @@ export default function App() {
               />
               <Route path="/docs" element={<DocsPage />} />
               <Route path="/feedback" element={<FeedbackPage />} />
-              <Route path="/source" element={<SourcePage />} />
 
               {/* 应用（需登录） */}
               <Route

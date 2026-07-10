@@ -54,23 +54,56 @@
 .topbarNav {
   display: flex;
   align-items: center;
-  gap: var(--p5);
+  gap: var(--px);
 }
 
 .topbarLink {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-size: var(--fs-sm, 13px);
   color: var(--text-muted, #555);
   font-weight: var(--weight-medium, 500);
+  padding: 6px 10px;
+  border-radius: var(--r-md);
+  transition: color var(--fast), background var(--fast);
   text-decoration: none;
 }
 .topbarLink:hover {
   color: var(--text, #111);
+  background: var(--gray-50);
+}
+
+.topbarLink svg {
+  flex-shrink: 0;
 }
 
 .topbarLinkActive {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-size: var(--fs-sm, 13px);
   color: var(--primary, #2563eb);
   font-weight: var(--weight-semibold, 600);
+  padding: 6px 10px;
+  border-radius: var(--r-md);
+}
+
+.topbarLinkActive svg {
+  flex-shrink: 0;
+}
+
+.navLabel {
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .navLabel {
+    display: none;
+  }
+  .topbarLink, .topbarLinkActive {
+    padding: 8px;
+  }
 }
 
 .topbarExternal {
