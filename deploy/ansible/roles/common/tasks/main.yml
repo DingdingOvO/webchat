@@ -1,0 +1,51 @@
+---
+- name: 更新系统包缓存
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+
+- name: 安装系统依赖
+  apt:
+    name:
+      - curl
+      - wget
+      - git
+      - nginx
+      - certbot
+      - python3-certbot-nginx
+      - openjdk-26-jre-headless
+      - unzip
+    state: present
+
+- name: 创建 webchat 用户
+  user:
+    name: "{{ webchat_user }}"
+    system: yes
+    shell: /sbin/nologin
+    home: "{{ webchat_home }}"
+    create_home: yes
+
+- name: 创建日志目录
+  file:
+    path: "{{ webchat_home }}/logs"
+    state: directory
+    owner: "{{ webchat_user }}"
+    group: "{{ webchat_group }}"
+
+- name: 创建前端目录
+  file:
+    path: "{{ webchat_home }}/frontend/dist"
+    state: directory
+    owner: "{{ webchat_user }}"
+    group: "{{ webchat_group }}"
+
+- name: 开放防火墙端口
+  ufw:
+    rule: allow
+    port: "{{ item }}"
+    proto: tcp
+  loop:
+    - "80"
+    - "443"
+    - "8080"
+  ignore_errors: yes

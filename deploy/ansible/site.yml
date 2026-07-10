@@ -1,0 +1,28 @@
+---
+# WebChat Ansible 部署 playbook
+# 用法:
+#   ansible-playbook -i inventory/hosts.ini site.yml
+
+- name: 所有节点 — 基础环境
+  hosts: all
+  become: yes
+  roles:
+    - common
+
+- name: 数据库节点
+  hosts: databases
+  become: yes
+  roles:
+    - databases
+
+- name: 后端节点
+  hosts: backend
+  become: yes
+  roles:
+    - backend
+
+- name: 前端节点
+  hosts: frontend
+  become: yes
+  roles:
+    - frontend

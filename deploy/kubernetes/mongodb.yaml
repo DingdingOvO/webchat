@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: webchat-mongodb
+  namespace: webchat
+spec:
+  serviceName: webchat-mongodb
+  replicas: 1
+  selector:
+    matchLabels:
+      app: webchat
+      component: mongodb
+  template:
+    metadata:
+      labels:
+        app: webchat
+        component: mongodb
+    spec:
+      containers:
+        - name: mongodb
+          image: mongo:8.3
+          ports:
+            - containerPort: 27017
+          volumeMounts:
+            - name: mongo-data
+              mountPath: /data/db
+          livenessProbe:
+            exec:
+              command: ["mongosh", "--eval", "db.adminCommand('ping')", "--quiet"]
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "250m"
+  volumeClaimTemplates:
+    - metadata:
+        name: mongo-data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 10Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: webchat-mongodb
+  namespace: webchat
+spec:
+  clusterIP: None
+  selector:
+    app: webchat
+    component: mongodb
+  ports:
+    - port: 27017
+      targetPort: 27017

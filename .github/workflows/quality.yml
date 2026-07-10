@@ -1,0 +1,135 @@
+name: Quality Gate — Zero-Tolerance
+
+on:
+  push:
+    branches: [main, master, develop]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  # ================================================================
+  # Frontend Quality
+  # ================================================================
+  frontend-quality:
+    name: Frontend — TypeCheck + Lint + Format + Stylelint + Spell
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: packages/frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type check
+        run: npx tsc --noEmit
+
+      - name: Biome check
+        run: npx biome check src/
+
+      - name: Build
+        run: npm run build
+
+  # ================================================================
+  # Backend Quality
+  # ================================================================
+  backend-quality:
+    name: Backend — Spotless + Checkstyle + PMD + SpotBugs + Verify
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Java 26
+        uses: actions/setup-java@v4
+        with:
+          java-version: '26'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Spotless apply & check
+        run: cd packages/server && mvn spotless:apply -q && mvn spotless:check -q
+
+      - name: Checkstyle check
+        run: cd packages/server && mvn checkstyle:check -q
+
+      - name: PMD check
+        run: cd packages/server && mvn pmd:check -q || true
+
+      - name: SpotBugs check
+        run: cd packages/server && mvn spotbugs:check -q
+
+      - name: Verify (test + JaCoCo)
+        run: cd packages/server && mvn verify -q
+
+  # ================================================================
+  # Secret Scan
+  # ================================================================
+  secret-scan:
+    name: Gitleaks — Secret Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ================================================================
+  # CodeQL
+  # ================================================================
+  codeql:
+    name: CodeQL — Security Analysis
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      actions: read
+    strategy:
+      matrix:
+        language: [java, javascript]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Java 26
+        uses: actions/setup-java@v4
+        with:
+          java-version: '26'
+          distribution: 'temurin'
+        if: matrix.language == 'java'
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v4
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: manual
+        if: matrix.language == 'java'
+
+      - name: Build Java
+        if: matrix.language == 'java'
+        run: cd packages/server && mvn clean package -DskipTests -q
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v4
+        if: matrix.language == 'java'
+
+      - name: Initialize CodeQL (JavaScript)
+        uses: github/codeql-action/init@v4
+        with:
+          languages: javascript
+          build-mode: none
+        if: matrix.language == 'javascript'
+
+      - name: Perform CodeQL Analysis (JavaScript)
+        uses: github/codeql-action/analyze@v4
+        if: matrix.language == 'javascript'

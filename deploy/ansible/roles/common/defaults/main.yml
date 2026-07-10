@@ -1,0 +1,19 @@
+---
+webchat_version: "1.0.0"
+webchat_user: webchat
+webchat_group: webchat
+webchat_home: /opt/webchat
+
+mysql_root_password: "webchat2026"
+mysql_database: "webchat"
+
+jwt_secret: "change-this-to-a-strong-random-secret"
+
+java_xms: "256m"
+java_xmx: "512m"
+
+backend_port: 8080
+frontend_port: 80
+domain_name: chat.yourdomain.com
+
+github_repo: "https://github.com/DingdingOvO/webchat.git"

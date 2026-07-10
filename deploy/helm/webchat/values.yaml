@@ -1,0 +1,73 @@
+# ================================================================
+# WebChat Helm Chart — 全局配置
+# ================================================================
+
+# --- 全局 ---
+replicaCount: 2
+namespace: webchat
+environment: production
+
+# --- 镜像 ---
+image:
+  registry: ghcr.io
+  repositoryBackend: dingdingovo/webchat-backend
+  repositoryFrontend: dingdingovo/webchat-frontend
+  tag: latest
+  pullPolicy: Always
+
+# --- 域名 ---
+domain: chat.yourdomain.com
+tlsEnabled: true
+tlsSecretName: webchat-tls
+
+# --- 数据库密码 ---
+secrets:
+  mysqlPassword: "webchat2026"
+  jwtSecret: "change-to-strong-secret"
+
+# --- 后端配置 ---
+backend:
+  port: 8080
+  javaOpts: "-Xms256m -Xmx512m -XX:+UseG1GC"
+  resources:
+    requests:
+      memory: 512Mi
+      cpu: 250m
+    limits:
+      memory: 1Gi
+      cpu: 500m
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+
+# --- 前端配置 ---
+frontend:
+  port: 80
+  resources:
+    requests:
+      memory: 64Mi
+      cpu: 50m
+    limits:
+      memory: 256Mi
+      cpu: 200m
+
+# --- 数据库 ---
+databases:
+  mysql:
+    image: mysql:8.4
+    storageSize: 10Gi
+    resources:
+      requests:
+        memory: 512Mi
+        cpu: 250m
+      limits:
+        memory: 1Gi
+        cpu: 500m
+  mongodb:
+    image: mongo:8.3
+    storageSize: 10Gi
+  redis:
+    image: redis:7.4-alpine
+    storageSize: 1Gi

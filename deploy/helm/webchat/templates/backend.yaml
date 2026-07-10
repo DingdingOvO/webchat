@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-backend
+  namespace: {{ .Values.namespace }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: webchat
+      component: backend
+  template:
+    metadata:
+      labels:
+        app: webchat
+        component: backend
+    spec:
+      containers:
+        - name: backend
+          image: "{{ .Values.image.registry }}/{{ .Values.image.repositoryBackend }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.backend.port }}
+          env:
+            - name: JAVA_OPTS
+              value: "{{ .Values.backend.javaOpts }}"
+          envFrom:
+            - configMapRef:
+                name: webchat-config
+            - secretRef:
+                name: webchat-secret
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: {{ .Values.backend.port }}
+            initialDelaySeconds: 60
+            periodSeconds: 15
+          resources:
+            {{- toYaml .Values.backend.resources | nindent 12 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-backend
+  namespace: {{ .Values.namespace }}
+spec:
+  selector:
+    app: webchat
+    component: backend
+  ports:
+    - port: {{ .Values.backend.port }}
+      targetPort: {{ .Values.backend.port }}
+---
+{{- if .Values.backend.autoscaling.enabled }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ .Release.Name }}-backend
+  namespace: {{ .Values.namespace }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ .Release.Name }}-backend
+  minReplicas: {{ .Values.backend.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.backend.autoscaling.maxReplicas }}
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.backend.autoscaling.targetCPUUtilizationPercentage }}
+{{- end }}

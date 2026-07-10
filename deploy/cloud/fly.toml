@@ -1,0 +1,57 @@
+# ================================================================
+# Fly.io 部署配置
+# 安装: curl -L https://fly.io/install.sh | sh
+# 部署: fly launch --copy-config
+#       fly deploy
+# ================================================================
+
+app: webchat
+primary_region: hkg
+
+env:
+  MYSQL_HOST: webchat-mysql.internal
+  MYSQL_PORT: "3306"
+  MYSQL_USER: root
+  MYSQL_PASSWORD: webchat2026
+  MYSQL_DATABASE: webchat
+  MONGO_HOST: webchat-mongodb.internal
+  MONGO_PORT: "27017"
+  REDIS_HOST: webchat-redis.internal
+  REDIS_PORT: "6379"
+  JWT_SECRET: change-this-on-fly-secrets
+
+services:
+  - name: webchat-backend
+    internal_port: 8080
+    protocol: tcp
+    processes: [backend]
+    http_checks:
+      path: /actuator/health
+    [[services.ports]]
+      port: 8080
+      handlers: ["http"]
+
+  - name: webchat-frontend
+    internal_port: 80
+    protocol: tcp
+    processes: [frontend]
+    [[services.ports]]
+      port: 80
+      handlers: ["http"]
+    [[services.ports]]
+      port: 443
+      handlers: ["tls", "http"]
+
+processes:
+  - name: backend
+    cmd: "java -jar app.jar"
+  - name: frontend
+    cmd: "nginx -g 'daemon off;'"
+
+# 使用 Fly Postgres/MongoDB/Redis 托管服务
+# fly postgres create --name webchat-db
+# fly redis create --name webchat-redis
+# fly mongo create --name webchat-mongo
+
+[build]
+  dockerfile = "Dockerfile"

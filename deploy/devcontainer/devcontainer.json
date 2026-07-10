@@ -1,0 +1,27 @@
+{
+  "name": "WebChat",
+  "dockerComposeFile": ["../../docker-compose.yaml"],
+  "service": "backend",
+  "workspaceFolder": "/app",
+  "forwardPorts": [8080, 3000],
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "vscjava.vscode-java-pack",
+        "vscjava.vscode-spring-initializr",
+        "vscjava.vscode-spring-boot-dashboard",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "ms-azuretools.vscode-docker",
+        "mtxr.sqltools",
+        "mtxr.sqltools-driver-mysql"
+      ],
+      "settings": {
+        "java.jdt.ls.java.home": "/usr/local/openjdk-26",
+        "java.configuration.updateBuildConfiguration": "automatic",
+        "typescript.validate.enable": true
+      }
+    }
+  },
+  "postCreateCommand": "echo 'DevContainer ready! Run: make build-all'"
+}

@@ -1,0 +1,74 @@
+{
+  "sections": [
+    {
+      "id": "overview",
+      "title": "概览",
+      "path": "docs/overview/README.md",
+      "children": [
+        { "id": "what-is-webchat", "title": "什么是 WebChat" },
+        { "id": "features",        "title": "核心功能" },
+        { "id": "architecture",    "title": "系统架构" }
+      ]
+    },
+    {
+      "id": "quickstart",
+      "title": "快速开始",
+      "path": "docs/quickstart/README.md",
+      "children": [
+        { "id": "setup",          "title": "环境准备" },
+        { "id": "docker-deploy",  "title": "Docker 一键启动" },
+        { "id": "manual-start",   "title": "手动启动" },
+        { "id": "first-chat",     "title": "第一次聊天" }
+      ]
+    },
+    {
+      "id": "api",
+      "title": "API 参考",
+      "path": "docs/api/README.md",
+      "children": [
+        { "id": "api-auth",       "title": "认证" },
+        { "id": "api-users",      "title": "用户与好友" },
+        { "id": "api-groups",     "title": "群组" },
+        { "id": "api-messages",   "title": "消息" },
+        { "id": "api-settings",   "title": "设置" },
+        { "id": "api-ws",         "title": "WebSocket" },
+        { "id": "api-errors",     "title": "错误处理" }
+      ]
+    },
+    {
+      "id": "design",
+      "title": "设计语言",
+      "path": "docs/design/README.md",
+      "children": [
+        { "id": "design-philosophy", "title": "一、设计原则" },
+        { "id": "design-colors",     "title": "二、色板" },
+        { "id": "design-typography", "title": "三、字体" },
+        { "id": "design-spacing",    "title": "四、间距与布局" },
+        { "id": "design-components", "title": "五、组件规范" },
+        { "id": "design-specs",      "title": "六、设计稿尺寸" }
+      ]
+    },
+    {
+      "id": "tech",
+      "title": "技术栈",
+      "path": "docs/tech/README.md",
+      "children": [
+        { "id": "tech-frontend", "title": "前端" },
+        { "id": "tech-backend",  "title": "后端" },
+        { "id": "tech-storage",  "title": "存储层" },
+        { "id": "tech-arch",     "title": "数据流" }
+      ]
+    },
+    {
+      "id": "deploy",
+      "title": "部署指南",
+      "path": "docs/deploy/README.md",
+      "children": [
+        { "id": "deploy-summary", "title": "部署方式总览" },
+        { "id": "deploy-docker",  "title": "Docker 部署" },
+        { "id": "deploy-k8s",     "title": "Kubernetes 部署" },
+        { "id": "deploy-vps",     "title": "VPS 部署" }
+      ]
+    }
+  ]
+}

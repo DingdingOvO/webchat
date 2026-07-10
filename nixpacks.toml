@@ -1,0 +1,8 @@
+[phases.setup]
+  nixPkgs = ["nodejs_22", "maven", "curl"]
+[phases.install]
+  cmds = ["cd packages/frontend && npm ci && npm run build", "cd packages/server && mvn dependency:go-offline -B"]
+[phases.build]
+  cmds = ["cp -r packages/frontend/dist packages/server/src/main/resources/static", "cd packages/server && mvn clean package -DskipTests"]
+[start]
+  cmd = "java -jar packages/server/target/webchat-server-*.jar"

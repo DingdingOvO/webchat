@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: webchat-config
+  namespace: webchat
+data:
+  # Spring Boot 应用配置
+  MYSQL_HOST: "webchat-mysql"
+  MYSQL_PORT: "3306"
+  MYSQL_DATABASE: "webchat"
+  MONGO_HOST: "webchat-mongodb"
+  MONGO_PORT: "27017"
+  REDIS_HOST: "webchat-redis"
+  REDIS_PORT: "6379"
+  BACKEND_URL: "http://webchat-backend:8080"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: webchat-secret
+  namespace: webchat
+type: Opaque
+stringData:
+  MYSQL_USER: "root"
+  MYSQL_PASSWORD: "webchat2026"
+  JWT_SECRET: "change-this-to-a-strong-random-secret-in-production"

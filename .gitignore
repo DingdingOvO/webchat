@@ -1,0 +1,14 @@
+node_modules/
+target/
+dist/
+*.log
+.DS_Store
+packages/frontend/dist/
+*.png
+*.yaml
+!docker-compose.yaml
+!deploy/**/*.yaml
+!deploy/**/*.yml
+packages/frontend/ssl/
+nohup.out
+.playwright-cli/

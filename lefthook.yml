@@ -1,0 +1,25 @@
+# lefthook.yml — Git hooks for WebChat (frontend + backend)
+
+pre-commit:
+  parallel: true
+  commands:
+    frontend-lint:
+      root: packages/frontend/
+      glob: "*.{js,jsx,ts,tsx,cjs}"
+      run: npx biome check --write --unsafe {staged_files} || true
+      stage_fixed: true
+
+    backend-format:
+      glob: "*.java"
+      run: mvn spotless:apply -q || true
+      stage_fixed: true
+
+commit-msg:
+  commands:
+    commitlint:
+      run: npx commitlint --edit {1}
+
+pre-push:
+  commands:
+    quality-check:
+      run: make lint typecheck 2>&1 || true

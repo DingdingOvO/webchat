@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: webchat-mysql
+  namespace: webchat
+spec:
+  serviceName: webchat-mysql
+  replicas: 1
+  selector:
+    matchLabels:
+      app: webchat
+      component: mysql
+  template:
+    metadata:
+      labels:
+        app: webchat
+        component: mysql
+    spec:
+      containers:
+        - name: mysql
+          image: mysql:8.4
+          ports:
+            - containerPort: 3306
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: webchat-secret
+                  key: MYSQL_PASSWORD
+            - name: MYSQL_DATABASE
+              value: "webchat"
+          volumeMounts:
+            - name: mysql-data
+              mountPath: /var/lib/mysql
+          livenessProbe:
+            exec:
+              command: ["mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$(MYSQL_ROOT_PASSWORD)"]
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
+  volumeClaimTemplates:
+    - metadata:
+        name: mysql-data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 10Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: webchat-mysql
+  namespace: webchat
+spec:
+  clusterIP: None
+  selector:
+    app: webchat
+    component: mysql
+  ports:
+    - port: 3306
+      targetPort: 3306

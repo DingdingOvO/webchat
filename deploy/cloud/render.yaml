@@ -1,0 +1,83 @@
+# ================================================================
+# Render Blueprint — 基础设施即代码
+# 在 Render Dashboard 中连接仓库，自动检测此文件
+# ================================================================
+
+services:
+  # --- Backend ---
+  - type: web
+    name: webchat-backend
+    env: docker
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: MYSQL_HOST
+        fromService:
+          type: pserv
+          name: webchat-mysql
+          property: host
+      - key: MYSQL_PORT
+        value: "3306"
+      - key: MYSQL_USER
+        value: "root"
+      - key: MYSQL_PASSWORD
+        fromService:
+          type: pserv
+          name: webchat-mysql
+          property: password
+      - key: MYSQL_DATABASE
+        value: "webchat"
+      - key: MONGO_HOST
+        fromService:
+          type: pserv
+          name: webchat-mongodb
+          property: host
+      - key: MONGO_PORT
+        value: "27017"
+      - key: REDIS_HOST
+        fromService:
+          type: pserv
+          name: webchat-redis
+          property: host
+      - key: REDIS_PORT
+        value: "6379"
+      - key: JWT_SECRET
+        generateValue: true
+
+  # --- Frontend ---
+  - type: web
+    name: webchat-frontend
+    env: docker
+    dockerfilePath: ./packages/frontend/Dockerfile
+    envVars:
+      - key: BACKEND_URL
+        fromService:
+          type: web
+          name: webchat-backend
+          property: url
+
+  # --- MySQL ---
+  - type: pserv
+    name: webchat-mysql
+    plan: starter
+    env: docker
+    repo: https://github.com/DingdingOvO/webchat
+    dockerCommand: mysql:8.4
+    envVars:
+      - key: MYSQL_ROOT_PASSWORD
+        generateValue: true
+      - key: MYSQL_DATABASE
+        value: "webchat"
+
+  # --- MongoDB ---
+  - type: pserv
+    name: webchat-mongodb
+    plan: starter
+    env: docker
+    dockerCommand: mongo:8.3
+
+  # --- Redis ---
+  - type: pserv
+    name: webchat-redis
+    plan: starter
+    env: docker
+    dockerCommand: redis:7.4-alpine

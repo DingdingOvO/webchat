@@ -1,0 +1,15 @@
+{
+  "name": "webchat-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "WebChat - Monorepo",
+  "workspaces": ["packages/frontend"],
+  "scripts": {
+    "build:frontend": "npm run build -w packages/frontend",
+    "dev:frontend": "npm run dev -w packages/frontend",
+    "build": "npm run build:frontend"
+  },
+  "dependencies": {
+    "playwright-core": "^1.61.1"
+  }
+}

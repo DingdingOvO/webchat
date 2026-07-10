@@ -1,0 +1,88 @@
+services:
+  # ============================================================
+  # MySQL — 元数据（用户、群组等）
+  # ============================================================
+  mysql:
+    image: mysql:8.4
+    container_name: webchat-mysql
+    restart: unless-stopped
+    volumes:
+      - mysql_data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: webchat2026
+      MYSQL_DATABASE: webchat
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-pwebchat2026"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # ============================================================
+  # MongoDB — 消息本体（冷存储）
+  # ============================================================
+  mongodb:
+    image: mongo:8.3
+    container_name: webchat-mongodb
+    restart: unless-stopped
+    volumes:
+      - mongo_data:/data/db
+
+  # ============================================================
+  # Redis — 热消息 / 实时状态 / Pub-Sub
+  # ============================================================
+  redis:
+    image: redis:7.4-alpine
+    container_name: webchat-redis
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+
+  # ============================================================
+  # Backend — Spring Boot (Java 26)
+  # ============================================================
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: webchat-backend
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+      mongodb:
+        condition: service_started
+      redis:
+        condition: service_started
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      MYSQL_USER: root
+      MYSQL_PASSWORD: webchat2026
+      MONGO_HOST: mongodb
+      MONGO_PORT: 27017
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    ports:
+      - "8080:8080"
+
+  # ============================================================
+  # Frontend — React + Nginx
+  # ============================================================
+  frontend:
+    build:
+      context: ./packages/frontend
+      dockerfile: Dockerfile
+    container_name: webchat-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      BACKEND_URL: "http://backend:8080"
+    ports:
+      - "3000:80"
+
+volumes:
+  mysql_data:
+  mongo_data:
+  redis_data:

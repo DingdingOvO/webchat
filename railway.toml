@@ -1,0 +1,29 @@
+# ================================================================
+# Railway 部署配置
+# ================================================================
+# Railway 项目需要创建 3 个服务：
+#   1. webchat-backend  ← Dockerfile 构建（后端 + 前端一体）
+#   2. webchat-frontend ← frontend/Dockerfile 构建（仅前端 nginx）
+#   3. MySQL / MongoDB / Redis — 使用 Railway 插件
+#
+# 推荐方式：只部署 backend（Dockerfile 已包含前端），
+# 在 Railway Dashboard 添加 MySQL/MongoDB/Redis 插件
+# ================================================================
+
+[build]
+  builder = "docker"
+  dockerfile = "Dockerfile"
+  watch_patterns = ["packages/server/src/**", "packages/frontend/src/**", "packages/server/pom.xml", "packages/frontend/package.json"]
+
+[deploy]
+  numReplicas = 1
+  startCommand = "java -jar app.jar"
+  healthcheckPath = "/api/auth/me"
+  healthcheckTimeout = 90
+  restartPolicyType = "ON_FAILURE"
+  restartPolicyMaxRetries = 5
+
+[env]
+  MYSQL_DATABASE = "webchat"
+  MYSQL_USER = "root"
+  JWT_SECRET = "change-this-to-a-strong-random-secret-in-production"

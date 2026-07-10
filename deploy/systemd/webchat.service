@@ -1,0 +1,35 @@
+[Unit]
+Description=WebChat Backend Server
+Documentation=https://github.com/DingdingOvO/webchat
+After=network.target mysql.service mongod.service redis-server.service
+Wants=mysql.service mongod.service redis-server.service
+
+[Service]
+Type=simple
+User=webchat
+Group=webchat
+WorkingDirectory=/opt/webchat
+
+# 环境变量 — 数据库连接
+Environment="MYSQL_HOST=127.0.0.1"
+Environment="MYSQL_PORT=3306"
+Environment="MYSQL_USER=root"
+Environment="MYSQL_PASSWORD=webchat2026"
+Environment="MYSQL_DATABASE=webchat"
+Environment="MONGO_HOST=127.0.0.1"
+Environment="MONGO_PORT=27017"
+Environment="REDIS_HOST=127.0.0.1"
+Environment="REDIS_PORT=6379"
+Environment="JWT_SECRET=change-this-to-a-strong-random-secret"
+
+# JVM 优化参数
+Environment="JAVA_OPTS=-Xms256m -Xmx512m -XX:+UseG1GC -XX:+ExitOnOutOfMemoryError"
+
+ExecStart=/usr/bin/java $JAVA_OPTS -jar /opt/webchat/app.jar
+ExecStop=/bin/kill -SIGTERM $MAINPID
+Restart=on-failure
+RestartSec=10
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target
