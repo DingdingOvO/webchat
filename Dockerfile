@@ -5,13 +5,15 @@
 
 # ---- Stage 1: 构建前端 ----
 FROM node:22-alpine AS frontend-build
-WORKDIR /app/frontend
+WORKDIR /app
 
-COPY frontend/package.json frontend/package-lock.json ./
-RUN npm ci
+COPY frontend/package.json frontend/package-lock.json ./frontend/
+RUN cd frontend && npm ci
 
-COPY frontend/ .
-RUN npm run build
+COPY frontend/ ./frontend
+COPY docs/ ./docs
+
+RUN cd frontend && npm run build
 
 # ---- Stage 2: 构建后端 ----
 FROM maven:3.9-eclipse-temurin-26 AS backend-build
