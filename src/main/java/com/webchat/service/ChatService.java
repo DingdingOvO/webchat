@@ -24,9 +24,12 @@ public class ChatService {
     private final RedisStateStore stateStore;
     private final ObjectMapper mapper;
 
-    public ChatService(MessageRepository msgRepo, UserRepository userRepo,
-                       GroupService groupService, RedisStateStore stateStore,
-                       ObjectMapper mapper) {
+    public ChatService(
+            MessageRepository msgRepo,
+            UserRepository userRepo,
+            GroupService groupService,
+            RedisStateStore stateStore,
+            ObjectMapper mapper) {
         this.msgRepo = msgRepo;
         this.userRepo = userRepo;
         this.groupService = groupService;
