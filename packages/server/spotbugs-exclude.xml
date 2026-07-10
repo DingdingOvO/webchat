@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter>
+  <!-- WebChat SpotBugs exclusion — only exclude confirmed false positives -->
+
+  <!-- Spring Boot proxy false positives -->
+  <Match>
+    <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE"/>
+  </Match>
+  <Match>
+    <Bug pattern="RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE"/>
+  </Match>
+  <Match>
+    <Bug pattern="EI_EXPOSE_REP2"/>
+    <Or>
+      <Field name="~.*id"/>
+      <Field name="~.*Id"/>
+    </Or>
+  </Match>
+
+  <!-- Lombok-generated code false positives -->
+  <Match>
+    <Bug pattern="NP_NONNULL_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR"/>
+  </Match>
+  <Match>
+    <Bug pattern="URF_UNREAD_FIELD"/>
+    <Class name="~.*\._.*"/>
+  </Match>
+
+  <!-- FindSecBugs: all rules ENABLED by default, only exclude specific confirmed false positives below -->
+  <!-- Do NOT add blanket excludes like "SECURITY" or "MALICIOUS_CODE" -->
+</FindBugsFilter>

@@ -1,0 +1,48 @@
+# .gitleaks.toml — Secret scanning configuration
+# @see https://github.com/gitleaks/gitleaks
+
+title = "WebChat Gitleaks Configuration"
+
+[extend]
+useDefault = true
+
+[[rules]]
+id = "jwt-secret"
+description = "JWT Secret Key"
+regex = '''(?i)(jwt[_-]?secret|secret[_-]?key)\s*[:=]\s*['"]?[a-zA-Z0-9]{16,}'''
+tags = ["key", "jwt"]
+
+[[rules]]
+id = "mysql-password"
+description = "MySQL Password"
+regex = '''(?i)(mysql[_-]?password|db[_-]?password|spring[_-]?datasource[_-]?password)\s*[:=]\s*['"]?[^\s'"#]{8,}'''
+tags = ["key", "database"]
+
+[[rules]]
+id = "mongodb-password"
+description = "MongoDB Password"
+regex = '''(?i)(mongo[_-]?password|mongodb[_-]?uri).*[://][^@\s]{8,}@'''
+tags = ["key", "database"]
+
+[[rules]]
+id = "redis-password"
+description = "Redis Password"
+regex = '''(?i)(redis[_-]?password|spring[_-]?redis[_-]?password)\s*[:=]\s*['"]?[^\s'"#]{6,}'''
+tags = ["key", "database"]
+
+[[allowlist]]
+description = "Global allow list"
+paths = [
+  '''(^|/)gitleaks\.toml$''',
+  '''(^|/)\.env\.example$''',
+  '''(^|/)docs/''',
+  '''(^|/)\.github/workflows/''',
+  '''(^|/)src/main/resources/application\.properties$''',
+  '''(^|/)src/main/resources/''',
+]
+regexes = [
+  '''WebChat2026SecretKeyMustBe256BitsLongForHS512Algorithm!!_ABCDEFGH''',
+  '''webchat2026''',
+  '''jwt\.secret''',
+  '''MYSQL_PASSWORD''',
+]

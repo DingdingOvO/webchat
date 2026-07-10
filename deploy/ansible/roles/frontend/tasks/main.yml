@@ -8,23 +8,23 @@
 
 - name: 安装前端依赖
   shell: |
-    cd /tmp/webchat-build/frontend
+    cd /tmp/webchat-build/packages/frontend
     npm ci
   args:
-    chdir: /tmp/webchat-build/frontend
-    creates: /tmp/webchat-build/frontend/node_modules
+    chdir: /tmp/webchat-build/packages/frontend
+    creates: /tmp/webchat-build/packages/frontend/node_modules
 
 - name: 构建前端
   shell: |
-    cd /tmp/webchat-build/frontend
+    cd /tmp/webchat-build/packages/frontend
     npm run build
   args:
-    chdir: /tmp/webchat-build/frontend
-    creates: /tmp/webchat-build/frontend/dist
+    chdir: /tmp/webchat-build/packages/frontend
+    creates: /tmp/webchat-build/packages/frontend/dist
 
 - name: 复制前端构建产物
   copy:
-    src: /tmp/webchat-build/frontend/dist/
+    src: /tmp/webchat-build/packages/frontend/dist/
     dest: "{{ webchat_home }}/frontend/dist/"
     owner: "{{ webchat_user }}"
     group: "{{ webchat_group }}"

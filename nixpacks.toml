@@ -1,22 +1,8 @@
-# ================================================================
-# Nixpacks 配置 — Railway 构建 fallback
-# 当 Docker 不可用时，Nixpacks 自动检测 Java/Maven 项目
-# ================================================================
-
 [phases.setup]
   nixPkgs = ["nodejs_22", "maven", "curl"]
-
 [phases.install]
-  cmds = [
-    "cd frontend && npm ci && npm run build",
-    "mvn dependency:go-offline -B"
-  ]
-
+  cmds = ["cd packages/frontend && npm ci && npm run build", "cd packages/server && mvn dependency:go-offline -B"]
 [phases.build]
-  cmds = [
-    "cp -r frontend/dist src/main/resources/static",
-    "mvn clean package -DskipTests"
-  ]
-
+  cmds = ["cp -r packages/frontend/dist packages/server/src/main/resources/static", "cd packages/server && mvn clean package -DskipTests"]
 [start]
-  cmd = "java -jar target/webchat-server-*.jar"
+  cmd = "java -jar packages/server/target/webchat-server-*.jar"

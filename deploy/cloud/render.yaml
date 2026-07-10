@@ -47,7 +47,7 @@ services:
   - type: web
     name: webchat-frontend
     env: docker
-    dockerfilePath: ./frontend/Dockerfile
+    dockerfilePath: ./packages/frontend/Dockerfile
     envVars:
       - key: BACKEND_URL
         fromService:

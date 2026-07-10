@@ -71,7 +71,7 @@ services:
   # ============================================================
   frontend:
     build:
-      context: ./frontend
+      context: ./packages/frontend
       dockerfile: Dockerfile
     container_name: webchat-frontend
     restart: unless-stopped

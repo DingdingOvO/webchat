@@ -1,0 +1,390 @@
+/* ============================================
+   DocsPage — Aero Design System
+   专业文档布局：顶栏 | 三栏 (侧栏 + 内容 + 本页)
+   Markdown 渲染版
+   ============================================ */
+
+/* ---- Top bar ---- */
+
+.topbar {
+  border-bottom: 1.5px solid var(--border-light);
+  background: var(--bg-surface);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.topbarInner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--p6);
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.topbarBrand {
+  display: flex;
+  align-items: center;
+  gap: var(--p2);
+  text-decoration: none;
+}
+
+.topbarLogo {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--r-md);
+  background: var(--primary);
+  color: var(--white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: var(--weight-bold);
+}
+
+.topbarTitle {
+  font-size: var(--fs-base);
+  font-weight: var(--weight-semibold);
+  color: var(--text);
+}
+
+.topbarBadge {
+  font-size: var(--fs-2xs);
+  color: var(--text-faint);
+  background: var(--gray-100);
+  padding: 1px 6px;
+  border-radius: var(--r-sm);
+  margin-left: var(--px);
+}
+
+.topbarNav {
+  display: flex;
+  align-items: center;
+  gap: var(--p5);
+}
+
+.topbarLink {
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+  font-weight: var(--weight-medium);
+}
+.topbarLink:hover {
+  color: var(--text);
+}
+
+.topbarLinkActive {
+  font-size: var(--fs-sm);
+  color: var(--primary);
+  font-weight: var(--weight-semibold);
+}
+
+/* ---- Layout ---- */
+
+.layout {
+  display: flex;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+  min-height: calc(100vh - 52px);
+}
+
+/* ---- Left sidebar ---- */
+
+.sidebar {
+  width: 240px;
+  min-width: 240px;
+  border-right: 1.5px solid var(--border-light);
+  padding: var(--p5) 0;
+  overflow-y: auto;
+  height: calc(100vh - 52px);
+  position: sticky;
+  top: 52px;
+}
+
+.sidebarNav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--p3);
+}
+
+.sidebarGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.sidebarGroupTitle {
+  font-size: var(--fs-2xs);
+  font-weight: var(--weight-semibold);
+  color: var(--text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: var(--p1) var(--p4);
+  margin-bottom: var(--px);
+}
+
+.sidebarItem {
+  padding: 5px var(--p4);
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+  border-left: 2px solid transparent;
+  transition:
+    color var(--fast),
+    background var(--fast),
+    border-color var(--fast);
+}
+.sidebarItem:hover {
+  color: var(--text);
+  background: var(--gray-50);
+}
+
+.sidebarItemActive {
+  color: var(--primary);
+  background: var(--primary-light);
+  border-left-color: var(--primary);
+  font-weight: var(--weight-medium);
+}
+
+/* ---- Content ---- */
+
+.content {
+  flex: 1;
+  display: flex;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.article {
+  flex: 1;
+  padding: var(--p10) var(--p8) var(--p12);
+  max-width: 720px;
+  min-width: 0;
+  /* Markdown 渲染内容样式 */
+  color: var(--text);
+  font-size: var(--fs-base);
+  line-height: var(--leading-relaxed);
+  overflow-wrap: break-word;
+}
+
+/* Markdown h1 */
+.article h1 {
+  font-size: var(--fs-3xl);
+  font-weight: var(--weight-bold);
+  line-height: 1.2;
+  color: var(--gray-900);
+  margin: 0 0 var(--p5);
+  padding-bottom: var(--p3);
+  border-bottom: 2px solid var(--border-light);
+}
+
+/* Markdown h2 */
+.article h2 {
+  font-size: var(--fs-2xl);
+  font-weight: var(--weight-semibold);
+  color: var(--gray-900);
+  margin: var(--p10) 0 var(--p4);
+  padding-bottom: var(--p2);
+  border-bottom: 2px solid var(--border-light);
+}
+.article h2:first-of-type {
+  margin-top: 0;
+}
+
+/* Markdown h3 */
+.article h3 {
+  font-size: var(--fs-xl);
+  font-weight: var(--weight-semibold);
+  color: var(--text);
+  margin: var(--p6) 0 var(--p3);
+}
+
+/* Markdown h4 */
+.article h4 {
+  font-size: var(--fs-md);
+  font-weight: var(--weight-semibold);
+  color: var(--text);
+  margin: var(--p5) 0 var(--p2);
+}
+
+/* Markdown paragraphs */
+.article p {
+  font-size: var(--fs-base);
+  color: var(--text-muted);
+  line-height: var(--leading-relaxed);
+  margin: 0 0 var(--p4);
+}
+
+/* Markdown lists */
+.article ul,
+.article ol {
+  padding-left: var(--p5);
+  font-size: var(--fs-base);
+  color: var(--text-muted);
+  line-height: 2.2;
+  margin: var(--p3) 0;
+}
+
+/* Markdown code blocks (```) */
+.article pre {
+  margin: var(--p4) 0;
+  border: 1.5px solid var(--border-light);
+  border-radius: var(--r-md);
+  overflow: hidden;
+  background: #fafafe;
+  padding: var(--p3) var(--p4);
+  font-size: var(--fs-xs);
+  line-height: 1.7;
+  overflow-x: auto;
+  font-family: var(--mono);
+}
+
+/* Inline code (`code`) */
+.article code {
+  font-family: var(--mono);
+  font-size: var(--fs-xs);
+  background: var(--gray-50);
+  padding: 1px 5px;
+  border-radius: 3px;
+  color: var(--primary);
+  border: 1px solid var(--border-light);
+}
+
+/* Code inside pre — override inline style */
+.article pre code {
+  background: transparent;
+  padding: 0;
+  border: none;
+  color: var(--text);
+  font-size: inherit;
+}
+
+/* Markdown tables */
+.article table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--fs-sm);
+  margin: var(--p4) 0;
+}
+
+.article th,
+.article td {
+  padding: var(--p2) var(--p3);
+  text-align: left;
+  border-bottom: 1.5px solid var(--border-light);
+}
+
+.article th {
+  font-weight: var(--weight-semibold);
+  color: var(--text);
+  background: var(--gray-50);
+  font-size: var(--fs-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.article td {
+  color: var(--text-muted);
+}
+
+/* Markdown links */
+.article a {
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: var(--weight-medium);
+  border-bottom: 1px solid var(--primary-light);
+  transition: border-color var(--fast);
+}
+.article a:hover {
+  border-bottom-color: var(--primary);
+}
+
+/* Markdown horizontal rules */
+.article hr {
+  border: none;
+  border-top: 2px solid var(--border-light);
+  margin: var(--p8) 0;
+}
+
+/* Markdown strong */
+.article strong {
+  font-weight: var(--weight-semibold);
+  color: var(--text);
+}
+
+/* Markdown blockquote */
+.article blockquote {
+  margin: var(--p4) 0;
+  padding: var(--p3) var(--p4);
+  background: var(--gray-50);
+  border-left: 3px solid var(--primary);
+  border-radius: var(--r-sm);
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+}
+.article blockquote p {
+  margin: 0;
+}
+
+/* ---- Right sidebar ---- */
+
+.onThisPage {
+  width: 180px;
+  min-width: 180px;
+  padding: var(--p8) var(--p4);
+  border-left: 1.5px solid var(--border-light);
+  position: sticky;
+  top: 52px;
+  height: calc(100vh - 52px);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--p1);
+}
+
+.onThisPageTitle {
+  font-size: var(--fs-2xs);
+  font-weight: var(--weight-semibold);
+  color: var(--text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: var(--p1);
+}
+
+.onThisPageList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--p1);
+}
+
+.onThisPageItem {
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+  padding: 2px 0;
+  border-left: 2px solid transparent;
+  padding-left: var(--p2);
+  transition:
+    color var(--fast),
+    border-color var(--fast);
+  text-decoration: none;
+}
+.onThisPageItem:hover {
+  color: var(--text);
+}
+
+/* ---- Responsive ---- */
+
+@media (max-width: 900px) {
+  .onThisPage {
+    display: none;
+  }
+}
+@media (max-width: 720px) {
+  .sidebar {
+    display: none;
+  }
+  .article {
+    padding: var(--p5) var(--p4);
+  }
+}

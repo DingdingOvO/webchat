@@ -3,12 +3,12 @@ target/
 dist/
 *.log
 .DS_Store
-frontend/dist/
+packages/frontend/dist/
 *.png
 *.yaml
 !docker-compose.yaml
 !deploy/**/*.yaml
 !deploy/**/*.yml
-frontend/ssl/
+packages/frontend/ssl/
 nohup.out
 .playwright-cli/
