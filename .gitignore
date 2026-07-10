@@ -10,5 +10,7 @@ packages/frontend/dist/
 !deploy/**/*.yaml
 !deploy/**/*.yml
 packages/frontend/ssl/
+packages/server/src/main/resources/static/
+packages/server/start.sh
 nohup.out
 .playwright-cli/

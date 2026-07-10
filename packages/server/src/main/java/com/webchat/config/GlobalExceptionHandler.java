@@ -2,11 +2,15 @@ package com.webchat.config;
 
 import com.webchat.util.BusinessException;
 import com.webchat.util.UnauthorizedException;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 @ControllerAdvice
@@ -25,6 +29,28 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<?> handleBusiness(BusinessException e) {
         return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+    }
+
+    /** SPA 路由 fallback：未匹配到的路径返回 index.html（仅 HTML 请求）。 */
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<?> handleSpaFallback(NoResourceFoundException e) {
+        String resourcePath = e.getResourcePath();
+        // API 路径和明确静态资源走 404
+        if (resourcePath != null
+                && (resourcePath.startsWith("api/")
+                        || resourcePath.contains(".")
+                        || resourcePath.startsWith("ws"))) {
+            return ResponseEntity.status(404).body(Map.of("error", "Not found"));
+        }
+        try {
+            ClassPathResource index = new ClassPathResource("static/index.html");
+            byte[] bytes = index.getInputStream().readAllBytes();
+            return ResponseEntity.ok()
+                    .contentType(MediaType.TEXT_HTML)
+                    .body(new String(bytes, StandardCharsets.UTF_8));
+        } catch (Exception ex) {
+            return ResponseEntity.status(500).body(Map.of("error", "SPA fallback missing"));
+        }
     }
 
     @ExceptionHandler(RuntimeException.class)
