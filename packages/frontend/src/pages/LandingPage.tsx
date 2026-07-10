@@ -16,6 +16,9 @@ export default function LandingPage() {
             <Link to="/feedback" className={styles.navLink}>
               反馈
             </Link>
+            <Link to="/source" className={styles.navLink}>
+              源代码
+            </Link>
             <Link to="/login" className={styles.navLink}>
               登录
             </Link>
@@ -91,6 +94,10 @@ export default function LandingPage() {
             <span className={styles.footerDot}>·</span>
             <Link to="/feedback" className={styles.footerLink}>
               反馈
+            </Link>
+            <span className={styles.footerDot}>·</span>
+            <Link to="/source" className={styles.footerLink}>
+              源代码
             </Link>
             <span className={styles.footerDot}>·</span>
             <Link to="/login" className={styles.footerLink}>

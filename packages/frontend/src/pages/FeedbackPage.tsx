@@ -26,6 +26,9 @@ export default function FeedbackPage() {
               文档
             </Link>
             <span className={styles.topbarLinkActive}>反馈</span>
+            <Link to="/source" className={styles.topbarLink}>
+              源代码
+            </Link>
             <Link to="/login" className={styles.topbarLink}>
               登录
             </Link>

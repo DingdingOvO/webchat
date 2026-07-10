@@ -96,6 +96,9 @@ export default function DocsPage() {
             <Link to="/feedback" className={styles.topbarLink}>
               反馈
             </Link>
+            <Link to="/source" className={styles.topbarLink}>
+              源代码
+            </Link>
             <Link to="/login" className={styles.topbarLink}>
               登录
             </Link>
