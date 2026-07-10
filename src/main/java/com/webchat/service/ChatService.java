@@ -9,10 +9,9 @@ import com.webchat.model.User;
 import com.webchat.repository.MessageRepository;
 import com.webchat.repository.UserRepository;
 import com.webchat.util.BusinessException;
-import org.springframework.stereotype.Service;
-
 import java.util.*;
 import java.util.stream.Collectors;
+import org.springframework.stereotype.Service;
 
 @Service
 public class ChatService {
@@ -25,9 +24,12 @@ public class ChatService {
     private final RedisStateStore stateStore;
     private final ObjectMapper mapper;
 
-    public ChatService(MessageRepository msgRepo, UserRepository userRepo,
-                       GroupService groupService, RedisStateStore stateStore,
-                       ObjectMapper mapper) {
+    public ChatService(
+            MessageRepository msgRepo,
+            UserRepository userRepo,
+            GroupService groupService,
+            RedisStateStore stateStore,
+            ObjectMapper mapper) {
         this.msgRepo = msgRepo;
         this.userRepo = userRepo;
         this.groupService = groupService;

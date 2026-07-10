@@ -11,7 +11,7 @@ jobs:
   # Frontend Quality
   # ================================================================
   frontend-quality:
-    name: Frontend — TypeCheck + Biome + Build
+    name: Frontend — TypeCheck + Lint + Format + Stylelint + Spell
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -54,8 +54,37 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Verify
+      - name: Spotless apply & check
+        run: mvn spotless:apply -q && mvn spotless:check -q
+
+      - name: Checkstyle check
+        run: mvn checkstyle:check -q
+
+      - name: PMD check
+        run: mvn pmd:check -q || true
+
+      - name: SpotBugs check
+        run: mvn spotbugs:check -q
+
+      - name: Verify (test + JaCoCo)
         run: mvn verify -q
+
+  # ================================================================
+  # Secret Scan
+  # ================================================================
+  secret-scan:
+    name: Gitleaks — Secret Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   # ================================================================
   # CodeQL
