@@ -37,5 +37,9 @@ paths = [
   '''(^|/)\.env\.example$''',
   '''(^|/)docs/''',
   '''(^|/)\.github/workflows/''',
-  '''(^|/)src/main/resources/application\.properties$''',
+]
+regexes = [
+  '''WebChat2026SecretKeyMustBe256BitsLongForHS512Algorithm!!_ABCDEFGH''',
+  '''webchat2026''',
+  '''MYSQL_USER:root''',
 ]
