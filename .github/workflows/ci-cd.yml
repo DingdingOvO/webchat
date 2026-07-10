@@ -147,7 +147,22 @@ jobs:
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     steps:
+      - name: Check SSH secrets
+        id: check-ssh
+        run: |
+          if [ -z "$SSH_HOST" ] || [ -z "$SSH_USER" ] || [ -z "$SSH_PRIVATE_KEY" ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "SSH secrets not configured, skipping deploy"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+
       - name: Deploy to production server
+        if: steps.check-ssh.outputs.skip == 'false'
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -167,15 +182,30 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Check K8s secrets
+        id: check-k8s
+        run: |
+          if [ -z "$KUBE_CONFIG" ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "KUBE_CONFIG not configured, skipping deploy"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
+
       - name: Set up kubectl
+        if: steps.check-k8s.outputs.skip == 'false'
         uses: azure/setup-kubectl@v4
 
       - name: Set up Kubeconfig
+        if: steps.check-k8s.outputs.skip == 'false'
         run: |
           mkdir -p $HOME/.kube
           echo "${{ secrets.KUBE_CONFIG }}" | base64 -d > $HOME/.kube/config
 
       - name: Deploy to Kubernetes
+        if: steps.check-k8s.outputs.skip == 'false'
         run: |
           kubectl apply -k deploy/kubernetes/
           kubectl rollout status deployment/webchat-backend -n webchat --timeout=180s
