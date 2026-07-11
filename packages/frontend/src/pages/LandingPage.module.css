@@ -79,6 +79,9 @@
   .navLink {
     padding: 8px;
   }
+  .navBtn {
+    display: none;
+  }
 }
 
 .navBtn {
