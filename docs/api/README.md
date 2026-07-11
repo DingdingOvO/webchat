@@ -21,11 +21,12 @@ POST /api/auth/register
 {
   "username": "alice",      // 必填，3-50 字符
   "password": "1234",        // 必填，4-100 字符
-  "nickname": "爱丽丝"       // 可选
+  "nickname": "爱丽丝",      // 可选
+  "email": "alice@example.com" // 可选，暂不验证
 }
 ```
 
-**Response 200:**
+**Response 201:**
 ```json
 {
   "token": "eyJhbGciOiJIUzUxMiJ9...",
@@ -34,6 +35,12 @@ POST /api/auth/register
   "nickname": "爱丽丝"
 }
 ```
+
+**Error Response:**
+| 状态码 | 条件 |
+|--------|------|
+| `400` | 用户名 < 3 字符 / 密码 < 4 字符 |
+| `409` | 用户名已存在 |
 
 ### 登录
 

@@ -1,11 +1,16 @@
 # 文档索引
 
-| 章节 | 文件 | 内容 |
-|------|------|------|
-| 概览 | [docs/overview/README.md](overview/README.md) | 项目介绍、核心功能、系统架构 |
-| 快速开始 | [docs/quickstart/README.md](quickstart/README.md) | 环境准备、Docker 启动、手动启动、首次聊天 |
-| API 参考 | [docs/api/README.md](api/README.md) | 认证、用户、好友、群组、消息、设置、WebSocket、错误码 |
-| 设计语言 | [docs/design/README.md](design/README.md) | 设计原则、色板、字体、间距、组件规范、设计稿尺寸 |
-| 技术栈 | [docs/tech/README.md](tech/README.md) | 前后端技术、存储层、数据流 |
-| 部署指南 | [docs/deploy/README.md](deploy/README.md) | 19 种部署方式总览、Docker/K8s/VPS 部署 |
-| 完整部署 | [DEPLOY.md](../DEPLOY.md) | 19 种部署方式完整文档 |
+WebChat 的完整文档体系，覆盖架构、部署、API、设计和内部实现。
+
+| 章节 | 内容 | 适合谁读 |
+|------|------|---------|
+| [概览](overview/README.md) | 项目介绍、核心功能、架构图 | 所有人 |
+| [快速开始](quickstart/README.md) | Docker 一键启动、手动搭建、第一次聊天 | 开发者 |
+| [API 参考](api/README.md) | REST + WebSocket 全部端点、请求/响应格式 | 后端/前端开发 |
+| [设计语言](design/README.md) | Fluid Design System：原则、色板、字体、组件 | UI/UX 设计师 |
+| [技术栈](tech/README.md) | 前后端技术选型、存储策略、数据流 | 架构师 |
+| [部署指南](deploy/README.md) | Docker / K8s / VPS / 云平台部署方案 | DevOps |
+
+---
+
+**关于版本**：本文档对应 `main` 分支（v1.0-SNAPSHOT），接口可能随开发调整。

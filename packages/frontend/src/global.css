@@ -1,35 +1,44 @@
 /* =========================================================
-   Aero Design System — 正式规范
-   * 致敬 Apple HIG 的内容边距哲学
-   * 致敬 WeChat 文档的结构清晰度
-   * 4px 基线 · 16px 内容安全边距 · 680px 阅读宽度
+   Fluid Design System — WebChat 设计语言
+   =========================================================
+   核心理念：
+     · 流动感 — 聊天是流动的对话，界面不打断这种流动
+     · 克制 — 每个像素都有理由，不为装饰而装饰
+     · 温暖 — 参考 WeChat 的绿色动作信号，但用更克制的蓝绿体系
+
+   基线：4px · 字号基线：15px · 内容安全边距：16px
    ========================================================= */
 
-/* ---- 调色板 ---- */
+/* ================================================
+   1. 色板 — Fluid Palette
+   ================================================
+   主色选择#2563ea（蓝）的原因：
+     · 通讯类产品蓝色传达信任感（Slack、Teams、Telegram 均用蓝）
+     · 与 WeChat 的绿色形成差异化的同时保留冷色系的冷静感
+   绿色作为动作/状态色（参考 WeChat 的绿色发送/已读）：
+     · 人类对绿色本能关联"安全/确认/进行中"
+   ================================================ */
 
 :root {
-  --blue-600: #2563eb;
-  --blue-500: #3b82f6;
-  --blue-400: #60a5fa;
-  --blue-300: #93c5fd;
-  --blue-200: #bfdbfe;
-  --blue-100: #dbeafe;
-  --blue-50: #eff6ff;
+  /* ---- 品牌色 ---- */
+  --fluid-blue:          #2563ea;
+  --fluid-blue-hover:    #1d4ed8;
+  --fluid-blue-active:   #1e40af;
+  --fluid-blue-light:    #eff6ff;
+  --fluid-blue-dark:     #1e3a8a;
 
-  --primary: var(--blue-600);
-  --primary-hover: #1d4ed8;
-  --primary-press: #1e40af;
-  --primary-light: var(--blue-50);
+  --fluid-green:         #16a34a;  /* 发送 / 在线 / 已读 */
+  --fluid-green-hover:   #15803d;
+  --fluid-green-light:   #dcfce7;
 
-  --green: #10b981;
-  --green-bg: #d1fae5;
-  --red: #ef4444;
-  --red-bg: #fef2f2;
-  --amber: #f59e0b;
-  --amber-bg: #fef3c7;
+  --fluid-red:           #dc2626;  /* 错误 / 未读 / 离开 */
+  --fluid-red-light:     #fef2f2;
 
-  --white: #ffffff;
-  --gray-50: #f8f9fa;
+  --fluid-amber:         #d97706;  /* 警告 / 等待 */
+  --fluid-amber-light:   #fffbeb;
+
+  /* ---- 灰色梯（继承，微调） ---- */
+  --gray-50:  #f8f9fa;
   --gray-100: #f1f3f5;
   --gray-200: #e9ecef;
   --gray-300: #dee2e6;
@@ -40,150 +49,285 @@
   --gray-800: #212529;
   --gray-900: #111827;
 
-  --text: var(--gray-800);
-  --text-secondary: var(--gray-500);
-  --text-tertiary: var(--gray-400);
-  --text-faint: var(--gray-400);
+  /* =============================================
+     2. Surface 层 — 叠层系统
+     =============================================
+     surface-0 最靠前（气泡、卡片）
+     surface-1 默认表面（页面背景）
+     surface-2 稍深（hover、输入框背景）
+     暗色模式时翻转亮度。
+     ============================================= */
+  --surface-0:          #ffffff;
+  --surface-1:          #f8f9fa;
+  --surface-2:          #f1f3f5;
 
-  --border: var(--gray-200);
-  --border-light: var(--gray-100);
+  --surface-chat:       #f5f6f8;  /* 聊天区背景，比 surface-1 略暖 */
 
-  --surface: var(--white);
-  --background: var(--gray-50);
-  --bg-chat: #f8f9fa;
+  /* =============================================
+     3. Text 层级 — 5 级语义
+     ============================================= */
+  --text-primary:       var(--gray-800);  /* 正文 */
+  --text-secondary:     var(--gray-500);  /* 辅助、描述 */
+  --text-tertiary:      var(--gray-400);  /* 占位符、时间戳 */
+  --text-link:          var(--fluid-blue);
+  --text-inverse:       #ffffff;          /* 深色背景上的文字 */
 
-  --hover: var(--gray-100);
-  --active: var(--gray-200);
+  /* =============================================
+     4. 边框
+     ============================================= */
+  --border-default:     var(--gray-200);
+  --border-light:       var(--gray-100);
+  --border-focus:       var(--fluid-blue);
 
-  /* ---- 聊天气泡 ---- */
-  --bubble-mine-bg: linear-gradient(135deg, #2563eb, #1d4ed8);
-  --bubble-mine-text: var(--white);
-  --bubble-mine-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
-  --bubble-other-bg: var(--white);
-  --bubble-other-text: var(--text);
-  --bubble-other-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  /* =============================================
+     5. Elevation — 4 级阴影
+     =============================================
+     统一使用蓝色系阴影（匹配主色），避免杂色阴影
+     ============================================= */
+  --elevation-0:  none;
+  --elevation-1:  0 1px 3px rgba(37, 99, 234, 0.06);
+  --elevation-2:  0 4px 12px rgba(37, 99, 234, 0.08);
+  --elevation-3:  0 8px 24px rgba(37, 99, 234, 0.10);
+  --elevation-4:  0 12px 40px rgba(37, 99, 234, 0.14);
 
-  /* ---- 间距 (4px 网格) ---- */
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-5: 20px;
-  --space-6: 24px;
-  --space-8: 32px;
-  --space-10: 40px;
-  --space-12: 48px;
-  --space-16: 64px;
-  --space-20: 80px;
-
-  /* ---- 圆角 ---- */
-  --radius-sm: 6px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
-  --radius-xl: 16px;
-  --radius-2xl: 20px;
-  --radius-full: 9999px;
-
-  /* ---- 字体 ---- */
-  --font:
-    -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", Helvetica,
-    Arial, sans-serif;
+  /* =============================================
+     6. 字体
+     =============================================
+     中文优先 PingFang SC → Hiragino → Microsoft YaHei，
+     English fallback -apple-system + Segoe UI。
+     ============================================= */
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+          "Hiragino Sans GB", "Microsoft YaHei", Helvetica, Arial, sans-serif;
   --font-mono: "SF Mono", "Fira Code", "JetBrains Mono", "Consolas", monospace;
 
-  --text-xs: 11px;
-  --text-sm: 13px;
-  --text-base: 15px;
-  --text-md: 17px;
-  --text-lg: 20px;
-  --text-xl: 24px;
-  --text-2xl: 28px;
-  --text-3xl: 36px;
+  /* 字号 — 6 级体系 */
+  --text-xs:      11px;
+  --text-caption: 12px;   /* 新增：介于 xs-sm 之间，用于辅助元信息 */
+  --text-sm:      13px;
+  --text-base:    15px;   /* 正文基线 */
+  --text-md:      17px;
+  --text-lg:      20px;
+  --text-xl:      24px;
+  --text-2xl:     28px;
+  --text-3xl:     36px;
 
-  --weight-normal: 400;
-  --weight-medium: 500;
-  --weight-semibold: 600;
-  --weight-bold: 700;
+  /* 字重 */
+  --weight-normal:    400;
+  --weight-medium:    500;
+  --weight-semibold:  600;
+  --weight-bold:      700;
 
-  --leading-tight: 1.25;
-  --leading-normal: 1.5;
-  --leading-relaxed: 1.65;
+  /* 行高 */
+  --leading-tight:    1.25;
+  --leading-normal:   1.5;
+  --leading-relaxed:  1.65;
 
-  --shadow-xs: 0 1px 2px rgba(37, 99, 235, 0.04);
-  --shadow-sm: 0 1px 3px rgba(37, 99, 235, 0.06);
-  --shadow-md: 0 4px 12px rgba(37, 99, 235, 0.08);
-  --shadow-lg: 0 8px 24px rgba(37, 99, 235, 0.1);
-  --shadow-xl: 0 12px 40px rgba(0, 0, 0, 0.14);
+  /* =============================================
+     7. 间距 — 4px 网格
+     ============================================= */
+  --space-1:   4px;
+  --space-2:   8px;
+  --space-3:   12px;
+  --space-4:   16px;
+  --space-5:   20px;
+  --space-6:   24px;
+  --space-8:   32px;
+  --space-10:  40px;
+  --space-12:  48px;
+  --space-16:  64px;
+  --space-20:  80px;
 
-  /* ---- 动画 ---- */
-  --ease: cubic-bezier(0.4, 0, 0.2, 1);
-  --ease-out: cubic-bezier(0, 0, 0.2, 1);
-  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  /* =============================================
+     8. 圆角
+     =============================================
+     参考 WeChat 的圆角体系：
+       气泡：12px（非对称，发送方右下 4px）
+       输入框：20px（胶囊型）
+       头像：圆形
+       按钮：8px
+       卡片：12px
+     ============================================= */
+  --radius-sm:    6px;
+  --radius-md:    8px;
+  --radius-lg:    12px;
+  --radius-xl:    16px;
+  --radius-2xl:   20px;
+  --radius-full:  9999px;  /* 圆形/胶囊 */
 
-  --duration-fast: 0.12s;
-  --duration-normal: 0.2s;
-  --duration-slow: 0.35s;
+  /* =============================================
+     9. Motion — 动效系统
+     =============================================
+     ease-in-out 用于交互反馈（按钮 hover）
+     ease-out 用于入场动画（弹窗出现）
+     ============================================= */
+  --ease-out:     cubic-bezier(0, 0, 0.2, 1);
+  --ease-in:      cubic-bezier(0.4, 0, 1, 1);
+  --ease-in-out:  cubic-bezier(0.4, 0, 0.2, 1);
 
-  /* ================================================ */
-  /* 兼容别名（旧版 --fs-* / --p* / --r* / --bg-surface / --aero-* 等） */
-  /* ================================================ */
+  --duration-instant:  0s;
+  --duration-fast:     0.12s;
+  --duration-normal:   0.2s;
+  --duration-slow:     0.35s;
 
-  --fs-2xs: var(--text-xs);
-  --fs-xs: var(--text-xs);
-  --fs-sm: var(--text-sm);
-  --fs-base: var(--text-base);
-  --fs-md: var(--text-md);
-  --fs-lg: var(--text-lg);
-  --fs-xl: var(--text-xl);
-  --fs-2xl: var(--text-2xl);
-  --fs-3xl: var(--text-3xl);
+  /* ---- 实用动画曲线 ---- */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);  /* 弹性效果 */
 
-  --p1: var(--space-1);
-  --p2: var(--space-2);
-  --p3: var(--space-3);
-  --p4: var(--space-4);
-  --p5: var(--space-5);
-  --p6: var(--space-6);
-  --p8: var(--space-8);
-  --p10: var(--space-10);
-  --p12: var(--space-12);
-  --p16: var(--space-16);
+  /* =============================================
+     10. 聊天专用 token
+     ============================================= */
 
-  --r-sm: var(--radius-sm);
-  --r-md: var(--radius-md);
-  --r-lg: var(--radius-lg);
-  --r-xl: var(--radius-xl);
-  --r-2xl: var(--radius-2xl);
-  --r-full: var(--radius-full);
+  /* 气泡 */
+  --bubble-mine-bg:      var(--fluid-blue);
+  --bubble-mine-color:   var(--text-inverse);
+  --bubble-mine-radius:  var(--radius-lg) var(--radius-lg) var(--radius-sm) var(--radius-lg);
+  --bubble-other-bg:     var(--surface-0);
+  --bubble-other-color:  var(--text-primary);
+  --bubble-other-radius: var(--radius-lg) var(--radius-lg) var(--radius-lg) var(--radius-sm);
+  --bubble-shadow:       var(--elevation-1);
 
-  --bg-surface: var(--surface);
-  --bg-hover: var(--gray-50);
-  --bg-input: var(--gray-50);
-  --primary-bg: var(--primary-light);
-  --text-muted: var(--text-secondary);
-  --mono: var(--font-mono);
+  /* 输入区 */
+  --input-height:  40px;
+  --input-radius:  var(--radius-2xl);
+  --input-bg:      var(--surface-2);
+  --input-border:  var(--border-default);
+  --input-padding: 0 var(--space-4);
 
-  --fast: var(--duration-fast) var(--ease-in-out);
-  --normal: var(--duration-normal) var(--ease-in-out);
-  --slow: var(--duration-slow) var(--ease-in-out);
+  /* 头像 */
+  --avatar-xs:  24px;
+  --avatar-sm:  32px;
+  --avatar-md:  40px;
+  --avatar-lg:  48px;
 
-  --emerald: var(--green);
-  --emerald-bg: var(--green-bg);
-  --rose: var(--red);
-  --rose-bg: var(--red-bg);
+  /* 侧栏 */
+  --sidebar-width: 340px;
 
-  --aero-50: var(--blue-50);
-  --aero-100: var(--blue-100);
-  --aero-200: var(--blue-200);
-  --aero-300: var(--blue-300);
-  --aero-400: var(--blue-400);
-  --aero-500: var(--blue-500);
-  --aero-600: var(--blue-600);
-  --aero-700: #1d4ed8;
-  --aero-800: #1e40af;
-  --aero-900: #1e3a8a;
+  /* =============================================
+     11. 兼容别名 — 旧组件通过此映射逐步迁移
+     ============================================= */
+  --primary:        var(--fluid-blue);
+  --primary-hover:  var(--fluid-blue-hover);
+  --primary-press:  var(--fluid-blue-active);
+  --primary-light:  var(--fluid-blue-light);
+  --primary-bg:     var(--fluid-blue-light);
+
+  --white:          var(--surface-0);
+  --surface:        var(--surface-0);
+  --bg-surface:     var(--surface-0);
+  --bg-page:        var(--surface-1);
+  --bg-chat:        var(--surface-chat);
+  --bg-input:       var(--surface-2);
+  --bg-hover:       var(--surface-2);
+
+  --text:           var(--text-primary);
+  --text-muted:     var(--text-secondary);
+  --text-faint:     var(--text-tertiary);
+
+  --border:         var(--border-default);
+  --border-light:   var(--border-light);
+  --border-active:  var(--border-focus);
+
+  --green:          var(--fluid-green);
+  --green-bg:       var(--fluid-green-light);
+  --emerald:        var(--fluid-green);
+  --emerald-bg:     var(--fluid-green-light);
+
+  --red:            var(--fluid-red);
+  --red-bg:         var(--fluid-red-light);
+  --rose:           var(--fluid-red);
+  --rose-bg:        var(--fluid-red-light);
+
+  --amber:          var(--fluid-amber);
+  --amber-bg:       var(--fluid-amber-light);
+
+  --shadow-xs:      var(--elevation-1);
+  --shadow-sm:      var(--elevation-1);
+  --shadow-md:      var(--elevation-2);
+  --shadow-lg:      var(--elevation-3);
+  --shadow-xl:      var(--elevation-4);
+
+  --fs-2xs:         var(--text-xs);
+  --fs-xs:          var(--text-xs);
+  --fs-sm:          var(--text-sm);
+  --fs-base:        var(--text-base);
+  --fs-md:          var(--text-md);
+  --fs-lg:          var(--text-lg);
+  --fs-xl:          var(--text-xl);
+  --fs-2xl:         var(--text-2xl);
+  --fs-3xl:         var(--text-3xl);
+
+  --p1:             var(--space-1);
+  --p2:             var(--space-2);
+  --p3:             var(--space-3);
+  --p4:             var(--space-4);
+  --p5:             var(--space-5);
+  --p6:             var(--space-6);
+  --p8:             var(--space-8);
+  --p10:            var(--space-10);
+  --p12:            var(--space-12);
+  --p16:            var(--space-16);
+
+  --r-sm:           var(--radius-sm);
+  --r-md:           var(--radius-md);
+  --r-lg:           var(--radius-lg);
+  --r-xl:           var(--radius-xl);
+  --r-2xl:          var(--radius-2xl);
+  --r-full:         var(--radius-full);
+
+  --fast:           var(--duration-fast) var(--ease-in-out);
+  --normal:         var(--duration-normal) var(--ease-in-out);
+  --slow:           var(--duration-slow) var(--ease-in-out);
+
+  --mono:           var(--font-mono);
+
+  --aero-50:        var(--fluid-blue-light);
+  --aero-100:       var(--fluid-blue-light);
+  --aero-200:       #bfdbfe;
+  --aero-300:       #93c5fd;
+  --aero-400:       #60a5fa;
+  --aero-500:       #3b82f6;
+  --aero-600:       var(--fluid-blue);
+  --aero-700:       var(--fluid-blue-hover);
+  --aero-800:       var(--fluid-blue-active);
+  --aero-900:       var(--fluid-blue-dark);
 }
 
-/* ---- Reset ---- */
+/* ================================================
+   暗色模式 — 预备（需在 body 或 #root 加 .dark）
+   ================================================
+   目前仅定义变量结构，实际切换待后续实现。
+   参考微信夜间模式：背景深灰 #1e1e1e，文字浅灰 #e0e0e0
+   ================================================ */
+/*
+.dark {
+  --surface-0:     #1e1e1e;
+  --surface-1:     #252525;
+  --surface-2:     #2d2d2d;
+  --surface-chat:  #1a1a1a;
+  --text-primary:  #e0e0e0;
+  --text-secondary:#9e9e9e;
+  --text-tertiary: #6b6b6b;
+  --border-default: #333;
+  --border-light:   #2a2a2a;
+  --gray-50:  #2d2d2d;
+  --gray-100: #333;
+  --gray-200: #383838;
+  --gray-300: #444;
+  --gray-400: #666;
+  --gray-500: #888;
+  --gray-600: #aaa;
+  --gray-700: #ccc;
+  --gray-800: #e0e0e0;
+  --gray-900: #eee;
+  --elevation-1: 0 1px 3px rgba(0,0,0,0.3);
+  --elevation-2: 0 4px 12px rgba(0,0,0,0.4);
+  --elevation-3: 0 8px 24px rgba(0,0,0,0.5);
+  --elevation-4: 0 12px 40px rgba(0,0,0,0.6);
+}
+*/
+
+/* ================================================
+   Reset
+   ================================================ */
 
 *,
 *::before,
@@ -201,9 +345,10 @@ body {
   font-family: var(--font);
   font-size: var(--text-base);
   line-height: var(--leading-normal);
-  color: var(--text);
-  background: var(--background);
+  color: var(--text-primary);
+  background: var(--surface-1);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   height: 100%;
 }
 
@@ -221,21 +366,23 @@ select {
 }
 
 a {
-  color: var(--primary);
+  color: var(--text-link);
   text-decoration: none;
-  transition: color var(--duration-fast) var(--ease);
+  transition: color var(--duration-fast) var(--ease-in-out);
 }
 a:hover {
-  color: var(--primary-hover);
+  color: var(--fluid-blue-hover);
 }
 
 ::selection {
-  background: var(--blue-100);
-  color: var(--blue-600);
+  background: var(--fluid-blue-light);
+  color: var(--fluid-blue);
 }
 
+/* 自定义滚动条 */
 ::-webkit-scrollbar {
   width: 4px;
+  height: 4px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
@@ -243,4 +390,7 @@ a:hover {
 ::-webkit-scrollbar-thumb {
   background: var(--gray-300);
   border-radius: 2px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--gray-400);
 }

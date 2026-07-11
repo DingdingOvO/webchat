@@ -62,22 +62,56 @@
 .topbarNav {
   display: flex;
   align-items: center;
-  gap: var(--p5);
+  gap: var(--px);
 }
 
 .topbarLink {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-size: var(--fs-sm);
   color: var(--text-muted);
   font-weight: var(--weight-medium);
+  padding: 6px 10px;
+  border-radius: var(--r-md);
+  transition: color var(--fast), background var(--fast);
+  text-decoration: none;
 }
 .topbarLink:hover {
   color: var(--text);
+  background: var(--gray-50);
+}
+
+.topbarLink svg {
+  flex-shrink: 0;
 }
 
 .topbarLinkActive {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-size: var(--fs-sm);
   color: var(--primary);
   font-weight: var(--weight-semibold);
+  padding: 6px 10px;
+  border-radius: var(--r-md);
+}
+
+.topbarLinkActive svg {
+  flex-shrink: 0;
+}
+
+.navLabel {
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .navLabel {
+    display: none;
+  }
+  .topbarLink, .topbarLinkActive {
+    padding: 8px;
+  }
 }
 
 /* ---- Layout ---- */

@@ -1,4 +1,4 @@
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { HashRouter, Navigate, Route, Routes } from 'react-router-dom';
 import styles from './App.module.css';
 import ErrorBoundary from './components/ErrorBoundary';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -30,7 +30,7 @@ function HomeRoute() {
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <HashRouter>
       <AuthProvider>
         <ErrorBoundary>
           <div className={styles.app}>
@@ -88,6 +88,6 @@ export default function App() {
           </div>
         </ErrorBoundary>
       </AuthProvider>
-    </BrowserRouter>
+    </HashRouter>
   );
 }

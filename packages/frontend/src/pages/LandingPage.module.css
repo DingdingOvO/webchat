@@ -40,16 +40,48 @@
 .navLinks {
   display: flex;
   align-items: center;
-  gap: var(--p6);
+  gap: var(--p2);
 }
 
 .navLink {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-size: var(--fs-sm);
   color: var(--text-muted);
   font-weight: var(--weight-medium);
+  padding: 6px 10px;
+  border-radius: var(--r-md);
+  transition: color var(--fast), background var(--fast);
+  text-decoration: none;
 }
 .navLink:hover {
   color: var(--text);
+  background: var(--gray-50);
+}
+
+.navLink svg {
+  flex-shrink: 0;
+}
+
+.navLabel {
+  white-space: nowrap;
+}
+
+/* Mobile: icons only */
+@media (max-width: 640px) {
+  .navLabel {
+    display: none;
+  }
+  .navLinks {
+    gap: var(--px);
+  }
+  .navLink {
+    padding: 8px;
+  }
+  .navBtn {
+    display: none;
+  }
 }
 
 .navBtn {

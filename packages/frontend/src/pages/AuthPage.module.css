@@ -62,6 +62,12 @@
   padding-left: var(--px);
 }
 
+.optional {
+  font-size: var(--fs-2xs);
+  color: var(--text-faint);
+  font-weight: var(--weight-normal);
+}
+
 .input {
   width: 100%;
   padding: 10px 14px;

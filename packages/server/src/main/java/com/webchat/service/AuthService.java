@@ -31,7 +31,7 @@ public class AuthService {
                 req.nickname() != null && !req.nickname().isBlank()
                         ? req.nickname()
                         : req.username();
-        User user = new User(req.username(), encoder.encode(req.password()), nickname);
+        User user = new User(req.username(), encoder.encode(req.password()), nickname, req.email());
         user = userRepo.save(user);
         String token = jwtUtil.generateToken(user.getId(), user.getUsername());
         return new AuthResponse(token, user.getId(), user.getUsername(), user.getNickname());

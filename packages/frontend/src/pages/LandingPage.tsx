@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ChatIcon, PersonIcon } from '../components/Icons';
+import { ChatIcon, HomeIcon, DocsIcon, FeedbackIcon, GitHubIcon, PersonIcon } from '../components/Icons';
 import styles from './LandingPage.module.css';
 
 export default function LandingPage() {
@@ -10,14 +10,25 @@ export default function LandingPage() {
         <div className={styles.navInner}>
           <span className={styles.logoText}>WebChat</span>
           <div className={styles.navLinks}>
+            <Link to="/" className={styles.navLink}>
+              <HomeIcon size={18} />
+              <span className={styles.navLabel}>首页</span>
+            </Link>
             <Link to="/docs" className={styles.navLink}>
-              文档
+              <DocsIcon size={18} />
+              <span className={styles.navLabel}>文档</span>
             </Link>
             <Link to="/feedback" className={styles.navLink}>
-              反馈
+              <FeedbackIcon size={18} />
+              <span className={styles.navLabel}>反馈</span>
             </Link>
+            <a href="https://github.com/DingdingOvO/webchat" target="_blank" rel="noreferrer noopener" className={styles.navLink}>
+              <GitHubIcon size={18} />
+              <span className={styles.navLabel}>源代码</span>
+            </a>
             <Link to="/login" className={styles.navLink}>
-              登录
+              <PersonIcon size={18} />
+              <span className={styles.navLabel}>登录</span>
             </Link>
             <Link to="/register" className={styles.navBtn}>
               开始使用
@@ -92,6 +103,10 @@ export default function LandingPage() {
             <Link to="/feedback" className={styles.footerLink}>
               反馈
             </Link>
+            <span className={styles.footerDot}>·</span>
+            <a href="https://github.com/DingdingOvO/webchat" target="_blank" rel="noreferrer noopener" className={styles.footerLink}>
+              源代码
+            </a>
             <span className={styles.footerDot}>·</span>
             <Link to="/login" className={styles.footerLink}>
               登录
