@@ -22,7 +22,7 @@
         <!-- Quality tool versions -->
         <spotless.version>3.8.0</spotless.version>
         <google-java-format.version>1.35.0</google-java-format.version>
-        <spotbugs.version>4.10.2.0</spotbugs.version>
+        <spotbugs.version>4.10.3.0</spotbugs.version>
         <findsecbugs.version>1.14.0</findsecbugs.version>
         <jacoco.version>0.8.12</jacoco.version>
         <jacoco.min.line>0.0</jacoco.min.line>
