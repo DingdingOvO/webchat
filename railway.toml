@@ -18,7 +18,9 @@
 [deploy]
   numReplicas = 1
   startCommand = "java -jar app.jar"
-  healthcheckPath = "/api/auth/me"
+  # 健康检查必须用无需鉴权的端点。/api/auth/me 强制校验 token，
+  # 不带 token 恒定返回 401，会导致 Railway 判定实例不健康并无限重启。
+  healthcheckPath = "/actuator/health"
   healthcheckTimeout = 90
   restartPolicyType = "ON_FAILURE"
   restartPolicyMaxRetries = 5

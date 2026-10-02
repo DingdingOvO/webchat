@@ -28,7 +28,8 @@ spec:
             - configMapRef:
                 name: webchat-config
             - secretRef:
-                name: webchat-secret
+                # 未指定 existingSecret 时使用本 chart 自建的 webchat-secret
+                name: {{ .Values.secrets.existingSecret | default "webchat-secret" }}
           livenessProbe:
             httpGet:
               path: /actuator/health

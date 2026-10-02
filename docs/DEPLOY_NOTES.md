@@ -16,7 +16,7 @@ https://afaa6b138c1465e70.app.workbuddy.host
 
 ## 架构
 
-单端口部署，`serve.py` 在 **3000** 端口同时承担三件事：
+单端口部署，`scripts/serve.py` 在 **3000** 端口同时承担三件事：
 
 | 路径 | 行为 |
 | --- | --- |
@@ -24,7 +24,7 @@ https://afaa6b138c1465e70.app.workbuddy.host
 | `/api/*` | HTTP 反向代理到后端 `127.0.0.1:8080` |
 | `/ws/chat` | 原始 socket 双向隧道到后端 8080（WebSocket 升级） |
 
-后端 Spring Boot 跑在 **8080**（仅本机），由 `serve.py` 统一对外。
+后端 Spring Boot 跑在 **8080**（仅本机），由 `scripts/serve.py` 统一对外。
 
 ## 关键修复：网关改写 Authorization
 
@@ -36,7 +36,7 @@ https://afaa6b138c1465e70.app.workbuddy.host
 - 后端所有受保护接口接收 `X-Auth-Token`，优先于 `Authorization` 解析
   （`extractToken(xAuth, auth)`，见各 Controller）。
 - 前端 14 处请求同时发送 `Authorization: Bearer <token>` 与 `X-Auth-Token: <token>`。
-- `serve.py` 的 HTTP 代理**必须透传** `X-Auth-Token`，否则修复失效。
+- `scripts/serve.py` 的 HTTP 代理**必须透传** `X-Auth-Token`，否则修复失效。
 
 > 后续若新增受保护接口或新的 fetch 调用，记得同样带上 `X-Auth-Token`。
 
@@ -44,7 +44,7 @@ https://afaa6b138c1465e70.app.workbuddy.host
 
 **症状**：公网偶发 500，前端表现为「网络连接失败」。本地 `curl` 与本地浏览器都复现不了。
 
-**根因**：`serve.py` 早期继承了 `BaseHTTPRequestHandler` 默认的 `protocol_version = "HTTP/1.0"`，
+**根因**：`scripts/serve.py` 早期继承了 `BaseHTTPRequestHandler` 默认的 `protocol_version = "HTTP/1.0"`，
 它会隐式补 `Connection: close`。而部署平台网关**复用长连接**，当下一个响应字节到达时，
 网关把残留字节判定为非法帧并抛错：
 
@@ -55,7 +55,7 @@ Parse Error: Data after `Connection: close`
 之所以只在公网、只在最大的那个响应（`convKey=group:1`，5 条消息）上出现：
 小响应恰好能被网关容错，大响应越过缓冲边界就暴露了。
 
-**修复**（`serve.py`）：
+**修复**（`scripts/serve.py`）：
 
 1. 显式声明 `protocol_version = "HTTP/1.1"`，配合已发送的 `Content-Length` 构成合法 keep-alive 帧；
 2. `_is_websocket()` 收紧为「路径以 `/ws/chat` 开头 **且** `Upgrade: websocket`
@@ -69,7 +69,7 @@ Parse Error: Data after `Connection: close`
 ## 本地启动
 
 ```bash
-./run_prod.sh          # 后端 8080 + 单端口 3000
+./scripts/run_prod.sh          # 后端 8080 + 单端口 3000
 ```
 
 依赖中间件（MySQL 3306 / MongoDB 27017 / Redis 6379）需先启动。

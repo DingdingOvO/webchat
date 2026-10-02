@@ -20,10 +20,19 @@ domain: chat.yourdomain.com
 tlsEnabled: true
 tlsSecretName: webchat-tls
 
-# --- 数据库密码 ---
+# --- 数据库密码 / JWT 密钥 ---
+# 刻意留空：chart 不提供可用默认值，避免用弱口令"静默上线"。
+# 安装时必须显式传入，否则模板渲染会直接失败：
+#   helm install webchat ./deploy/helm/webchat \
+#     --set secrets.mysqlPassword="$(openssl rand -base64 24)" \
+#     --set secrets.jwtSecret="$(openssl rand -base64 48)"
+# 生产环境更推荐复用已有 Secret：
+#   --set secrets.existingSecret=webchat-secret
 secrets:
-  mysqlPassword: "webchat2026"
-  jwtSecret: "change-to-strong-secret"
+  mysqlPassword: ""
+  jwtSecret: ""
+  # 若指定，则直接引用集群中已存在的 Secret，忽略上面的两个值
+  existingSecret: ""
 
 # --- 后端配置 ---
 backend:
