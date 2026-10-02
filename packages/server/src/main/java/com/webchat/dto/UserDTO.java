@@ -6,5 +6,4 @@ public record UserDTO(
         String nickname,
         String avatar,
         boolean online,
-        String lastOnline
-) {}
+        String lastOnline) {}

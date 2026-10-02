@@ -9,5 +9,4 @@ public record MessageDTO(
         Long receiverId,
         String type,
         String content,
-        Instant createdAt
-) {}
+        Instant createdAt) {}

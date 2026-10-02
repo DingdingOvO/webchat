@@ -61,7 +61,7 @@ jobs:
         run: cd packages/server && mvn checkstyle:check -q
 
       - name: PMD check
-        run: cd packages/server && mvn pmd:check -q || true
+        run: cd packages/server && mvn pmd:check -q
 
       - name: SpotBugs check
         run: cd packages/server && mvn spotbugs:check -q
@@ -82,7 +82,6 @@ jobs:
 
       - name: Gitleaks
         uses: gitleaks/gitleaks-action@v2
-        continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

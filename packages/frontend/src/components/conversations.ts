@@ -6,7 +6,11 @@ export interface Conversation {
   name: string;
   type: 'p2p' | 'group';
   lastMessage: string;
-  /** 后端给的 epoch 秒；保留原始类型不动，读取时统一走 toMillis 归一化 */
+  /**
+   * 正常应为 ISO-8601 字符串（后端已关闭 WRITE_DATES_AS_TIMESTAMPS）。
+   * 但历史数据、Redis 热缓存里可能残留浮点秒数，因此放宽为
+   * string | number，读取时一律经 toMillis() 归一化，不直接比较。
+   */
   lastTime: string | number;
   unread: number;
 }

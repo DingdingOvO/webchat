@@ -1,21 +1,20 @@
 package com.webchat.kvstore;
 
-import org.springframework.data.redis.core.*;
-import org.springframework.stereotype.Component;
-
 import java.time.Duration;
 import java.util.*;
+import org.springframework.data.redis.core.*;
+import org.springframework.stereotype.Component;
 
 @Component
 public class RedisStateStore implements StateStore {
 
-    private static final String KEY_ONLINE      = "ws:online";
-    private static final String KEY_UNREAD       = "ws:unread:%d";
-    private static final String KEY_TYPING       = "ws:typing:%s";
-    private static final String KEY_SESSION      = "ws:sessions:%d";
-    private static final String KEY_CONTACTS     = "ws:contacts:%d";
-    private static final String KEY_HOT_MSG      = "ws:hot:%s";
-    private static final int    HOT_MSG_MAX      = 100;
+    private static final String KEY_ONLINE = "ws:online";
+    private static final String KEY_UNREAD = "ws:unread:%d";
+    private static final String KEY_TYPING = "ws:typing:%s";
+    private static final String KEY_SESSION = "ws:sessions:%d";
+    private static final String KEY_CONTACTS = "ws:contacts:%d";
+    private static final String KEY_HOT_MSG = "ws:hot:%s";
+    private static final int HOT_MSG_MAX = 100;
 
     private final StringRedisTemplate redis;
 
@@ -75,10 +74,11 @@ public class RedisStateStore implements StateStore {
 
     @Override
     public void setTyping(Long userId, String conversationKey) {
-        redis.opsForValue().set(
-                String.format(KEY_TYPING, conversationKey),
-                userId.toString(),
-                Duration.ofSeconds(10));
+        redis.opsForValue()
+                .set(
+                        String.format(KEY_TYPING, conversationKey),
+                        userId.toString(),
+                        Duration.ofSeconds(10));
     }
 
     @Override
@@ -117,7 +117,11 @@ public class RedisStateStore implements StateStore {
 
     @Override
     public void touchContact(Long userId, String conversationKey) {
-        redis.opsForZSet().add(String.format(KEY_CONTACTS, userId), conversationKey, System.currentTimeMillis());
+        redis.opsForZSet()
+                .add(
+                        String.format(KEY_CONTACTS, userId),
+                        conversationKey,
+                        System.currentTimeMillis());
     }
 
     @Override

@@ -49,6 +49,13 @@ export interface MessagePush {
   receiverId: number;
   type: 'P2P' | 'GROUP';
   content: string;
+  /**
+   * ISO-8601 字符串，例如 "2026-10-02T18:56:23.909Z"。
+   *
+   * 注意与 {@link AmpMeta.timestamp} 区分：meta 是客户端本地生成的
+   * Unix 毫秒数（number），而 createdAt 由服务端下发、是 ISO 字符串。
+   * 两者格式不同，不要混用。
+   */
   createdAt: string;
 }
 
