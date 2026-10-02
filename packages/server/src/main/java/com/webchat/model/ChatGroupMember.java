@@ -28,11 +28,31 @@ public class ChatGroupMember {
         this.joinedAt = LocalDateTime.now();
     }
 
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    public ChatGroup getGroup() { return group; }
-    public void setGroup(ChatGroup group) { this.group = group; }
-    public Long getUserId() { return userId; }
-    public void setUserId(Long userId) { this.userId = userId; }
-    public LocalDateTime getJoinedAt() { return joinedAt; }
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public ChatGroup getGroup() {
+        return group;
+    }
+
+    public void setGroup(ChatGroup group) {
+        this.group = group;
+    }
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
+    }
+
+    public LocalDateTime getJoinedAt() {
+        return joinedAt;
+    }
 }

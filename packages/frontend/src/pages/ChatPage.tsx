@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { hueIndex } from '../components/avatarHue';
 import CreateGroupModal from '../components/CreateGroupModal';
 import { buildConversations } from '../components/conversations';
 import {
+  AddIcon,
   ArrowLeftIcon,
   ChatIcon,
   CheckmarkIcon,
@@ -12,6 +14,8 @@ import {
   SignOutIcon,
 } from '../components/Icons';
 import { MessageList } from '../components/MessageList';
+import ThemeToggle from '../components/ThemeToggle';
+import { formatTime, toMillis } from '../components/time';
 import { useAuth } from '../context/AuthContext';
 import { useWs, WebSocketProvider } from '../context/WebSocketContext';
 import { useIsMobile } from '../hooks/useIsMobile';
@@ -41,7 +45,6 @@ function ChatPageInner() {
   const [unreadMap, setUnreadMap] = useState<Map<string, number>>(new Map());
   const [pendingRequests, setPendingRequests] = useState<PendingRequest[]>([]);
   const [tab, setTab] = useState<'消息' | '联系人'>('消息');
-  const [showSearch, setShowSearch] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<UserDTO[]>([]);
   const [searchError, setSearchError] = useState('');
@@ -59,9 +62,13 @@ function ChatPageInner() {
       setDataLoading(true);
       try {
         const [fRes, gRes, pRes] = await Promise.all([
-          fetch('/api/users/friends', { headers: { Authorization: `Bearer ${auth.token}` } }),
-          fetch('/api/groups', { headers: { Authorization: `Bearer ${auth.token}` } }),
-          fetch('/api/users/friend-requests/pending', { headers: { Authorization: `Bearer ${auth.token}` } }),
+          fetch('/api/users/friends', {
+            headers: { Authorization: `Bearer ${auth.token}`, 'X-Auth-Token': auth.token },
+          }),
+          fetch('/api/groups', { headers: { Authorization: `Bearer ${auth.token}`, 'X-Auth-Token': auth.token } }),
+          fetch('/api/users/friend-requests/pending', {
+            headers: { Authorization: `Bearer ${auth.token}`, 'X-Auth-Token': auth.token },
+          }),
         ]);
         if (!fRes.ok || !gRes.ok) return;
         const fData: UserDTO[] = await fRes.json();
@@ -85,11 +92,60 @@ function ChatPageInner() {
           })),
         ]);
       } catch (_err) {
+        /* 首屏加载失败时保持空列表，不阻塞界面 */
       } finally {
         setDataLoading(false);
       }
     })();
   }, [auth, userId]);
+
+  /* ---- prefetch conversation list ----
+     会话列表由「已加载消息」派生，但初始不会预取任何历史消息，
+     导致进入应用后「消息」标签始终为空（联系人/群组明明存在）。
+     这里在拿到联系人与群组后，批量拉取各会话最近消息，填充列表。 */
+  useEffect(() => {
+    if (!auth || contacts.length === 0) return;
+    let cancelled = false;
+    (async () => {
+      const results = await Promise.all(
+        contacts.map(async (c) => {
+          try {
+            const res = await fetch(`/api/chat/messages?convKey=${encodeURIComponent(c.key)}`, {
+              headers: { Authorization: `Bearer ${auth.token}`, 'X-Auth-Token': auth.token },
+            });
+            if (!res.ok) return [c.key, [] as MessageDTO[]] as const;
+            const data: MessageDTO[] = await res.json();
+            return [c.key, data] as const;
+          } catch {
+            return [c.key, [] as MessageDTO[]] as const;
+          }
+        }),
+      );
+      if (cancelled) return;
+      setConvMessages((prev) => {
+        const n = new Map(prev);
+        for (const [key, fetched] of results) {
+          if (fetched.length === 0) continue;
+          const existing = n.get(key) || [];
+          /* 按 id 去重合并，再按时间排序。
+             旧写法用 `msgs.length >= existing.length` 做门槛并直接把 fetched 放前面，
+             有两个问题：
+             1) 若期间 WebSocket 已推来更多消息（existing 更长），整个合并会被跳过，
+                拉到的历史被丢弃；
+             2) 拼接顺序不保证时间序，可能出现较新消息排在较旧消息之前。 */
+          const byId = new Map<string, MessageDTO>();
+          for (const m of fetched) if (m?.id) byId.set(m.id, m);
+          for (const m of existing) if (m?.id) byId.set(m.id, m);
+          const merged = [...byId.values()].sort((a, b) => toMillis(a.createdAt) - toMillis(b.createdAt));
+          n.set(key, merged);
+        }
+        return n;
+      });
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [auth, contacts]);
 
   /* ---- load messages ---- */
   const loadMessages = useCallback(
@@ -98,7 +154,7 @@ function ChatPageInner() {
       setMessageLoading(true);
       try {
         const res = await fetch(`/api/chat/messages?convKey=${encodeURIComponent(convKey)}`, {
-          headers: { Authorization: `Bearer ${auth.token}` },
+          headers: { Authorization: `Bearer ${auth.token}`, 'X-Auth-Token': auth.token },
         });
         if (!res.ok) {
           return;
@@ -112,10 +168,20 @@ function ChatPageInner() {
         }
         setConvMessages((prev) => {
           const n = new Map(prev);
-          n.set(convKey, data);
+          /* 同样按 id 合并而不是直接覆盖：
+             拉取期间 WebSocket 可能已推来新消息，直接 set 会把它们冲掉。 */
+          const existing = n.get(convKey) || [];
+          const byId = new Map<string, MessageDTO>();
+          for (const m of data) if (m?.id) byId.set(m.id, m);
+          for (const m of existing) if (m?.id) byId.set(m.id, m);
+          n.set(
+            convKey,
+            [...byId.values()].sort((a, b) => toMillis(a.createdAt) - toMillis(b.createdAt)),
+          );
           return n;
         });
       } catch (_err) {
+        /* 拉取失败保持原内容 */
       } finally {
         setMessageLoading(false);
       }
@@ -147,80 +213,78 @@ function ChatPageInner() {
             : `group:${data.receiverId}`;
         setConvMessages((prev) => {
           const n = new Map(prev);
-          const ex = n.get(convKey) || [];
-          // 用 message id 去重
-          if (data.id && ex.some((m) => m.id === data.id)) return prev;
-          // 兜底：用时间+内容去重
-          if (
-            ex.some((m) => m.createdAt === data.createdAt && m.senderId === data.senderId && m.content === data.content)
-          )
-            return prev;
-          n.set(convKey, [...ex, data]);
+          const list = n.get(convKey) || [];
+          if (!list.some((m) => m.id === data.id)) n.set(convKey, [...list, data]);
           return n;
         });
-        if (convKey !== activeConvKey) {
+        if (convKey !== activeConvKey && data.senderId !== userId) {
           setUnreadMap((prev) => {
             const n = new Map(prev);
             n.set(convKey, (n.get(convKey) || 0) + 1);
             return n;
           });
         }
-      } catch (_err) {}
+      } catch (_err) {
+        /* 忽略格式异常的消息 */
+      }
     });
 
-    const unsub2 = subscribe('online', (msg) => {
-      try {
-        const uid = msg.userId as number;
-        const online = msg.online as boolean;
-        setFriends((prev) => prev.map((f) => (f.id === uid ? { ...f, online } : f)));
-        setContacts((prev) =>
-          prev.map((c) => {
-            if (c.user?.id === uid) return { ...c, user: { ...c.user, online } };
-            return c;
-          }),
-        );
-      } catch (_err) {}
+    const unsub2 = subscribe('presence', (msg) => {
+      const data = msg.data as { userId: number; online: boolean };
+      if (!data) return;
+      setFriends((prev) => prev.map((f) => (f.id === data.userId ? { ...f, online: data.online } : f)));
     });
 
     return () => {
       unsub1();
       unsub2();
     };
-  }, [subscribe, activeConvKey]);
+  }, [subscribe, activeConvKey, userId]);
 
-  /* ---- search ---- */
+  /* ---- actions ---- */
   async function handleSearch(q: string) {
     setSearchQuery(q);
+    setSearchError('');
     if (!q.trim() || !auth) {
       setSearchResults([]);
-      setSearchError('');
       return;
     }
-    setSearchError('');
     try {
-      const res = await fetch(`/api/users/search?q=${encodeURIComponent(q)}`, {
-        headers: { Authorization: `Bearer ${auth.token}` },
+      const res = await fetch(`/api/users/search?q=${encodeURIComponent(q.trim())}`, {
+        headers: { Authorization: `Bearer ${auth.token}`, 'X-Auth-Token': auth.token },
       });
-      if (res.ok) setSearchResults(await res.json());
-      else setSearchError('搜索失败');
-    } catch (_err) {
+      if (!res.ok) {
+        setSearchResults([]);
+        return;
+      }
+      const data: UserDTO[] = await res.json();
+      setSearchResults(data.filter((u) => u.id !== userId));
+    } catch {
       setSearchResults([]);
-      setSearchError('网络错误');
     }
   }
 
-  async function addFriend(uid: number) {
+  async function addFriend(id: number) {
     if (!auth) return;
     try {
-      const res = await fetch('/api/users/friend-request', {
+      const res = await fetch('/api/users/friend-requests', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${auth.token}` },
-        body: JSON.stringify({ userId: uid }),
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${auth.token}`,
+          'X-Auth-Token': auth.token,
+        },
+        body: JSON.stringify({ toUserId: id }),
       });
-      if (!res.ok) {
-        console.warn('添加好友失败', res.status);
+      if (res.ok) {
+        setSearchResults((prev) => prev.filter((u) => u.id !== id));
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setSearchError(data.error || '添加失败');
       }
-    } catch {}
+    } catch {
+      setSearchError('网络错误');
+    }
   }
 
   async function handleRequestAction(id: number, action: 'accept' | 'reject') {
@@ -228,14 +292,18 @@ function ChatPageInner() {
     try {
       const res = await fetch(`/api/users/friend-requests/${id}/${action}`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${auth.token}` },
+        headers: { Authorization: `Bearer ${auth.token}`, 'X-Auth-Token': auth.token },
       });
       if (res.ok) {
         setPendingRequests((prev) => prev.filter((r) => r.id !== id));
-        const fRes = await fetch('/api/users/friends', { headers: { Authorization: `Bearer ${auth.token}` } });
+        const fRes = await fetch('/api/users/friends', {
+          headers: { Authorization: `Bearer ${auth.token}`, 'X-Auth-Token': auth.token },
+        });
         if (fRes.ok) setFriends(await fRes.json());
       }
-    } catch (_err) {}
+    } catch (_err) {
+      /* 忽略 */
+    }
   }
 
   /* ---- send message ---- */
@@ -276,67 +344,95 @@ function ChatPageInner() {
     return [...friends].sort((a, b) => a.username.localeCompare(b.username));
   }, [friends]);
 
+  const friendName = (f: UserDTO) => f.nickname || f.username;
+
+  /* 按对象取稳定色相：同一个人在任何列表、任何时间都是同一个颜色 */
+  const hueClass = (id: number | string) => styles[`hue${hueIndex(id)}` as keyof typeof styles] ?? '';
+
   /* ---- render ---- */
   return (
     <div className={styles.layout}>
-      {/* ===== LEFT PANEL ===== */}
-      <aside className={`${styles.leftPanel} ${isMobile && showChat ? styles.leftPanelHidden : ''}`}>
-        {/* top bar */}
-        <div className={styles.topbar}>
-          <div className={styles.userInfo} onClick={() => navigate('/app/settings')}>
-            <div className={styles.userAvatar}>{auth?.nickname?.charAt(0).toUpperCase() || 'U'}</div>
-            <span className={styles.userName}>{auth?.nickname || auth?.username}</span>
-            {!connected && <span className={styles.offlineBadge}>未连接</span>}
+      {/* ================= 侧栏 ================= */}
+      <aside className={`${styles.sidebar} ${isMobile && showChat ? styles.sidebarHidden : ''}`}>
+        <div className={styles.sidebarHeader}>
+          <div className={styles.meRow}>
+            <div className={styles.me} onClick={() => navigate('/app/settings')} role="button" tabIndex={0}>
+              <div className={styles.meAvatar}>{auth?.nickname?.charAt(0).toUpperCase() || 'U'}</div>
+              <div className={styles.meText}>
+                <span className={styles.meName}>{auth?.nickname || auth?.username}</span>
+                <span className={`${styles.meStatus} ${!connected ? styles.meStatusOffline : ''}`}>
+                  {connected ? '在线' : '连接已断开'}
+                </span>
+              </div>
+            </div>
+
+            <div className={styles.tools}>
+              <button
+                className={styles.toolBtn}
+                onClick={() => setShowGroupModal(true)}
+                title="创建群组"
+                aria-label="创建群组"
+              >
+                <AddIcon />
+              </button>
+              <ThemeToggle className={styles.toolBtn} />
+              <button
+                className={styles.toolBtn}
+                onClick={() => {
+                  logout();
+                  navigate('/');
+                }}
+                title="退出登录"
+                aria-label="退出登录"
+              >
+                <SignOutIcon />
+              </button>
+            </div>
           </div>
-          <div className={styles.toolbar}>
-            <button className={styles.iconBtn} onClick={() => setShowSearch(!showSearch)} title="搜索">
-              <SearchIcon />
-            </button>
-            <button className={styles.iconBtn} onClick={() => setShowGroupModal(true)} title="建群">
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-                <path d="M10 2.5a.5.5 0 0 0-1 0V9H2.5a.5.5 0 0 0 0 1H9v6.5a.5.5 0 0 0 1 0V10h6.5a.5.5 0 0 0 0-1H10V2.5Z" />
-              </svg>
-            </button>
-            <button className={styles.iconBtn} onClick={() => navigate('/app/settings')} title="设置">
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-                <path d="M10 2a8 8 0 1 0 0 16 8 8 0 0 0 0-16ZM9 5.5a1 1 0 1 1 2 0V9h3a1 1 0 1 1 0 2h-3v3a1 1 0 1 1-2 0v-3H6a1 1 0 1 1 0-2h3V5.5Z" />
-              </svg>
-            </button>
-            <button
-              className={styles.iconBtn}
-              onClick={() => {
-                logout();
-                navigate('/');
-              }}
-              title="退出"
-            >
-              <SignOutIcon />
-            </button>
+
+          {/* 搜索常驻：高频动作不该藏在图标后面 */}
+          <div className={styles.searchBar}>
+            <SearchIcon size={16} />
+            <input
+              className={styles.searchBarInput}
+              type="text"
+              placeholder="搜索用户"
+              value={searchQuery}
+              onChange={(e) => handleSearch(e.target.value)}
+            />
           </div>
         </div>
 
-        {/* pending friend requests */}
+        {!connected && <div className={styles.offlineBar}>连接已断开，正在自动重连…</div>}
+
         {pendingRequests.length > 0 && (
-          <div className={styles.requestBanner}>
-            <span className={styles.requestBannerTitle}>{pendingRequests.length} 条好友请求</span>
-            <div className={styles.requestActions}>
-              {pendingRequests.map((r) => (
-                <div key={r.id} className={styles.requestItem}>
-                  <span>用户 #{r.fromUserId}</span>
-                  <button className={styles.requestAccept} onClick={() => handleRequestAction(r.id, 'accept')}>
-                    <CheckmarkIcon size={14} />
-                  </button>
-                  <button className={styles.requestReject} onClick={() => handleRequestAction(r.id, 'reject')}>
-                    <DismissIcon size={14} />
-                  </button>
-                </div>
-              ))}
-            </div>
+          <div className={styles.requests}>
+            <div className={styles.requestsTitle}>{pendingRequests.length} 条好友请求</div>
+            {pendingRequests.map((r) => (
+              <div key={r.id} className={styles.requestRow}>
+                <span className={styles.requestName}>用户 #{r.fromUserId}</span>
+                <button
+                  className={styles.acceptBtn}
+                  onClick={() => handleRequestAction(r.id, 'accept')}
+                  title="接受"
+                  aria-label="接受"
+                >
+                  <CheckmarkIcon size={14} />
+                </button>
+                <button
+                  className={styles.rejectBtn}
+                  onClick={() => handleRequestAction(r.id, 'reject')}
+                  title="拒绝"
+                  aria-label="拒绝"
+                >
+                  <DismissIcon size={14} />
+                </button>
+              </div>
+            ))}
           </div>
         )}
 
-        {/* tabs */}
-        <div className={styles.tabBar}>
+        <div className={styles.tabs}>
           <button className={`${styles.tab} ${tab === '消息' ? styles.tabActive : ''}`} onClick={() => setTab('消息')}>
             消息
           </button>
@@ -348,61 +444,59 @@ function ChatPageInner() {
           </button>
         </div>
 
-        {/* search */}
-        {showSearch && (
-          <div className={styles.searchBox}>
-            <div className={styles.searchInputWrap}>
-              <span className={styles.searchIcon}>
-                <SearchIcon size={16} />
-              </span>
-              <input
-                className={styles.searchInput}
-                type="text"
-                placeholder="搜索用户..."
-                value={searchQuery}
-                onChange={(e) => handleSearch(e.target.value)}
-              />
-            </div>
-            {searchError && <p style={{ color: 'var(--red)', padding: 'var(--p2)' }}>{searchError}</p>}
-            {searchResults.map((u) => (
-              <div key={u.id} className={styles.searchResultItem}>
-                <span className={styles.searchResultAvatar}>{u.nickname?.charAt(0).toUpperCase()}</span>
-                <span className={styles.searchResultName}>{u.nickname || u.username}</span>
-                <button className={styles.addBtn} onClick={() => addFriend(u.id)}>
-                  加好友
-                </button>
+        {searchQuery.trim() !== '' && (
+          <div className={styles.searchArea}>
+            {searchError && <p className={styles.searchError}>{searchError}</p>}
+            {searchResults.length > 0 && (
+              <div className={styles.results}>
+                {searchResults.map((u) => (
+                  <div key={u.id} className={styles.resultRow}>
+                    <span className={styles.resultAvatar}>{friendName(u).charAt(0).toUpperCase()}</span>
+                    <span className={styles.resultName}>{friendName(u)}</span>
+                    <button className={styles.addBtn} onClick={() => addFriend(u.id)}>
+                      加好友
+                    </button>
+                  </div>
+                ))}
               </div>
-            ))}
+            )}
           </div>
         )}
 
-        {/* list area */}
         {dataLoading ? (
-          <div className={styles.loadingState}>加载中...</div>
+          <div className={styles.placeholder}>加载中…</div>
         ) : (
           <div className={styles.list}>
             {tab === '消息' &&
               (conversations.length === 0 ? (
-                <div className={styles.emptyState}>暂无消息</div>
+                <div className={styles.placeholder}>
+                  还没有会话
+                  <br />
+                  去「联系人」开始聊天
+                </div>
               ) : (
                 conversations.map((conv) => (
                   <div
                     key={conv.key}
-                    className={`${styles.convItem} ${conv.key === activeConvKey ? styles.convItemActive : ''}`}
+                    className={`${styles.row} ${conv.key === activeConvKey ? styles.rowActive : ''}`}
                     onClick={() => selectConv(conv.key)}
                   >
-                    <div className={styles.convAvatar}>{conv.name.charAt(0).toUpperCase()}</div>
-                    <div className={styles.convInfo}>
-                      <div className={styles.convTop}>
-                        <span className={styles.convName}>{conv.name}</span>
-                        <span className={styles.convTime}>
-                          {new Date(conv.lastTime).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}
-                        </span>
+                    <div
+                      className={`${styles.rowAvatar} ${
+                        conv.type === 'group' ? styles.rowAvatarGroup : hueClass(conv.key)
+                      }`}
+                    >
+                      {conv.name.charAt(0).toUpperCase()}
+                    </div>
+                    <div className={styles.rowBody}>
+                      <div className={styles.rowTop}>
+                        <span className={styles.rowName}>{conv.name}</span>
+                        <span className={styles.rowTime}>{formatTime(conv.lastTime)}</span>
                       </div>
-                      <div className={styles.convBottom}>
-                        <span className={styles.convLast}>{conv.lastMessage}</span>
+                      <div className={styles.rowBottom}>
+                        <span className={styles.rowPreview}>{conv.lastMessage}</span>
                         {conv.unread > 0 && (
-                          <span className={styles.convBadge}>{conv.unread > 99 ? '99+' : conv.unread}</span>
+                          <span className={styles.badge}>{conv.unread > 99 ? '99+' : conv.unread}</span>
                         )}
                       </div>
                     </div>
@@ -414,68 +508,81 @@ function ChatPageInner() {
               <>
                 {sortedFriends.length > 0 && (
                   <>
-                    <div className={styles.sectionHeader}>好友 A-Z</div>
+                    <div className={styles.sectionLabel}>好友</div>
                     {sortedFriends.map((f) => {
                       const ck = `p2p:${Math.min(userId, f.id)}:${Math.max(userId, f.id)}`;
                       return (
                         <div
                           key={f.id}
-                          className={`${styles.contactItem} ${ck === activeConvKey ? styles.contactItemActive : ''}`}
+                          className={`${styles.row} ${ck === activeConvKey ? styles.rowActive : ''}`}
                           onClick={() => selectConv(ck)}
                         >
-                          <div className={styles.contactAvatar}>
-                            {f.nickname?.charAt(0).toUpperCase()}
+                          <div className={`${styles.rowAvatar} ${hueClass(f.id)}`}>
+                            {friendName(f).charAt(0).toUpperCase()}
                             <span
-                              className={`${styles.statusDot} ${f.online ? styles.statusOnline : styles.statusOffline}`}
+                              className={`${styles.presence} ${f.online ? styles.presenceOnline : styles.presenceOffline}`}
                             />
                           </div>
-                          <span className={styles.contactName}>{f.nickname || f.username}</span>
+                          <div className={styles.rowBody}>
+                            <span className={styles.rowName}>{friendName(f)}</span>
+                          </div>
                         </div>
                       );
                     })}
                   </>
                 )}
+
                 {groups.length > 0 && (
                   <>
-                    <div className={styles.sectionHeader}>群组 #</div>
+                    <div className={styles.sectionLabel}>群组</div>
                     {groups.map((g) => {
                       const ck = `group:${g.id}`;
                       return (
                         <div
                           key={g.id}
-                          className={`${styles.contactItem} ${ck === activeConvKey ? styles.contactItemActive : ''}`}
+                          className={`${styles.row} ${ck === activeConvKey ? styles.rowActive : ''}`}
                           onClick={() => selectConv(ck)}
                         >
-                          <div className={`${styles.contactAvatar} ${styles.groupAvatar}`}>
+                          <div className={`${styles.rowAvatar} ${styles.rowAvatarGroup}`}>
                             {g.name.charAt(0).toUpperCase()}
                           </div>
-                          <span className={styles.contactName}>{g.name}</span>
+                          <div className={styles.rowBody}>
+                            <span className={styles.rowName}>{g.name}</span>
+                            <span className={styles.rowPreview}>{g.memberCount} 人</span>
+                          </div>
                         </div>
                       );
                     })}
                   </>
                 )}
-                {friends.length === 0 && groups.length === 0 && <div className={styles.emptyState}>暂无联系人</div>}
+
+                {friends.length === 0 && groups.length === 0 && <div className={styles.placeholder}>还没有联系人</div>}
               </>
             )}
           </div>
         )}
       </aside>
 
-      {/* ===== RIGHT PANEL ===== */}
-      <main className={`${styles.rightPanel} ${isMobile && !showChat ? styles.rightPanelHidden : ''}`}>
+      {/* ================= 会话区 ================= */}
+      <main className={`${styles.main} ${isMobile && !showChat ? styles.mainHidden : ''}`}>
         {activeContact ? (
           <>
             <header className={styles.chatHeader}>
               {isMobile && (
-                <button className={styles.chatBackBtn} onClick={goBack}>
+                <button className={styles.backBtn} onClick={goBack} aria-label="返回">
                   <ArrowLeftIcon />
                 </button>
               )}
-              <div className={styles.chatAvatar}>{activeContact.name.charAt(0).toUpperCase()}</div>
-              <div className={styles.chatInfo}>
+              <div
+                className={`${styles.chatAvatar} ${
+                  activeContact.type === 'group' ? styles.chatAvatarGroup : hueClass(activeContact.key)
+                }`}
+              >
+                {activeContact.name.charAt(0).toUpperCase()}
+              </div>
+              <div className={styles.chatMeta}>
                 <div className={styles.chatName}>{activeContact.name}</div>
-                <div className={styles.chatMeta}>
+                <div className={styles.chatSub}>
                   {activeContact.type === 'p2p'
                     ? activeContact.user?.online
                       ? '在线'
@@ -484,36 +591,43 @@ function ChatPageInner() {
                 </div>
               </div>
             </header>
+
             <div className={styles.messages}>
-              {messageLoading && activeMessages.length === 0 ? (
-                <div className={styles.loadingState}>加载消息中...</div>
-              ) : (
-                <MessageList messages={activeMessages} userId={userId} contactType={activeContact.type} />
-              )}
+              <div className={styles.messagesInner}>
+                {messageLoading && activeMessages.length === 0 ? (
+                  <div className={styles.placeholder}>加载消息中…</div>
+                ) : (
+                  <MessageList messages={activeMessages} userId={userId} contactType={activeContact.type} />
+                )}
+              </div>
             </div>
-            <div className={styles.inputArea}>
-              <input
-                className={styles.inputField}
-                type="text"
-                placeholder="输入消息..."
-                value={inputText}
-                onChange={(e) => setInputText(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSend();
-                  }
-                }}
-              />
-              <button className={styles.sendBtn} onClick={handleSend} disabled={!inputText.trim()}>
-                <SendIcon size={18} />
-              </button>
+
+            <div className={styles.composer}>
+              <div className={styles.composerInner}>
+                <input
+                  className={styles.composerField}
+                  type="text"
+                  placeholder="输入消息…"
+                  value={inputText}
+                  onChange={(e) => setInputText(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSend();
+                    }
+                  }}
+                />
+                <button className={styles.sendBtn} onClick={handleSend} disabled={!inputText.trim()} aria-label="发送">
+                  <SendIcon size={18} />
+                </button>
+              </div>
             </div>
           </>
         ) : (
           <div className={styles.empty}>
-            <ChatIcon size={64} />
-            <span>选择一个对话开始聊天</span>
+            <ChatIcon size={44} className={styles.emptyIcon} />
+            <span className={styles.emptyTitle}>选择一个会话</span>
+            <span className={styles.emptyHint}>从左侧选择好友或群组，开始你的对话。</span>
           </div>
         )}
       </main>

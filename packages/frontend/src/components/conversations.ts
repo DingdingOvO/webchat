@@ -1,11 +1,17 @@
 import type { Contact, MessageDTO } from '../types';
+import { toMillis } from './time';
 
 export interface Conversation {
   key: string;
   name: string;
   type: 'p2p' | 'group';
   lastMessage: string;
-  lastTime: string;
+  /**
+   * 正常应为 ISO-8601 字符串（后端已关闭 WRITE_DATES_AS_TIMESTAMPS）。
+   * 但历史数据、Redis 热缓存里可能残留浮点秒数，因此放宽为
+   * string | number，读取时一律经 toMillis() 归一化，不直接比较。
+   */
+  lastTime: string | number;
   unread: number;
 }
 
@@ -29,6 +35,9 @@ export function buildConversations(
       unread: unreadMap.get(key) || 0,
     });
   }
-  result.sort((a, b) => new Date(b.lastTime).getTime() - new Date(a.lastTime).getTime());
+  /* 必须用 toMillis 归一化再比。
+     直接 new Date(秒数) 会得到 1970 年，new Date("秒数字符串") 会得到
+     Invalid Date → getTime() 为 NaN → 排序静默失效，列表顺序随机。 */
+  result.sort((a, b) => toMillis(b.lastTime) - toMillis(a.lastTime));
   return result;
 }

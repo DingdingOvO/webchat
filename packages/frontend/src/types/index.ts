@@ -14,6 +14,13 @@ export interface MessageDTO {
   receiverId: number | null;
   type: 'P2P' | 'GROUP';
   content: string;
+  /**
+   * ISO-8601 字符串，例如 "2026-10-02T18:56:23.909Z"。
+   *
+   * 后端约定见 JacksonConfig：已关闭 WRITE_DATES_AS_TIMESTAMPS，
+   * 不再输出浮点秒数。历史数据可能是数字，读取时请统一走
+   * `toMillis()` / `formatTime()`（components/time.ts）做归一化。
+   */
   createdAt: string;
 }
 

@@ -1,6 +1,3 @@
 package com.webchat.dto;
 
-public record CreateGroupRequest(
-        String name,
-        Long[] memberIds
-) {}
+public record CreateGroupRequest(String name, Long[] memberIds) {}

@@ -28,21 +28,21 @@ export default class ErrorBoundary extends Component<Props, State> {
             justifyContent: 'center',
             height: '100vh',
             fontFamily: '-apple-system, sans-serif',
-            color: '#333',
+            color: 'var(--text)',
             padding: 32,
             textAlign: 'center',
           }}
         >
           <h1 style={{ fontSize: 20, fontWeight: 600, marginBottom: 8 }}>出了点问题</h1>
-          <p style={{ fontSize: 14, color: '#666', marginBottom: 24, maxWidth: 400 }}>
+          <p style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 24, maxWidth: 400 }}>
             {this.state.error?.message || '页面渲染异常'}
           </p>
           <button
             onClick={this.handleReset}
             style={{
               padding: '10px 24px',
-              background: '#2563eb',
-              color: '#fff',
+              background: 'var(--primary)',
+              color: 'var(--white)',
               border: 'none',
               borderRadius: 8,
               fontSize: 14,

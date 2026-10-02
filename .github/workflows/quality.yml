@@ -61,7 +61,7 @@ jobs:
         run: cd packages/server && mvn checkstyle:check -q
 
       - name: PMD check
-        run: cd packages/server && mvn pmd:check -q || true
+        run: cd packages/server && mvn pmd:check -q
 
       - name: SpotBugs check
         run: cd packages/server && mvn spotbugs:check -q
@@ -78,13 +78,59 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          # 需要完整历史：密钥可能只在某个旧提交里出现过，
+          # 浅克隆会让扫描范围漏掉这些提交。
           fetch-depth: 0
 
-      - name: Gitleaks
-        uses: gitleaks/gitleaks-action@v2
-        continue-on-error: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # 使用开源的 gitleaks CLI，而不是 gitleaks/gitleaks-action@v2。
+      # v2 action 自带的商业许可校验会让本仓库的该任务直接失败
+      # （它对无法校验许可的账号报「缺少 gitleaks license」），
+      # 与本仓库是否真的存在密钥无关。CLI 免费且行为一致，
+      # 同时也会读取仓库根目录的 .gitleaks.toml 白名单。
+      - name: Install gitleaks CLI
+        run: |
+          set -euo pipefail
+          VER=8.30.1
+          BASE="gitleaks_${VER}_linux_x64.tar.gz"
+          URL="https://github.com/gitleaks/gitleaks/releases/download/v${VER}"
+          curl -fsSL --retry 3 --retry-delay 5 -o "/tmp/${BASE}" "${URL}/${BASE}"
+
+          # 按官方 checksums 校验下载包完整性，避免供应链投毒。
+          # 不假设清单的行格式（"hash  name" / "hash *name" 都有可能出现）：
+          # 这里按文件名匹配该行、取出其中的首个十六进制串作为期望值。
+          EXPECTED="$(curl -fsSL --retry 3 --retry-delay 5 "${URL}/gitleaks_${VER}_checksums.txt" \
+            | grep -F "${BASE}" | grep -oE '[0-9a-f]{64}' | head -n 1)"
+          if [ -z "${EXPECTED}" ]; then
+            echo "::error::无法从 checksums 清单中取得 ${BASE} 的校验值"
+            exit 1
+          fi
+          ACTUAL="$(sha256sum "/tmp/${BASE}" | awk '{print $1}')"
+          if [ "${EXPECTED}" != "${ACTUAL}" ]; then
+            echo "::error::gitleaks 下载包校验失败 expected=${EXPECTED} actual=${ACTUAL}"
+            exit 1
+          fi
+
+          tar -xzf "/tmp/${BASE}" -C /tmp gitleaks
+          install /tmp/gitleaks /usr/local/bin/gitleaks
+          gitleaks version
+
+      - name: Scan for secrets
+        run: |
+          set -euo pipefail
+          # 输出 JSON 报告并回显到 job summary：
+          # 默认的彩色终端输出在 Actions 日志里不便检索，
+          # 而出问题时最需要的恰恰是「哪条规则、哪个文件、哪一行」。
+          if gitleaks detect --redact --no-banner --verbose \
+               --report-format json --report-path gitleaks-report.json; then
+            echo "✅ 未发现密钥" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "❌ 发现疑似密钥，以下为脱敏后的明细：" >> "$GITHUB_STEP_SUMMARY"
+            echo '```json' >> "$GITHUB_STEP_SUMMARY"
+            cat gitleaks-report.json >> "$GITHUB_STEP_SUMMARY" 2>/dev/null || echo "(报告文件为空)"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+            echo "::error::gitleaks 检出疑似密钥，详见 job summary 的脱敏报告"
+            exit 1
+          fi
 
   # ================================================================
   # CodeQL

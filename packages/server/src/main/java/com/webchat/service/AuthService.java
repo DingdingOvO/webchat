@@ -49,7 +49,9 @@ public class AuthService {
     }
 
     public User validateToken(String token) {
-        if (!jwtUtil.validateToken(token)) throw new BusinessException("无效 token");
+        if (!jwtUtil.validateToken(token)) {
+            throw new BusinessException("无效 token");
+        }
         Long userId = jwtUtil.getUserIdFromToken(token);
         return userRepo.findById(userId).orElseThrow(() -> new BusinessException("用户不存在"));
     }

@@ -1,0 +1,40 @@
+/* 反馈跳转页 —— 极简居中，等待外部跳转 */
+
+.page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-4);
+  padding: var(--s-6);
+  text-align: center;
+  background: var(--bg);
+}
+
+.logo {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--r-md);
+  background: var(--accent);
+  color: var(--text-on-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--t-h3);
+  font-weight: 650;
+  margin-bottom: var(--s-2);
+}
+
+.title {
+  font-size: var(--t-body);
+  font-weight: 550;
+  color: var(--text);
+}
+
+.hint {
+  font-size: var(--t-sm);
+  color: var(--text-tertiary);
+  line-height: 1.7;
+  max-width: 320px;
+}

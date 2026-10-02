@@ -1,5 +1,10 @@
 # .gitleaks.toml — Secret scanning configuration
 # @see https://github.com/gitleaks/gitleaks
+#
+# 注意：allowlist 必须使用 gitleaks 8.19+ 的映射写法（[allowlist] + paths/regexes），
+# 而不是早期的数组写法（[[allowlist]]）。用旧写法时 gitleaks 8.30 会直接以
+# "Failed to load config: 'AllowList' expected a map, got 'slice'" 退出，
+# 表现为密钥扫描任务失败——但失败原因与仓库内容无关，纯粹是配置语法过期。
 
 title = "WebChat Gitleaks Configuration"
 
@@ -30,19 +35,38 @@ description = "Redis Password"
 regex = '''(?i)(redis[_-]?password|spring[_-]?redis[_-]?password)\s*[:=]\s*['"]?[^\s'"#]{6,}'''
 tags = ["key", "database"]
 
-[[allowlist]]
+[allowlist]
 description = "Global allow list"
+
+# 这些路径下的内容不构成真实泄露：
+# - 配置文件模板与文档中的占位值（DEPLOY.md 里的 helm --set 示例、
+#   deploy/ 下的默认 values，生产环境一律由密钥管理/环境变量覆盖）
+# - src/main/resources 下的本地开发默认值
+# - 测试脚本：其中出现的 token 都是「故意构造的无效值」，
+#   用于断言鉴权会正确拒绝，不是可用凭据
+# - 本文件自身（否则规则里写的示例正则会自我命中）
 paths = [
   '''(^|/)gitleaks\.toml$''',
   '''(^|/)\.env\.example$''',
   '''(^|/)docs/''',
+  '''(^|/)DEPLOY\.md$''',
+  '''(^|/)README\.md$''',
+  '''(^|/)deploy/''',
+  '''(^|/)scripts/tests/''',
   '''(^|/)\.github/workflows/''',
   '''(^|/)src/main/resources/application\.properties$''',
   '''(^|/)src/main/resources/''',
+  '''(^|/)src/test/''',
 ]
+
+# 已知的占位/本地默认值，明文保留是为了让开发环境开箱可跑，
+# 它们不是可用于生产的凭据。
 regexes = [
   '''WebChat2026SecretKeyMustBe256BitsLongForHS512Algorithm!!_ABCDEFGH''',
   '''webchat2026''',
+  '''MyStr0ng!Pass''',
+  '''super-secret-jwt-key''',
+  '''change-to-strong-secret''',
   '''jwt\.secret''',
   '''MYSQL_PASSWORD''',
 ]

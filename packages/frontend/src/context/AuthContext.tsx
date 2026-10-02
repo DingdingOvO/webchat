@@ -1,4 +1,4 @@
-import { createContext, type ReactNode, useContext, useEffect, useState } from 'react';
+import { createContext, type ReactNode, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import type { AuthInfo } from '../types';
 
 const AUTH_KEY = 'webchat_auth';
@@ -21,33 +21,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   });
 
-  function setAuth(a: AuthInfo | null) {
+  /* setAuth / logout 必须引用稳定。
+     原先它们每次 render 都重建，导致：
+     1) 依赖它们的 useEffect（WebSocket 建连、token 轮询）被反复拆掉重建；
+     2) context value 每次都是新对象，所有 useAuth() 消费者无条件重渲染。 */
+  const setAuth = useCallback((a: AuthInfo | null) => {
     setAuthState(a);
     if (a) localStorage.setItem(AUTH_KEY, JSON.stringify(a));
     else localStorage.removeItem(AUTH_KEY);
-  }
+  }, []);
 
-  function logout() {
-    setAuth(null);
-  }
+  const logout = useCallback(() => {
+    setAuthState(null);
+    localStorage.removeItem(AUTH_KEY);
+  }, []);
 
-  // 定期验证 token 有效性
+  // 定期验证 token 有效性。只依赖 token 字符串本身，避免对象引用变化引发重建。
+  const token = auth?.token;
   useEffect(() => {
-    if (!auth) return;
+    if (!token) return;
     const id = setInterval(async () => {
       try {
         const res = await fetch('/api/auth/me', {
-          headers: { Authorization: `Bearer ${auth.token}` },
+          headers: { Authorization: `Bearer ${token}`, 'X-Auth-Token': token },
         });
         if (!res.ok) setAuth(null);
       } catch {
-        setAuth(null);
+        // 网络抖动不应导致登出，交给下一次轮询
       }
     }, 60000);
     return () => clearInterval(id);
-  }, [auth, setAuth]);
+  }, [token, setAuth]);
 
-  return <AuthContext.Provider value={{ auth, setAuth, logout }}>{children}</AuthContext.Provider>;
+  const value = useMemo(() => ({ auth, setAuth, logout }), [auth, setAuth, logout]);
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {

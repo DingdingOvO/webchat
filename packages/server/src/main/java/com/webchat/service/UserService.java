@@ -2,8 +2,12 @@ package com.webchat.service;
 
 import com.webchat.dto.UserDTO;
 import com.webchat.kvstore.RedisStateStore;
-import com.webchat.model.*;
-import com.webchat.repository.*;
+import com.webchat.model.Friend;
+import com.webchat.model.FriendRequest;
+import com.webchat.model.User;
+import com.webchat.repository.FriendRepository;
+import com.webchat.repository.FriendRequestRepository;
+import com.webchat.repository.UserRepository;
 import com.webchat.util.BusinessException;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -45,11 +49,15 @@ public class UserService {
 
     @Transactional
     public void sendFriendRequest(Long fromUserId, Long toUserId) {
-        if (fromUserId.equals(toUserId)) throw new BusinessException("不能加自己为好友");
-        if (friendRepo.existsByUserIdAndFriendId(fromUserId, toUserId))
+        if (fromUserId.equals(toUserId)) {
+            throw new BusinessException("不能加自己为好友");
+        }
+        if (friendRepo.existsByUserIdAndFriendId(fromUserId, toUserId)) {
             throw new BusinessException("已是好友");
-        if (requestRepo.findByFromUserIdAndToUserId(fromUserId, toUserId).isPresent())
+        }
+        if (requestRepo.findByFromUserIdAndToUserId(fromUserId, toUserId).isPresent()) {
             throw new BusinessException("已发送过好友请求");
+        }
         requestRepo.save(new FriendRequest(fromUserId, toUserId));
     }
 
@@ -75,13 +83,13 @@ public class UserService {
         requestRepo.save(req);
     }
 
-    private UserDTO toDTO(User u) {
+    private UserDTO toDTO(User user) {
         return new UserDTO(
-                u.getId(),
-                u.getUsername(),
-                u.getNickname(),
-                u.getAvatar(),
-                stateStore.isOnline(u.getId()),
-                u.getLastOnline() != null ? u.getLastOnline().toString() : null);
+                user.getId(),
+                user.getUsername(),
+                user.getNickname(),
+                user.getAvatar(),
+                stateStore.isOnline(user.getId()),
+                user.getLastOnline() != null ? user.getLastOnline().toString() : null);
     }
 }

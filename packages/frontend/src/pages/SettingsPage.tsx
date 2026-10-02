@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeftIcon } from '../components/Icons';
+import ThemeToggle from '../components/ThemeToggle';
 import { useAuth } from '../context/AuthContext';
 import styles from './SettingsPage.module.css';
 
@@ -18,10 +19,11 @@ export default function SettingsPage() {
 
   useEffect(() => {
     if (!auth) return;
-    fetch('/api/auth/me', { headers: { Authorization: `Bearer ${auth.token}` } })
+    fetch('/api/auth/me', { headers: { Authorization: `Bearer ${auth.token}`, 'X-Auth-Token': auth.token } })
       .then((r) => r.json())
       .then((d) => {
         if (d.avatar) setAvatar(d.avatar);
+        if (d.username) setUsername(d.username);
       })
       .catch(() => {});
   }, [auth]);
@@ -33,7 +35,11 @@ export default function SettingsPage() {
     try {
       const res = await fetch('/api/users/profile/username', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${auth.token}` },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${auth.token}`,
+          'X-Auth-Token': auth.token,
+        },
         body: JSON.stringify({ username: username.trim() }),
       });
       const data = await res.json();
@@ -67,7 +73,11 @@ export default function SettingsPage() {
       try {
         const res = await fetch('/api/users/profile/avatar', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${auth.token}` },
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${auth.token}`,
+            'X-Auth-Token': auth.token,
+          },
           body: JSON.stringify({ avatar: base64 }),
         });
         const data = await res.json();
@@ -97,7 +107,11 @@ export default function SettingsPage() {
     try {
       const res = await fetch('/api/users/profile/password', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${auth.token}` },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${auth.token}`,
+          'X-Auth-Token': auth.token,
+        },
         body: JSON.stringify({ oldPassword: oldPw, newPassword: newPw }),
       });
       const data = await res.json();
@@ -117,70 +131,104 @@ export default function SettingsPage() {
 
   return (
     <div className={styles.page}>
-      <header className={styles.header}>
-        <button className={styles.backBtn} onClick={() => navigate('/app/chat')}>
-          <ArrowLeftIcon />
-        </button>
-        <h1 className={styles.title}>设置</h1>
-      </header>
+      <div className={styles.topbar}>
+        <div className={styles.topbarInner}>
+          <button className={styles.backBtn} onClick={() => navigate('/app/chat')} aria-label="返回">
+            <ArrowLeftIcon />
+          </button>
+          <h1 className={styles.topbarTitle}>设置</h1>
+        </div>
+      </div>
 
-      {msg && <div className={`${styles.msg} ${msg.type === 'ok' ? styles.msgOk : styles.msgErr}`}>{msg.text}</div>}
+      {msg && (
+        <div className={`${styles.toast} ${msg.type === 'ok' ? styles.toastOk : styles.toastErr}`}>{msg.text}</div>
+      )}
 
       <div className={styles.body}>
+        {/* 外观 */}
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>外观</h2>
+          <ThemeToggle variant="segmented" className={styles.themeField} />
+          <p className={styles.sectionHint}>选择「跟随系统」时，将随操作系统在浅色与深色之间自动切换。</p>
+        </section>
+
         {/* 头像 */}
         <section className={styles.section}>
           <h2 className={styles.sectionTitle}>头像</h2>
           <div className={styles.avatarRow}>
-            <div className={styles.avatarPreview} onClick={() => fileInput.current?.click()}>
+            <div className={styles.avatar} onClick={() => fileInput.current?.click()}>
               {avatar ? (
-                <img src={avatar} alt="avatar" className={styles.avatarImg} />
+                <img src={avatar} alt="头像" className={styles.avatarImg} />
               ) : (
-                <span className={styles.avatarLetter}>{auth?.username?.charAt(0).toUpperCase()}</span>
+                <span>{(auth?.nickname || auth?.username)?.charAt(0).toUpperCase()}</span>
               )}
               <div className={styles.avatarOverlay}>更换</div>
             </div>
+            <div className={styles.avatarHint}>
+              <span className={styles.avatarText}>点击头像上传新图片</span>
+              <span className={styles.avatarText}>支持 JPEG / PNG，最大 500KB</span>
+            </div>
             <input ref={fileInput} type="file" accept="image/*" onChange={handleAvatar} hidden />
-            <p className={styles.hint}>点击头像更换，支持 JPEG/PNG，最大 500KB</p>
           </div>
         </section>
 
         {/* 用户名 */}
         <section className={styles.section}>
           <h2 className={styles.sectionTitle}>用户名</h2>
-          <div className={styles.fieldRow}>
-            <input
-              className={styles.input}
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="用户名"
-            />
-            <button className={styles.btn} onClick={handleUsername} disabled={loading || !username.trim()}>
-              {loading ? '保存中...' : '保存'}
-            </button>
+          <div className={styles.field}>
+            <label className={styles.label} htmlFor="set-username">
+              登录用户名
+            </label>
+            <div className={styles.row}>
+              <input
+                id="set-username"
+                className={styles.input}
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="用户名"
+              />
+              <button className={styles.btn} onClick={handleUsername} disabled={loading || !username.trim()}>
+                {loading ? '保存中…' : '保存'}
+              </button>
+            </div>
           </div>
         </section>
 
         {/* 密码 */}
         <section className={styles.section}>
           <h2 className={styles.sectionTitle}>修改密码</h2>
-          <div className={styles.fieldGroup}>
-            <input
-              className={styles.input}
-              type="password"
-              value={oldPw}
-              onChange={(e) => setOldPw(e.target.value)}
-              placeholder="原密码"
-            />
-            <input
-              className={styles.input}
-              type="password"
-              value={newPw}
-              onChange={(e) => setNewPw(e.target.value)}
-              placeholder="新密码（至少 4 位）"
-            />
+          <div className={styles.fieldStack}>
+            <div className={styles.field}>
+              <label className={styles.label} htmlFor="set-oldpw">
+                当前密码
+              </label>
+              <input
+                id="set-oldpw"
+                className={styles.input}
+                type="password"
+                value={oldPw}
+                autoComplete="current-password"
+                onChange={(e) => setOldPw(e.target.value)}
+                placeholder="输入当前密码"
+              />
+            </div>
+            <div className={styles.field}>
+              <label className={styles.label} htmlFor="set-newpw">
+                新密码
+              </label>
+              <input
+                id="set-newpw"
+                className={styles.input}
+                type="password"
+                value={newPw}
+                autoComplete="new-password"
+                onChange={(e) => setNewPw(e.target.value)}
+                placeholder="至少 4 个字符"
+              />
+            </div>
             <button className={styles.btn} onClick={handlePassword} disabled={loading || !oldPw || !newPw}>
-              {loading ? '保存中...' : '修改密码'}
+              {loading ? '保存中…' : '修改密码'}
             </button>
           </div>
         </section>

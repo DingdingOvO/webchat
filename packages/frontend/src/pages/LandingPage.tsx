@@ -1,107 +1,109 @@
 import { Link } from 'react-router-dom';
-import { ChatIcon, PersonIcon } from '../components/Icons';
+import { ChatIcon, PeopleIcon, SendIcon } from '../components/Icons';
+import ThemeToggle from '../components/ThemeToggle';
 import styles from './LandingPage.module.css';
+
+/**
+ * 首页文案面向「普通用户」，不写技术实现。
+ * 旧版讲 Redis / MongoDB / 多实例部署，是写给工程师看的，与访客无关。
+ */
+const FEATURES = [
+  {
+    Icon: ChatIcon,
+    title: '聊得畅快',
+    desc: '消息即发即到，不用刷新页面。私聊和群聊都在同一个地方，切换不用找。',
+  },
+  {
+    Icon: PeopleIcon,
+    title: '找得到人',
+    desc: '搜昵称就能加好友，拉个群也只要几秒。谁在线一眼就知道。',
+  },
+  {
+    Icon: SendIcon,
+    title: '记录不丢',
+    desc: '聊天历史自动保存，换台设备打开也还在，随时往回翻。',
+  },
+];
 
 export default function LandingPage() {
   return (
     <div className={styles.page}>
-      {/* Nav */}
       <nav className={styles.nav}>
         <div className={styles.navInner}>
-          <span className={styles.logoText}>WebChat</span>
+          <Link to="/" className={styles.brand}>
+            <div className={styles.logo}>W</div>
+            <span className={styles.wordmark}>WebChat</span>
+          </Link>
           <div className={styles.navLinks}>
             <Link to="/docs" className={styles.navLink}>
-              文档
+              使用说明
             </Link>
             <Link to="/feedback" className={styles.navLink}>
               反馈
             </Link>
+            <ThemeToggle />
             <Link to="/login" className={styles.navLink}>
               登录
             </Link>
-            <Link to="/register" className={styles.navBtn}>
-              开始使用
+            <Link to="/register" className={styles.navCta}>
+              免费注册
             </Link>
           </div>
         </div>
       </nav>
 
-      {/* Hero */}
       <section className={styles.hero}>
         <div className={styles.heroInner}>
           <h1 className={styles.heroTitle}>
-            简洁 · 快速 · 安全
+            和在意的人，
             <br />
-            <span className={styles.heroHighlight}>新一代即时通讯</span>
+            随时说上话
           </h1>
-          <p className={styles.heroDesc}>
-            WebChat 是一款基于 Web 的即时通讯工具，支持实时私聊、群组聊天、 好友管理，数据加密传输，开箱即用。
+          <p className={styles.heroLede}>
+            WebChat 是一个简单好用的聊天工具。 打开浏览器就能用，不用下载，不用注册一堆信息。
           </p>
           <div className={styles.heroActions}>
-            <Link to="/register" className={styles.primaryBtn}>
-              免费开始使用
+            <Link to="/register" className={styles.btnPrimary}>
+              开始使用
             </Link>
-            <Link to="/login" className={styles.secondaryBtn}>
-              登录
+            <Link to="/login" className={styles.btnGhost}>
+              我已有账号
             </Link>
-          </div>
-          <div className={styles.heroBadge}>
-            <span className={styles.heroBadgeDot} />
-            当前在线 · 实时通讯
           </div>
         </div>
       </section>
 
-      {/* Features */}
       <section className={styles.features}>
         <div className={styles.featuresInner}>
-          <div className={styles.featureItem}>
-            <div className={styles.featureIcon}>
-              <ChatIcon size={28} />
+          {FEATURES.map(({ Icon, title, desc }) => (
+            <div key={title} className={styles.feature}>
+              <div className={styles.featureIcon}>
+                <Icon size={22} />
+              </div>
+              <h3 className={styles.featureTitle}>{title}</h3>
+              <p className={styles.featureDesc}>{desc}</p>
             </div>
-            <h3 className={styles.featureTitle}>实时聊天</h3>
-            <p className={styles.featureDesc}>WebSocket 长连接，消息毫秒级送达，支持私聊与群组。</p>
-          </div>
-          <div className={styles.featureItem}>
-            <div className={styles.featureIcon}>
-              <PersonIcon size={28} />
-            </div>
-            <h3 className={styles.featureTitle}>好友与群组</h3>
-            <p className={styles.featureDesc}>搜索添加好友，创建群组，管理联系人列表。</p>
-          </div>
-          <div className={styles.featureItem}>
-            <div className={styles.featureIcon}>
-              <svg width="28" height="28" viewBox="0 0 20 20" fill="currentColor">
-                <path d="M10 2a8 8 0 1 0 0 16 8 8 0 0 0 0-16ZM9 5.5a1 1 0 1 1 2 0V9h3a1 1 0 1 1 0 2h-3v3a1 1 0 1 1-2 0v-3H6a1 1 0 1 1 0-2h3V5.5Z" />
-              </svg>
-            </div>
-            <h3 className={styles.featureTitle}>技术栈</h3>
-            <p className={styles.featureDesc}>Java 26 + Spring Boot 3.5 + MySQL + MongoDB + Redis + React 19。</p>
-          </div>
+          ))}
         </div>
       </section>
 
-      {/* Footer */}
       <footer className={styles.footer}>
         <div className={styles.footerInner}>
           <div className={styles.footerLinks}>
             <Link to="/docs" className={styles.footerLink}>
-              文档
+              使用说明
             </Link>
-            <span className={styles.footerDot}>·</span>
             <Link to="/feedback" className={styles.footerLink}>
               反馈
             </Link>
-            <span className={styles.footerDot}>·</span>
             <Link to="/login" className={styles.footerLink}>
               登录
             </Link>
-            <span className={styles.footerDot}>·</span>
             <Link to="/register" className={styles.footerLink}>
               注册
             </Link>
           </div>
-          <p className={styles.footerText}>WebChat · 基于 Fluent Design + WeChat 设计语言</p>
+          <p className={styles.footerNote}>WebChat</p>
         </div>
       </footer>
     </div>

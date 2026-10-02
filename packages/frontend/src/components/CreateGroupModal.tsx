@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import type { GroupDTO, UserDTO } from '../types';
+import styles from './CreateGroupModal.module.css';
+import { DismissIcon } from './Icons';
 
 interface Props {
   readonly friends: UserDTO[];
@@ -31,7 +33,11 @@ export default function CreateGroupModal({ friends, onClose, onCreated }: Props)
     try {
       const res = await fetch('/api/groups', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${auth.token}` },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${auth.token}`,
+          'X-Auth-Token': auth.token,
+        },
         body: JSON.stringify({ name: name.trim(), memberIds: [...selected] }),
       });
       if (!res.ok) {
@@ -39,8 +45,7 @@ export default function CreateGroupModal({ friends, onClose, onCreated }: Props)
         setError(data.error || '创建失败');
         return;
       }
-      const group: GroupDTO = await res.json();
-      onCreated(group);
+      onCreated(await res.json());
       onClose();
     } catch {
       setError('网络错误，请重试');
@@ -49,114 +54,77 @@ export default function CreateGroupModal({ friends, onClose, onCreated }: Props)
     }
   }
 
+  const displayName = (f: UserDTO) => f.nickname || f.username;
+
   return (
-    <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        background: 'rgba(15,23,42,.5)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 100,
-      }}
-      onClick={onClose}
-      onKeyDown={(e) => {
-        if (e.key === 'Escape') onClose();
-      }}
-      role="dialog"
-      tabIndex={-1}
-    >
+    <div className={styles.scrim} onClick={onClose} role="presentation">
       <div
-        style={{
-          width: 380,
-          background: 'var(--bg-surface)',
-          borderRadius: 'var(--r-xl)',
-          boxShadow: 'var(--shadow-xl)',
-          padding: 'var(--p5) var(--p6)',
-        }}
-        onClick={(e) => {
-          e.stopPropagation();
-        }}
+        className={styles.dialog}
+        onClick={(e) => e.stopPropagation()}
         onKeyDown={(e) => {
-          e.stopPropagation();
+          if (e.key === 'Escape') onClose();
         }}
+        role="dialog"
+        aria-modal="true"
+        aria-label="创建群组"
+        tabIndex={-1}
       >
-        <h2 style={{ fontSize: 'var(--fs-lg)', fontWeight: 600, marginBottom: 'var(--p4)' }}>创建群组</h2>
+        <header className={styles.header}>
+          <h2 className={styles.title}>创建群组</h2>
+          <button className={styles.closeBtn} onClick={onClose} aria-label="关闭">
+            <DismissIcon size={18} />
+          </button>
+        </header>
 
-        {error && <p style={{ color: 'var(--red)', fontSize: 'var(--fs-sm)', marginBottom: 'var(--p3)' }}>{error}</p>}
+        <div className={styles.body}>
+          <label className={styles.label} htmlFor="group-name">
+            群组名称
+          </label>
+          <input
+            id="group-name"
+            className={styles.input}
+            type="text"
+            placeholder="例如：产品讨论组"
+            value={name}
+            autoFocus
+            onChange={(e) => setName(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && name.trim()) handleCreate();
+            }}
+          />
 
-        <input
-          style={{
-            width: '100%',
-            padding: '9px 13px',
-            border: '1.5px solid var(--border)',
-            borderRadius: 'var(--r-md)',
-            fontSize: 'var(--fs-base)',
-            marginBottom: 'var(--p4)',
-            outline: 'none',
-            boxSizing: 'border-box',
-          }}
-          type="text"
-          placeholder="群组名称"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-        />
+          <div className={styles.memberHead}>
+            <span className={styles.label}>选择成员</span>
+            <span className={styles.counter}>已选 {selected.size}</span>
+          </div>
 
-        <div style={{ maxHeight: 200, overflowY: 'auto', marginBottom: 'var(--p4)' }}>
-          {friends.length === 0 && <p style={{ color: 'var(--text-faint)', fontSize: 'var(--fs-sm)' }}>暂无好友</p>}
-          {friends.map((f) => (
-            <label
-              key={f.id}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 'var(--p2)',
-                padding: 'var(--p1) 0',
-                cursor: 'pointer',
-                fontSize: 'var(--fs-sm)',
-              }}
-            >
-              <input
-                type="checkbox"
-                checked={selected.has(f.id)}
-                onChange={() => toggle(f.id)}
-                style={{ accentColor: 'var(--primary)' }}
-              />
-              {f.nickname || f.username}
-            </label>
-          ))}
+          <div className={styles.memberList}>
+            {friends.length === 0 && <p className={styles.empty}>还没有好友，先去添加吧。</p>}
+            {friends.map((f) => (
+              <label key={f.id} className={styles.member}>
+                <input
+                  type="checkbox"
+                  className={styles.checkbox}
+                  checked={selected.has(f.id)}
+                  onChange={() => toggle(f.id)}
+                />
+                <span className={styles.memberAvatar}>{displayName(f).charAt(0).toUpperCase()}</span>
+                <span className={styles.memberName}>{displayName(f)}</span>
+              </label>
+            ))}
+          </div>
+
+          {error && <p className={styles.error}>{error}</p>}
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--p2)' }}>
-          <button
-            onClick={onClose}
-            style={{
-              padding: '8px 20px',
-              border: '1.5px solid var(--border)',
-              borderRadius: 'var(--r-md)',
-              background: 'transparent',
-              cursor: 'pointer',
-            }}
-          >
+        <footer className={styles.footer}>
+          <button className={styles.btnGhost} onClick={onClose}>
             取消
           </button>
-          <button
-            onClick={handleCreate}
-            disabled={loading || !name.trim()}
-            style={{
-              padding: '8px 20px',
-              background: 'var(--primary)',
-              color: 'var(--white)',
-              border: 'none',
-              borderRadius: 'var(--r-md)',
-              cursor: 'pointer',
-              opacity: loading ? 0.7 : 1,
-            }}
-          >
-            {loading ? '创建中...' : '创建'}
+          <button className={styles.btnPrimary} onClick={handleCreate} disabled={loading || !name.trim()}>
+            {loading ? '创建中…' : '创建群组'}
           </button>
-        </div>
+        </footer>
       </div>
     </div>
   );
