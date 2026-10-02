@@ -16,7 +16,14 @@ RUN cd packages/server && mvn clean package -DskipTests
 
 FROM eclipse-temurin:26-jre
 WORKDIR /app
+# 健康检查需要 HTTP 客户端，temurin 基础镜像不自带 curl/wget，显式安装。
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/*
 COPY --from=backend-build /app/packages/server/target/*.jar app.jar
 EXPOSE 8080
-HEALTHCHECK --interval=30s --timeout=5s --retries=3 CMD curl -s http://localhost:8080/api/auth/me > /dev/null 2>&1 || exit 1
+# 健康检查必须用无需鉴权的端点：/api/auth/me 会强制校验 token，
+# 不带 token 恒定返回 401，健康检查将永远失败并触发无限重启。
+# start-period 给 Spring Boot 冷启动留出时间，避免刚启动就被判定失败。
+HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 CMD curl -fsS http://localhost:8080/actuator/health > /dev/null || exit 1
 ENTRYPOINT ["java", "-jar", "app.jar"]

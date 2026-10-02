@@ -14,3 +14,10 @@ packages/frontend/dist/
 packages/frontend/ssl/
 nohup.out
 .playwright-cli/
+
+# Python（scripts/ 下有 serve.py / seed_demo.py 等）
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
