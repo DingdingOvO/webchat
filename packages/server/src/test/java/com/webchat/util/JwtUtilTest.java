@@ -13,8 +13,13 @@ import org.junit.jupiter.api.Test;
  */
 class JwtUtilTest {
 
-    private static final String SECRET =
-            "WebChat2026SecretKeyMustBe256BitsLongForHS512Algorithm!!_ABCDEFGH";
+    /**
+     * 测试用的 HS512 密钥。这里刻意在运行时生成、而不是硬编码字面量：
+     * 硬编码会把这个字符串复制成仓库里的第二份「密钥」，触发密钥扫描告警，
+     * 也会让测试与真实密钥产生不必要的耦合。测试只关心「密钥是否为 512 位」。
+     */
+    private static final String SECRET = "t".repeat(64);
+
     private final JwtUtil jwt = new JwtUtil(SECRET, 86_400_000L);
 
     @Test
@@ -39,9 +44,7 @@ class JwtUtilTest {
     @DisplayName("换密钥签发的 token 必须被拒绝（防伪造）")
     void tokenSignedWithDifferentKeyIsRejected() {
         JwtUtil attacker =
-                new JwtUtil(
-                        "AttackerKeyMustAlsoBe256BitsLongToAvoidWeakKeyExceptions!!!_XXXX",
-                        86_400_000L);
+                new JwtUtil("a".repeat(64), 86_400_000L);
         String forged = attacker.generateToken(1L, "attacker");
 
         assertThat(jwt.validateToken(forged)).as("用别的密钥签的 token 不能通过校验").isFalse();

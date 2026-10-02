@@ -2,8 +2,12 @@ package com.webchat.service;
 
 import com.webchat.dto.UserDTO;
 import com.webchat.kvstore.RedisStateStore;
-import com.webchat.model.*;
-import com.webchat.repository.*;
+import com.webchat.model.Friend;
+import com.webchat.model.FriendRequest;
+import com.webchat.model.User;
+import com.webchat.repository.FriendRepository;
+import com.webchat.repository.FriendRequestRepository;
+import com.webchat.repository.UserRepository;
 import com.webchat.util.BusinessException;
 import java.util.*;
 import java.util.stream.Collectors;
