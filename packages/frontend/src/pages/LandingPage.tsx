@@ -34,20 +34,26 @@ export default function LandingPage() {
             <div className={styles.logo}>W</div>
             <span className={styles.wordmark}>WebChat</span>
           </Link>
+          {/* 导航分两组：左侧是「去哪看看」的内容入口，右侧是「我要做什么」的操作。
+              旧版把 5 个元素平铺在同一层，主题切换夹在链接中间，读起来是一坨名字。 */}
           <div className={styles.navLinks}>
-            <Link to="/docs" className={styles.navLink}>
-              使用说明
-            </Link>
-            <Link to="/feedback" className={styles.navLink}>
-              反馈
-            </Link>
-            <ThemeToggle />
-            <Link to="/login" className={styles.navLink}>
-              登录
-            </Link>
-            <Link to="/register" className={styles.navCta}>
-              免费注册
-            </Link>
+            <div className={styles.navGroup}>
+              <Link to="/docs" className={styles.navLink}>
+                使用说明
+              </Link>
+              <Link to="/feedback" className={styles.navLink}>
+                反馈
+              </Link>
+            </div>
+            <div className={styles.navActions}>
+              <ThemeToggle />
+              <Link to="/login" className={styles.navLink}>
+                登录
+              </Link>
+              <Link to="/register" className={styles.navCta}>
+                免费注册
+              </Link>
+            </div>
           </div>
         </div>
       </nav>
