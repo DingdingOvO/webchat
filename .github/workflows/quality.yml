@@ -117,7 +117,20 @@ jobs:
       - name: Scan for secrets
         run: |
           set -euo pipefail
-          gitleaks detect --redact --no-banner --verbose
+          # 输出 JSON 报告并回显到 job summary：
+          # 默认的彩色终端输出在 Actions 日志里不便检索，
+          # 而出问题时最需要的恰恰是「哪条规则、哪个文件、哪一行」。
+          if gitleaks detect --redact --no-banner --verbose \
+               --report-format json --report-path gitleaks-report.json; then
+            echo "✅ 未发现密钥" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "❌ 发现疑似密钥，以下为脱敏后的明细：" >> "$GITHUB_STEP_SUMMARY"
+            echo '```json' >> "$GITHUB_STEP_SUMMARY"
+            cat gitleaks-report.json >> "$GITHUB_STEP_SUMMARY" 2>/dev/null || echo "(报告文件为空)"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+            echo "::error::gitleaks 检出疑似密钥，详见 job summary 的脱敏报告"
+            exit 1
+          fi
 
   # ================================================================
   # CodeQL
