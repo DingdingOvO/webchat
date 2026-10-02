@@ -1,249 +1,470 @@
+/* 聊天主界面 —— 满屏两区：侧栏 300px + 会话区
+   层次靠「面」：侧栏 surface、会话区 bg，中间一条 1px 分割线。 */
+
 .layout {
   display: flex;
   height: 100vh;
-  max-width: 1100px;
-  margin: 0 auto;
-  background: var(--bg-surface);
-  box-shadow: var(--shadow-lg);
+  background: var(--bg);
   overflow: hidden;
 }
 
-/* ========== Left Panel ========== */
+/* ===================== 侧栏 ===================== */
 
-.leftPanel {
-  width: 340px;
-  min-width: 340px;
+.sidebar {
+  width: var(--sidebar);
+  min-width: var(--sidebar);
+  height: 100%;
   display: flex;
   flex-direction: column;
-  background: var(--bg-surface);
-  border-right: 1.5px solid var(--border-light);
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  /* flex 子项默认 min-height:auto，内部滚动容器会被内容撑开而不生效，
+     显式归零才能让 .list 真正占满剩余高度。 */
+  min-height: 0;
+  overflow: hidden;
 }
 
-/* 顶栏：用户信息 + 工具栏 */
-.topbar {
+/* 顶栏：身份行与工具栏分行。
+   原先把「头像+昵称+4 个无标签图标」挤在一行，视觉上就是一坨，
+   现在拆成两行：第一行只有身份，第二行是明确的功能入口。 */
+.sidebarHeader {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  padding: var(--s-4) var(--s-4) var(--s-3);
+  flex-shrink: 0;
+}
+
+.meRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--p2) var(--p4);
-  border-bottom: 1.5px solid var(--border-light);
-  flex-shrink: 0;
+  gap: var(--s-2);
+  min-width: 0;
 }
 
-.userInfo {
+.me {
   display: flex;
   align-items: center;
-  gap: var(--p2);
+  gap: var(--s-3);
+  padding: var(--s-1) var(--s-2) var(--s-1) var(--s-1);
+  margin-left: calc(var(--s-1) * -1);
+  border-radius: var(--r-md);
   cursor: pointer;
+  min-width: 0;
+  transition: background-color var(--dur-1) var(--ease);
+}
+.me:hover {
+  background: var(--surface-hover);
 }
 
-.userAvatar {
+.meAvatar {
   width: 34px;
   height: 34px;
   border-radius: var(--r-full);
-  background: var(--primary);
-  color: var(--white);
+  background: var(--accent);
+  color: var(--text-on-accent);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: var(--fs-sm);
-  font-weight: var(--weight-semibold);
+  font-size: var(--t-sm);
+  font-weight: 600;
   flex-shrink: 0;
 }
 
-.userName {
-  font-size: var(--fs-base);
-  font-weight: var(--weight-semibold);
-  color: var(--text);
+.meText {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
 }
 
-.toolbar {
+.meName {
+  font-size: var(--t-body);
+  font-weight: 550;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.25;
+}
+
+/* 身份下方的状态说明，替代原来贴在名字右侧的「离线」小字 */
+.meStatus {
+  font-size: var(--t-xs);
+  color: var(--text-tertiary);
+  line-height: 1.25;
+  white-space: nowrap;
+}
+.meStatusOffline {
+  color: var(--warning);
+}
+
+/* 功能入口行：搜索框 + 两个有含义的按钮 */
+.tools {
   display: flex;
   align-items: center;
-  gap: 0;
+  gap: var(--s-2);
+  flex-shrink: 0;
 }
 
-.iconBtn {
-  width: 32px;
-  height: 32px;
+.toolBtn {
+  width: 34px;
+  height: 34px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: none;
-  border-radius: var(--r-sm);
-  background: transparent;
-  color: var(--text-muted);
-  cursor: pointer;
+  border-radius: var(--r-md);
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  flex-shrink: 0;
   transition:
-    background var(--fast),
-    color var(--fast);
+    background-color var(--dur-1) var(--ease),
+    color var(--dur-1) var(--ease),
+    border-color var(--dur-1) var(--ease);
 }
-.iconBtn:hover {
-  background: var(--bg-hover);
+.toolBtn:hover {
+  background: var(--surface-hover);
   color: var(--text);
+  border-color: var(--border-strong);
+}
+.toolBtn:active {
+  background: var(--surface-active);
 }
 
-/* Tab 切换栏 */
-.tabBar {
+/* 搜索框常驻：搜索是高频动作，藏进图标后面等于没有 */
+.searchBar {
+  flex: 1;
   display: flex;
-  border-bottom: 1.5px solid var(--border-light);
+  align-items: center;
+  gap: var(--s-2);
+  height: 34px;
+  padding: 0 var(--s-3);
+  background: var(--surface-sunken);
+  border: 1px solid transparent;
+  border-radius: var(--r-md);
+  color: var(--text-tertiary);
+  min-width: 0;
+  transition:
+    background-color var(--dur-1) var(--ease),
+    border-color var(--dur-1) var(--ease);
+}
+.searchBar:focus-within {
+  background: var(--surface);
+  border-color: var(--accent);
+}
+.searchBarInput {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: var(--t-sm);
+  color: var(--text);
+  font-family: inherit;
+}
+.searchBarInput::placeholder {
+  color: var(--text-tertiary);
+}
+
+/* 离线提示条：只在断线时出现，独立成条而不是挤在身份行里 */
+.offlineBar {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  margin: 0 var(--s-4) var(--s-3);
+  padding: var(--s-2) var(--s-3);
+  background: var(--warning-subtle);
+  border-radius: var(--r-sm);
+  font-size: var(--t-xs);
+  color: var(--warning);
+  line-height: 1.4;
+}
+
+/* 分段式 Tab：胶囊底，选中项浮起 */
+.tabs {
+  display: flex;
+  gap: 2px;
+  margin: 0 var(--s-4) var(--s-3);
+  padding: 3px;
+  background: var(--surface-sunken);
+  border-radius: var(--r-md);
   flex-shrink: 0;
 }
 
 .tab {
   flex: 1;
-  padding: var(--p2) var(--p4);
-  text-align: center;
-  font-size: var(--fs-sm);
-  font-weight: var(--weight-medium);
-  color: var(--text-muted);
-  background: none;
-  border: none;
-  cursor: pointer;
-  position: relative;
-  transition: color var(--fast);
+  padding: var(--s-2) var(--s-3);
+  border-radius: var(--r-sm);
+  font-size: var(--t-sm);
+  font-weight: 500;
+  color: var(--text-secondary);
+  transition:
+    background-color var(--dur-1) var(--ease),
+    color var(--dur-1) var(--ease),
+    box-shadow var(--dur-1) var(--ease);
 }
 .tab:hover {
   color: var(--text);
 }
 .tabActive {
-  color: var(--primary);
-  font-weight: var(--weight-semibold);
-}
-.tabActive::after {
-  content: "";
-  position: absolute;
-  bottom: 0;
-  left: 20%;
-  right: 20%;
-  height: 2px;
-  background: var(--primary);
-  border-radius: 1px;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow-sm);
 }
 
-/* 搜索框 */
-.searchBox {
-  padding: var(--p2) var(--p4);
-  border-bottom: 1.5px solid var(--border-light);
+/* 搜索区 */
+.searchArea {
+  padding: 0 var(--s-4) var(--s-3);
   flex-shrink: 0;
 }
 
-.searchInputWrap {
+.searchField {
   display: flex;
   align-items: center;
-  gap: var(--p2);
-  background: var(--bg-input);
-  border: 1.5px solid transparent;
+  gap: var(--s-2);
+  height: 36px;
+  padding: 0 var(--s-3);
+  background: var(--surface-sunken);
+  border: 1px solid transparent;
   border-radius: var(--r-md);
-  padding: 0 var(--p2);
-  transition: border-color var(--fast);
+  transition:
+    background-color var(--dur-1) var(--ease),
+    border-color var(--dur-1) var(--ease),
+    box-shadow var(--dur-1) var(--ease);
 }
-.searchInputWrap:focus-within {
-  border-color: var(--primary);
-  background: var(--bg-surface);
+.searchField:focus-within {
+  background: var(--surface);
+  border-color: var(--accent);
+  box-shadow: var(--ring);
 }
 
 .searchIcon {
-  color: var(--text-faint);
-  flex-shrink: 0;
   display: flex;
+  color: var(--text-tertiary);
+  flex-shrink: 0;
 }
 
 .searchInput {
   flex: 1;
-  padding: 7px 0;
+  min-width: 0;
   border: none;
   background: transparent;
-  font-size: var(--fs-sm);
+  font-size: var(--t-sm);
   color: var(--text);
-  outline: none;
 }
 .searchInput::placeholder {
-  color: var(--text-faint);
+  color: var(--text-disabled);
 }
 
-/* 好友请求横幅 */
-.requestBanner {
-  padding: var(--p2) var(--p4);
-  background: var(--primary-light);
-  border-bottom: 1.5px solid var(--border-light);
-  flex-shrink: 0;
+.searchError {
+  margin-top: var(--s-2);
+  font-size: var(--t-xs);
+  color: var(--danger);
 }
-.requestBannerTitle {
-  font-size: var(--fs-xs);
-  font-weight: var(--weight-semibold);
-  color: var(--primary);
-  margin-bottom: var(--px);
+
+/* 搜索结果 */
+.results {
+  margin-top: var(--s-2);
+  max-height: 260px;
+  overflow-y: auto;
+  border-radius: var(--r-md);
+  background: var(--surface-sunken);
 }
-.requestActions {
-  display: flex;
-  flex-direction: column;
-  gap: var(--px);
-  margin-top: var(--px);
-}
-.requestItem {
+
+.resultRow {
   display: flex;
   align-items: center;
-  gap: var(--p2);
-  font-size: var(--fs-xs);
-  color: var(--gray-600);
+  gap: var(--s-3);
+  padding: var(--s-2) var(--s-3);
 }
-.requestAccept,
-.requestReject {
-  width: 22px;
-  height: 22px;
+
+.resultAvatar {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--r-full);
+  background: var(--accent-subtle);
+  color: var(--accent-text);
   display: flex;
   align-items: center;
   justify-content: center;
-  border: none;
-  border-radius: var(--r-sm);
-  cursor: pointer;
-}
-.requestAccept {
-  background: var(--green-bg);
-  color: var(--green);
-}
-.requestReject {
-  background: var(--red-bg);
-  color: var(--red);
+  font-size: var(--t-xs);
+  font-weight: 600;
+  flex-shrink: 0;
 }
 
-/* 会话列表 */
+.resultName {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--t-sm);
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.addBtn {
+  padding: var(--s-1) var(--s-3);
+  border-radius: var(--r-sm);
+  background: var(--accent);
+  color: var(--text-on-accent);
+  font-size: var(--t-xs);
+  font-weight: 550;
+  transition: background-color var(--dur-1) var(--ease);
+  flex-shrink: 0;
+}
+.addBtn:hover {
+  background: var(--accent-hover);
+}
+
+/* 好友请求 */
+.requests {
+  margin: 0 var(--s-4) var(--s-3);
+  padding: var(--s-3);
+  border-radius: var(--r-md);
+  background: var(--accent-subtle);
+  flex-shrink: 0;
+}
+
+.requestsTitle {
+  font-size: var(--t-xs);
+  font-weight: 600;
+  color: var(--accent-text);
+  margin-bottom: var(--s-2);
+}
+
+.requestRow {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  font-size: var(--t-xs);
+  color: var(--text-secondary);
+}
+.requestRow + .requestRow {
+  margin-top: var(--s-2);
+}
+
+.requestName {
+  flex: 1;
+  min-width: 0;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.acceptBtn,
+.rejectBtn {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--r-sm);
+  transition: opacity var(--dur-1) var(--ease);
+  flex-shrink: 0;
+}
+.acceptBtn {
+  background: var(--success-subtle);
+  color: var(--success);
+}
+.rejectBtn {
+  background: var(--danger-subtle);
+  color: var(--danger);
+}
+.acceptBtn:hover,
+.rejectBtn:hover {
+  opacity: 0.75;
+}
+
+/* ---- 列表 ---- */
 .list {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0 var(--s-2) var(--s-3);
 }
 
-.convItem {
+.sectionLabel {
+  padding: var(--s-4) var(--s-3) var(--s-2);
+  font-size: var(--t-xs);
+  font-weight: 600;
+  color: var(--text-tertiary);
+  letter-spacing: 0.04em;
+}
+
+.row {
   display: flex;
   align-items: center;
-  gap: var(--p3);
-  padding: var(--p2) var(--p4);
+  gap: var(--s-3);
+  padding: var(--s-3);
+  border-radius: var(--r-lg);
   cursor: pointer;
-  transition: background var(--fast);
-  border-bottom: 1px solid var(--border-light);
+  transition: background-color var(--dur-1) var(--ease);
 }
-.convItem:hover {
-  background: var(--bg-hover);
+.row:hover {
+  background: var(--surface-hover);
 }
-.convItemActive {
-  background: var(--primary-light);
+.rowActive {
+  background: var(--accent-subtle);
+}
+.rowActive:hover {
+  background: var(--accent-subtle);
 }
 
-.convAvatar {
-  width: 44px;
-  height: 44px;
+/* 头像：按对象取稳定色相，提升对比度。
+   旧版统一灰底灰字，一列头像糊成一片，扫读时完全分不出谁是谁。 */
+.rowAvatar {
+  width: 40px;
+  height: 40px;
   border-radius: var(--r-full);
-  background: var(--primary);
-  color: var(--white);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: var(--fs-base);
-  font-weight: var(--weight-semibold);
+  font-size: var(--t-sm);
+  font-weight: 650;
   flex-shrink: 0;
+  position: relative;
+  background: var(--avatar-bg, var(--n-200));
+  color: var(--avatar-fg, var(--n-800));
+  letter-spacing: 0;
 }
 
-.convInfo {
+/* 色相轮转：8 组，冷暖交替，保证相邻项不会撞色 */
+.hue0 { --avatar-bg: var(--hue-0-bg); --avatar-fg: var(--hue-0-fg); }
+.hue1 { --avatar-bg: var(--hue-1-bg); --avatar-fg: var(--hue-1-fg); }
+.hue2 { --avatar-bg: var(--hue-2-bg); --avatar-fg: var(--hue-2-fg); }
+.hue3 { --avatar-bg: var(--hue-3-bg); --avatar-fg: var(--hue-3-fg); }
+.hue4 { --avatar-bg: var(--hue-4-bg); --avatar-fg: var(--hue-4-fg); }
+.hue5 { --avatar-bg: var(--hue-5-bg); --avatar-fg: var(--hue-5-fg); }
+.hue6 { --avatar-bg: var(--hue-6-bg); --avatar-fg: var(--hue-6-fg); }
+.hue7 { --avatar-bg: var(--hue-7-bg); --avatar-fg: var(--hue-7-fg); }
+
+/* 群组沿用强调色，与个人区分开 */
+.rowAvatarGroup {
+  --avatar-bg: var(--accent-subtle);
+  --avatar-fg: var(--accent);
+}
+
+.presence {
+  position: absolute;
+  right: -1px;
+  bottom: -1px;
+  width: 11px;
+  height: 11px;
+  border-radius: var(--r-full);
+  border: 2px solid var(--surface);
+}
+.presenceOnline {
+  background: var(--success);
+}
+.presenceOffline {
+  background: var(--n-400);
+}
+
+.rowBody {
   flex: 1;
   min-width: 0;
   display: flex;
@@ -251,347 +472,402 @@
   gap: 2px;
 }
 
-.convTop {
+.rowTop {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--s-2);
 }
 
-.convName {
-  font-size: var(--fs-base);
-  font-weight: var(--weight-medium);
+.rowName {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--t-body);
+  font-weight: 500;
   color: var(--text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.convTime {
-  font-size: var(--fs-2xs);
-  color: var(--text-faint);
+.rowTime {
+  font-size: var(--t-xs);
+  color: var(--text-tertiary);
   flex-shrink: 0;
-  margin-left: var(--p2);
 }
 
-.convBottom {
+.rowBottom {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: var(--s-2);
 }
 
-.convLast {
-  font-size: var(--fs-sm);
-  color: var(--text-muted);
+.rowPreview {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--t-sm);
+  color: var(--text-secondary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 200px;
 }
 
-.convBadge {
-  background: var(--red);
-  color: var(--white);
-  font-size: var(--fs-2xs);
-  font-weight: var(--weight-semibold);
+.badge {
   min-width: 18px;
   height: 18px;
-  border-radius: var(--r-full);
-  display: flex;
-  align-items: center;
-  justify-content: center;
   padding: 0 5px;
+  border-radius: var(--r-full);
+  background: var(--danger);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
 }
 
-/* 搜索用户结果 */
-.searchResults {
-  list-style: none;
-  max-height: 240px;
-  overflow-y: auto;
-  border-bottom: 1.5px solid var(--border-light);
-}
-.searchResultItem {
-  display: flex;
-  align-items: center;
-  gap: var(--p2);
-  padding: var(--p2) var(--p4);
-  font-size: var(--fs-sm);
-}
-.searchResultAvatar {
-  width: 28px;
-  height: 28px;
-  border-radius: var(--r-full);
-  background: var(--primary-light);
-  color: var(--primary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: var(--fs-xs);
-  font-weight: var(--weight-semibold);
-}
-.searchResultName {
-  flex: 1;
-  color: var(--text);
-}
-.addBtn {
-  padding: 3px 12px;
-  background: var(--primary);
-  color: var(--white);
-  border: none;
-  border-radius: var(--r-sm);
-  font-size: var(--fs-2xs);
-  font-weight: var(--weight-medium);
-  cursor: pointer;
-}
-
-/* 联系人列表 */
-.sectionHeader {
-  padding: var(--p3) var(--p4) var(--px);
-  font-size: var(--fs-2xs);
-  color: var(--text-faint);
-  font-weight: var(--weight-semibold);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.contactItem {
-  display: flex;
-  align-items: center;
-  gap: var(--p3);
-  padding: var(--p2) var(--p4);
-  cursor: pointer;
-  transition: background var(--fast);
-}
-.contactItem:hover {
-  background: var(--bg-hover);
-}
-.contactItemActive {
-  background: var(--primary-light);
-}
-
-.contactAvatar {
-  width: 36px;
-  height: 36px;
-  border-radius: var(--r-full);
-  background: var(--primary);
-  color: var(--white);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: var(--fs-sm);
-  font-weight: var(--weight-semibold);
-  flex-shrink: 0;
-  position: relative;
-}
-.statusDot {
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  width: 10px;
-  height: 10px;
-  border-radius: var(--r-full);
-  border: 2px solid var(--bg-surface);
-}
-.statusOnline {
-  background: var(--green);
-}
-.statusOffline {
-  background: var(--gray-300);
-}
-
-.contactName {
-  font-size: var(--fs-base);
-  font-weight: var(--weight-medium);
-  color: var(--text);
-}
-
-.groupAvatar {
-  background: var(--gray-500);
-}
-
-/* 加载 / 空状态 */
-.loadingState {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--text-faint);
-  font-size: var(--fs-sm);
-  padding: var(--p8);
-}
-
-.emptyState {
+/* 空 / 加载 */
+.placeholder {
+  padding: var(--s-12) var(--s-4);
   text-align: center;
-  color: var(--text-faint);
-  font-size: var(--fs-sm);
-  padding: var(--p8) var(--p4);
+  font-size: var(--t-sm);
+  color: var(--text-tertiary);
+  line-height: 1.7;
 }
 
-.offlineBadge {
-  font-size: var(--fs-2xs);
-  color: var(--red);
-  margin-left: var(--p1);
-}
+/* ===================== 会话区 ===================== */
 
-/* ========== Right Panel ========== */
-
-.rightPanel {
+.main {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  min-width: 0;
-  background: var(--bg-chat);
+  background: var(--bg);
 }
 
+/* 会话顶栏：与侧栏顶栏同节奏（12/16） */
+.chatHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-3) var(--s-5);
+  flex-shrink: 0;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.backBtn {
+  display: none;
+  width: 32px;
+  height: 32px;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--r-sm);
+  color: var(--text-secondary);
+  margin-left: calc(var(--s-2) * -1);
+  flex-shrink: 0;
+}
+.backBtn:hover {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+
+.chatAvatar {
+  width: 34px;
+  height: 34px;
+  border-radius: var(--r-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--t-sm);
+  font-weight: 600;
+  flex-shrink: 0;
+  background: var(--n-200);
+  color: var(--n-700);
+}
+.chatAvatarGroup {
+  background: var(--accent-subtle);
+  color: var(--accent-text);
+}
+
+.chatMeta {
+  flex: 1;
+  min-width: 0;
+}
+
+.chatName {
+  font-size: var(--t-body);
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chatSub {
+  font-size: var(--t-xs);
+  color: var(--text-tertiary);
+  margin-top: 1px;
+}
+
+/* 消息区：最大 720px 居中，长行不难读 */
+.messages {
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--s-6) var(--s-5);
+}
+
+.messagesInner {
+  max-width: var(--w-content);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 输入区 */
+.composer {
+  flex-shrink: 0;
+  padding: var(--s-3) var(--s-5) var(--s-5);
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+}
+
+.composerInner {
+  max-width: var(--w-content);
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+}
+
+.composerField {
+  flex: 1;
+  min-width: 0;
+  height: 44px;
+  padding: 0 var(--s-4);
+  border: 1px solid transparent;
+  border-radius: var(--r-lg);
+  background: var(--surface-sunken);
+  font-size: var(--t-body);
+  color: var(--text);
+  font-family: inherit;
+  transition:
+    background-color var(--dur-1) var(--ease),
+    border-color var(--dur-1) var(--ease),
+    box-shadow var(--dur-1) var(--ease);
+}
+.composerField::placeholder {
+  color: var(--text-tertiary);
+}
+.composerField:hover {
+  background: var(--surface-hover);
+}
+.composerField:focus {
+  background: var(--surface);
+  border-color: var(--accent);
+  box-shadow: var(--ring);
+}
+
+.sendBtn {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--r-lg);
+  background: var(--accent);
+  color: var(--text-on-accent);
+  flex-shrink: 0;
+  transition:
+    background-color var(--dur-1) var(--ease),
+    color var(--dur-1) var(--ease),
+    transform var(--dur-1) var(--ease);
+}
+.sendBtn:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+.sendBtn:active:not(:disabled) {
+  transform: scale(0.96);
+}
+/* 禁用态用中性面，不要「淡掉的强调色」——那种看起来像坏掉的按钮 */
+.sendBtn:disabled {
+  background: var(--surface-sunken);
+  color: var(--text-disabled);
+  cursor: not-allowed;
+}
+
+/* 空态 */
 .empty {
   flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  color: var(--text-faint);
-  font-size: var(--fs-sm);
-  gap: var(--p3);
+  gap: var(--s-4);
+  color: var(--text-tertiary);
+  padding: var(--s-8);
+  text-align: center;
 }
 
-.chatHeader {
-  display: flex;
-  align-items: center;
-  gap: var(--p3);
-  padding: var(--p2) var(--p5);
-  border-bottom: 1.5px solid var(--border-light);
-  flex-shrink: 0;
-  background: var(--bg-surface);
+.emptyIcon {
+  color: var(--n-400);
 }
 
-.chatBackBtn {
-  display: none; /* 仅在移动端显示 */
-  width: 32px;
-  height: 32px;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  border-radius: var(--r-sm);
-  background: transparent;
-  color: var(--text-muted);
-  cursor: pointer;
+.emptyTitle {
+  font-size: var(--t-body);
+  color: var(--text-secondary);
 }
 
-.chatAvatar {
-  width: 36px;
-  height: 36px;
-  border-radius: var(--r-full);
-  background: var(--primary);
-  color: var(--white);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: var(--weight-semibold);
-  font-size: var(--fs-sm);
-  flex-shrink: 0;
+.emptyHint {
+  font-size: var(--t-sm);
+  color: var(--text-tertiary);
+  max-width: 260px;
+  line-height: 1.7;
 }
 
-.chatInfo {
-  flex: 1;
-  min-width: 0;
-}
-.chatName {
-  font-weight: var(--weight-semibold);
-  font-size: var(--fs-base);
-  color: var(--text);
-}
-.chatMeta {
-  font-size: var(--fs-xs);
-  color: var(--text-muted);
-}
+/* ===================== 消息气泡 =====================
+   一条消息 = 一个「组」。组内多条气泡紧贴，时间戳只在组尾出现一次，
+   避免同一人连发三条就散落三行小字。 */
 
-.messages {
-  flex: 1;
-  overflow-y: auto;
-  padding: var(--p4) var(--p5);
+.msgGroup {
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
+  margin-bottom: var(--s-5);
+  max-width: 68%;
+  align-self: flex-start;
 }
 
-.inputArea {
+.msgGroupMine {
+  align-self: flex-end;
+  align-items: flex-end;
+}
+
+/* 群聊发言人：小头像 + 名字，帮助快速扫读「谁在说」 */
+.msgHeader {
   display: flex;
   align-items: center;
-  gap: var(--p2);
-  padding: var(--p2) var(--p5) var(--p4);
-  border-top: 1.5px solid var(--border-light);
-  background: var(--bg-surface);
-  flex-shrink: 0;
+  gap: var(--s-2);
+  margin-bottom: var(--s-2);
+  padding-left: var(--s-1);
 }
 
-.inputField {
-  flex: 1;
-  padding: 10px var(--p4);
-  border: 1.5px solid var(--border);
-  border-radius: var(--r-2xl);
-  font-size: var(--fs-base);
-  background: var(--bg-input);
-  color: var(--text);
-  outline: none;
-  transition:
-    border-color var(--fast),
-    background var(--fast);
-}
-.inputField:focus {
-  border-color: var(--primary);
-  background: var(--bg-surface);
-}
-.inputField::placeholder {
-  color: var(--text-faint);
-}
-
-.sendBtn {
-  width: 38px;
-  height: 38px;
+.msgAvatar {
+  width: 22px;
+  height: 22px;
+  border-radius: var(--r-full);
+  background: var(--surface-sunken);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
   display: flex;
   align-items: center;
   justify-content: center;
-  border: none;
-  border-radius: var(--r-full);
-  background: var(--primary);
-  color: var(--white);
-  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
   flex-shrink: 0;
-  transition:
-    opacity var(--fast),
-    transform var(--fast);
-}
-.sendBtn:hover {
-  opacity: 0.9;
-}
-.sendBtn:active {
-  transform: scale(0.95);
-}
-.sendBtn:disabled {
-  opacity: 0.3;
-  cursor: not-allowed;
-  transform: none;
 }
 
-/* ========== Responsive ========== */
+.msgSender {
+  font-size: var(--t-xs);
+  font-weight: 550;
+  color: var(--text-secondary);
+}
+
+/* 组内气泡容器：连续气泡之间只留 2px，形成「一坨」而不是三个孤岛 */
+.msgStack {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: flex-start;
+  max-width: 100%;
+}
+.msgGroupMine .msgStack {
+  align-items: flex-end;
+}
+
+.bubble {
+  padding: var(--s-2) var(--s-3);
+  border-radius: var(--r-lg);
+  font-size: var(--t-body);
+  line-height: 1.6;
+  word-break: break-word;
+  white-space: pre-wrap;
+  max-width: 100%;
+}
+
+.bubbleOther {
+  background: var(--bubble-other-bg);
+  color: var(--bubble-other-text);
+  border: 1px solid var(--border);
+}
+
+.bubbleMine {
+  background: var(--bubble-mine-bg);
+  color: var(--bubble-mine-text);
+}
+
+/* 组内首尾气泡收角，让「一组」在视觉上自成一个整体 */
+.msgStack > .bubble:first-child {
+  border-start-start-radius: var(--r-lg);
+}
+.msgStack > .bubble:last-child {
+  border-end-start-radius: var(--r-lg);
+}
+
+.msgTime {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  margin-top: var(--s-2);
+  padding: 0 var(--s-2);
+  line-height: 1;
+}
+
+/* ===================== 浅色滚动条在深色下也要可见 ===================== */
+.list::-webkit-scrollbar-thumb,
+.messages::-webkit-scrollbar-thumb {
+  background: var(--n-300);
+  border: 3px solid transparent;
+  background-clip: content-box;
+  border-radius: var(--r-full);
+}
+
+/* ===================== 响应式 ===================== */
+
+@media (max-width: 900px) {
+  .sidebar {
+    width: 260px;
+    min-width: 260px;
+  }
+}
 
 @media (max-width: 767px) {
-  .leftPanel {
+  .sidebar {
     width: 100%;
     min-width: 0;
+    border-right: none;
   }
-  .rightPanel {
-    width: 100%;
+  .main {
     position: fixed;
     inset: 0;
     z-index: 20;
   }
-  .rightPanelHidden {
+  .mainHidden {
     display: none;
   }
-  .leftPanelHidden {
+  .sidebarHidden {
     display: none;
   }
-  .chatBackBtn {
+  .backBtn {
     display: flex;
+  }
+  .messages {
+    padding: var(--s-5) var(--s-4);
+  }
+  .composer {
+    padding: var(--s-3) var(--s-4) var(--s-4);
+  }
+  .msgGroup {
+    max-width: 84%;
   }
 }

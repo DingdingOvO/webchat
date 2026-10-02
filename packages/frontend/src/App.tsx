@@ -2,6 +2,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import styles from './App.module.css';
 import ErrorBoundary from './components/ErrorBoundary';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
 import ChatPage from './pages/ChatPage';
 import DocsPage from './pages/DocsPage';
 import FeedbackPage from './pages/FeedbackPage';
@@ -31,10 +32,11 @@ function HomeRoute() {
 export default function App() {
   return (
     <BrowserRouter>
-      <AuthProvider>
-        <ErrorBoundary>
-          <div className={styles.app}>
-            <Routes>
+      <ThemeProvider>
+        <AuthProvider>
+          <ErrorBoundary>
+            <div className={styles.app}>
+              <Routes>
               {/* 公开页面 */}
               <Route path="/" element={<HomeRoute />} />
               <Route
@@ -84,10 +86,11 @@ export default function App() {
 
               {/* 回退 */}
               <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </div>
-        </ErrorBoundary>
-      </AuthProvider>
+              </Routes>
+            </div>
+          </ErrorBoundary>
+        </AuthProvider>
+      </ThemeProvider>
     </BrowserRouter>
   );
 }

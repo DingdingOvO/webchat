@@ -22,11 +22,25 @@ public class ChatController {
 
     @GetMapping("/messages")
     public List<MessageDTO> messages(@RequestParam("convKey") String convKey,
-                                      @RequestHeader("Authorization") String auth) {
-        if (auth == null || !auth.startsWith("Bearer ")) {
+                                      @RequestHeader(value = "X-Auth-Token", required = false) String xAuth,
+                                      @RequestHeader(value = "Authorization", required = false) String auth) {
+        String token = extractToken(xAuth, auth);
+        if (token == null) {
             throw new UnauthorizedException("未授权");
         }
-        authService.validateToken(auth.substring(7));
+        authService.validateToken(token);
         return chatService.getMessages(convKey);
     }
+
+    /** 提取 token：优先 X-Auth-Token（网关会改写 Authorization，故部署环境用此头），回退 Authorization: Bearer */
+    private static String extractToken(String xAuth, String auth) {
+        if (xAuth != null && !xAuth.isBlank()) {
+            return xAuth.startsWith("Bearer ") ? xAuth.substring(7) : xAuth.trim();
+        }
+        if (auth != null && auth.startsWith("Bearer ")) {
+            return auth.substring(7);
+        }
+        return null;
+    }
+
 }

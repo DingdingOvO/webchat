@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import styles from './FeedbackPage.module.css';
 
 const FEEDBACK_URL =
   'https://forms.office.com/Pages/ResponsePage.aspx' +
@@ -10,23 +11,13 @@ export default function FeedbackPage() {
   }, []);
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        minHeight: '100vh',
-        color: 'var(--text-faint)',
-        fontSize: 'var(--text-base)',
-        gap: 'var(--p4)',
-      }}
-    >
-      <span style={{ fontSize: 32 }}>📋</span>
-      <span>正在跳转到 Microsoft Forms 反馈页面...</span>
-      <a href={FEEDBACK_URL} style={{ color: 'var(--primary)', fontSize: 'var(--text-sm)' }}>
-        如果未自动跳转，请点击此处
-      </a>
+    <div className={styles.page}>
+      <div className={styles.logo}>W</div>
+      <p className={styles.title}>正在前往反馈页面</p>
+      <p className={styles.hint}>
+        如果浏览器没有自动跳转，
+        <a href={FEEDBACK_URL}>点此手动前往</a>。
+      </p>
     </div>
   );
 }

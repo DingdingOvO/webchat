@@ -37,7 +37,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const id = setInterval(async () => {
       try {
         const res = await fetch('/api/auth/me', {
-          headers: { Authorization: `Bearer ${auth.token}` },
+          headers: { Authorization: `Bearer ${auth.token}`, 'X-Auth-Token': auth.token },
         });
         if (!res.ok) setAuth(null);
       } catch {

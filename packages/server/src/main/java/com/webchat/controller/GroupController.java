@@ -23,17 +23,19 @@ public class GroupController {
         this.groupService = groupService;
     }
 
-    private User authenticate(String auth) {
-        if (auth == null || !auth.startsWith("Bearer ")) {
+    private User authenticate(String xAuth, String auth) {
+        String token = extractToken(xAuth, auth);
+        if (token == null) {
             throw new UnauthorizedException("未授权");
         }
-        return authService.validateToken(auth.substring(7));
+        return authService.validateToken(token);
     }
 
     @PostMapping
     public GroupDTO createGroup(@RequestBody Map<String, Object> body,
-                                 @RequestHeader("Authorization") String auth) {
-        User me = authenticate(auth);
+                                 @RequestHeader(value = "X-Auth-Token", required = false) String xAuth,
+                                      @RequestHeader(value = "Authorization", required = false) String auth) {
+        User me = authenticate(xAuth, auth);
         String name = (String) body.get("name");
         @SuppressWarnings("unchecked")
         List<Object> rawIds = (List<Object>) body.get("memberIds");
@@ -47,15 +49,29 @@ public class GroupController {
     }
 
     @GetMapping
-    public List<GroupDTO> myGroups(@RequestHeader("Authorization") String auth) {
-        User me = authenticate(auth);
+    public List<GroupDTO> myGroups(@RequestHeader(value = "X-Auth-Token", required = false) String xAuth,
+                                      @RequestHeader(value = "Authorization", required = false) String auth) {
+        User me = authenticate(xAuth, auth);
         return groupService.getUserGroups(me.getId());
     }
 
     @GetMapping("/{id}/members")
     public List<UserDTO> groupMembers(@PathVariable Long id,
-                                       @RequestHeader("Authorization") String auth) {
-        authenticate(auth);
+                                       @RequestHeader(value = "X-Auth-Token", required = false) String xAuth,
+                                      @RequestHeader(value = "Authorization", required = false) String auth) {
+        authenticate(xAuth, auth);
         return groupService.getGroupMembers(id);
     }
+
+    /** 提取 token：优先 X-Auth-Token（网关会改写 Authorization，故部署环境用此头），回退 Authorization: Bearer */
+    private static String extractToken(String xAuth, String auth) {
+        if (xAuth != null && !xAuth.isBlank()) {
+            return xAuth.startsWith("Bearer ") ? xAuth.substring(7) : xAuth.trim();
+        }
+        if (auth != null && auth.startsWith("Bearer ")) {
+            return auth.substring(7);
+        }
+        return null;
+    }
+
 }

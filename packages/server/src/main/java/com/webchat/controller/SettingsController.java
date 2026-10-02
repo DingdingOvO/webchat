@@ -25,17 +25,19 @@ public class SettingsController {
         this.encoder = encoder;
     }
 
-    private User authenticate(String auth) {
-        if (auth == null || !auth.startsWith("Bearer ")) {
+    private User authenticate(String xAuth, String auth) {
+        String token = extractToken(xAuth, auth);
+        if (token == null) {
             throw new UnauthorizedException("未授权");
         }
-        return authService.validateToken(auth.substring(7));
+        return authService.validateToken(token);
     }
 
     @PutMapping("/profile/username")
     public ResponseEntity<?> updateUsername(@RequestBody Map<String, String> body,
-                                            @RequestHeader("Authorization") String auth) {
-        User me = authenticate(auth);
+                                            @RequestHeader(value = "X-Auth-Token", required = false) String xAuth,
+                                      @RequestHeader(value = "Authorization", required = false) String auth) {
+        User me = authenticate(xAuth, auth);
         String newUsername = body.get("username");
         if (newUsername == null || newUsername.isBlank() || newUsername.length() < 3) {
             return ResponseEntity.badRequest().body(Map.of("error", "用户名至少 3 个字符"));
@@ -50,8 +52,9 @@ public class SettingsController {
 
     @PostMapping("/profile/avatar")
     public ResponseEntity<?> updateAvatar(@RequestBody Map<String, String> body,
-                                          @RequestHeader("Authorization") String auth) {
-        User me = authenticate(auth);
+                                          @RequestHeader(value = "X-Auth-Token", required = false) String xAuth,
+                                      @RequestHeader(value = "Authorization", required = false) String auth) {
+        User me = authenticate(xAuth, auth);
         String avatar = body.get("avatar");
         if (avatar == null || avatar.isBlank()) {
             return ResponseEntity.badRequest().body(Map.of("error", "请选择图片"));
@@ -66,8 +69,9 @@ public class SettingsController {
 
     @PutMapping("/profile/password")
     public ResponseEntity<?> updatePassword(@RequestBody Map<String, String> body,
-                                            @RequestHeader("Authorization") String auth) {
-        User me = authenticate(auth);
+                                            @RequestHeader(value = "X-Auth-Token", required = false) String xAuth,
+                                      @RequestHeader(value = "Authorization", required = false) String auth) {
+        User me = authenticate(xAuth, auth);
         String oldPw = body.get("oldPassword");
         String newPw = body.get("newPassword");
         if (oldPw == null || newPw == null || newPw.length() < 4) {
@@ -80,4 +84,16 @@ public class SettingsController {
         userRepo.save(me);
         return ResponseEntity.ok(Map.of("ok", true));
     }
+
+    /** 提取 token：优先 X-Auth-Token（网关会改写 Authorization，故部署环境用此头），回退 Authorization: Bearer */
+    private static String extractToken(String xAuth, String auth) {
+        if (xAuth != null && !xAuth.isBlank()) {
+            return xAuth.startsWith("Bearer ") ? xAuth.substring(7) : xAuth.trim();
+        }
+        if (auth != null && auth.startsWith("Bearer ")) {
+            return auth.substring(7);
+        }
+        return null;
+    }
+
 }
