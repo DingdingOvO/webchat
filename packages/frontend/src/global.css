@@ -63,23 +63,27 @@
 
   /* 头像色相轮转：8 组，浅底深字，保证 AA 以上对比度。
      用于让同一列头像彼此可区分，而不是糊成一片灰。 */
-  --hue-0-bg: #dbe7ff; --hue-0-fg: #1e4fbf;
-  --hue-1-bg: #d8f0e0; --hue-1-fg: #14663a;
-  --hue-2-bg: #ffe4d6; --hue-2-fg: #a34313;
-  --hue-3-bg: #e8e0fb; --hue-3-fg: #5936b8;
-  --hue-4-bg: #ffe1ea; --hue-4-fg: #a82050;
-  --hue-5-bg: #d5eefa; --hue-5-fg: #10617f;
-  --hue-6-bg: #fbe6bf; --hue-6-fg: #8a5b06;
-  --hue-7-bg: #dcebdd; --hue-7-fg: #2c6030;
+  --hue-0-bg: #dbe7ff;
+  --hue-0-fg: #1e4fbf;
+  --hue-1-bg: #d8f0e0;
+  --hue-1-fg: #14663a;
+  --hue-2-bg: #ffe4d6;
+  --hue-2-fg: #a34313;
+  --hue-3-bg: #e8e0fb;
+  --hue-3-fg: #5936b8;
+  --hue-4-bg: #ffe1ea;
+  --hue-4-fg: #a82050;
+  --hue-5-bg: #d5eefa;
+  --hue-5-fg: #10617f;
+  --hue-6-bg: #fbe6bf;
+  --hue-6-fg: #8a5b06;
+  --hue-7-bg: #dcebdd;
+  --hue-7-fg: #2c6030;
 
   /* 阴影：仅浮层 */
   --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.05);
-  --shadow-md:
-    0 4px 16px rgba(16, 24, 40, 0.08),
-    0 1px 3px rgba(16, 24, 40, 0.04);
-  --shadow-lg:
-    0 12px 32px rgba(16, 24, 40, 0.12),
-    0 2px 8px rgba(16, 24, 40, 0.06);
+  --shadow-md: 0 4px 16px rgba(16, 24, 40, 0.08), 0 1px 3px rgba(16, 24, 40, 0.04);
+  --shadow-lg: 0 12px 32px rgba(16, 24, 40, 0.12), 0 2px 8px rgba(16, 24, 40, 0.06);
 
   --ring: 0 0 0 3px rgba(37, 99, 235, 0.2);
   --scrim: rgba(16, 24, 40, 0.45);
@@ -88,7 +92,7 @@
 }
 
 /* ---------- 3. 语义令牌（深色，独立校准） ---------- */
-:root[data-theme='dark'] {
+:root[data-theme="dark"] {
   --bg: #0f1115;
   --surface: #191c20;
   --surface-sunken: #141619;
@@ -122,22 +126,26 @@
   --bubble-other-text: var(--text);
 
   /* 深色下改为「深底浅字」，色相保持一致以便跨主题识别同一个人 */
-  --hue-0-bg: #1b2a48; --hue-0-fg: #9dbcfb;
-  --hue-1-bg: #16301f; --hue-1-fg: #7fd3a1;
-  --hue-2-bg: #3a2317; --hue-2-fg: #f0a882;
-  --hue-3-bg: #291f45; --hue-3-fg: #b9a4f0;
-  --hue-4-bg: #381c28; --hue-4-fg: #f09bb5;
-  --hue-5-bg: #122c38; --hue-5-fg: #86cfe8;
-  --hue-6-bg: #33280f; --hue-6-fg: #e3bf76;
-  --hue-7-bg: #1c301e; --hue-7-fg: #9ccfa2;
+  --hue-0-bg: #1b2a48;
+  --hue-0-fg: #9dbcfb;
+  --hue-1-bg: #16301f;
+  --hue-1-fg: #7fd3a1;
+  --hue-2-bg: #3a2317;
+  --hue-2-fg: #f0a882;
+  --hue-3-bg: #291f45;
+  --hue-3-fg: #b9a4f0;
+  --hue-4-bg: #381c28;
+  --hue-4-fg: #f09bb5;
+  --hue-5-bg: #122c38;
+  --hue-5-fg: #86cfe8;
+  --hue-6-bg: #33280f;
+  --hue-6-fg: #e3bf76;
+  --hue-7-bg: #1c301e;
+  --hue-7-fg: #9ccfa2;
 
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
-  --shadow-md:
-    0 4px 16px rgba(0, 0, 0, 0.4),
-    0 1px 3px rgba(0, 0, 0, 0.3);
-  --shadow-lg:
-    0 12px 32px rgba(0, 0, 0, 0.5),
-    0 2px 8px rgba(0, 0, 0, 0.35);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4), 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.5), 0 2px 8px rgba(0, 0, 0, 0.35);
 
   --ring: 0 0 0 3px rgba(77, 132, 245, 0.28);
   --scrim: rgba(0, 0, 0, 0.6);
@@ -170,9 +178,9 @@
 
   /* 排版 */
   --font:
-    -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue',
-    Helvetica, Arial, sans-serif;
-  --font-mono: ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace;
+    -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei",
+    "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
 
   --t-display: 40px;
   --t-h1: 28px;
@@ -277,7 +285,7 @@ a:hover {
   background-clip: content-box;
   border-radius: var(--r-full);
 }
-:root[data-theme='dark'] ::-webkit-scrollbar-thumb {
+:root[data-theme="dark"] ::-webkit-scrollbar-thumb {
   background: var(--n-300);
   background-clip: content-box;
 }

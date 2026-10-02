@@ -1,11 +1,13 @@
 import type { Contact, MessageDTO } from '../types';
+import { toMillis } from './time';
 
 export interface Conversation {
   key: string;
   name: string;
   type: 'p2p' | 'group';
   lastMessage: string;
-  lastTime: string;
+  /** 后端给的 epoch 秒；保留原始类型不动，读取时统一走 toMillis 归一化 */
+  lastTime: string | number;
   unread: number;
 }
 
@@ -29,6 +31,9 @@ export function buildConversations(
       unread: unreadMap.get(key) || 0,
     });
   }
-  result.sort((a, b) => new Date(b.lastTime).getTime() - new Date(a.lastTime).getTime());
+  /* 必须用 toMillis 归一化再比。
+     直接 new Date(秒数) 会得到 1970 年，new Date("秒数字符串") 会得到
+     Invalid Date → getTime() 为 NaN → 排序静默失效，列表顺序随机。 */
+  result.sort((a, b) => toMillis(b.lastTime) - toMillis(a.lastTime));
   return result;
 }

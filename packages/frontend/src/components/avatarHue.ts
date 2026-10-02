@@ -8,9 +8,6 @@ export const HUE_COUNT = 8;
 
 /** 把任意 id（数字或字符串）稳定地映射为 0..HUE_COUNT-1 */
 export function hueIndex(id: number | string): number {
-  const n =
-    typeof id === 'number'
-      ? id
-      : [...String(id)].reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
+  const n = typeof id === 'number' ? id : [...String(id)].reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
   return Math.abs(n) % HUE_COUNT;
 }

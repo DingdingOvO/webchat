@@ -1,5 +1,5 @@
-import { useTheme } from '../context/ThemeContext';
 import type { ThemeChoice } from '../context/ThemeContext';
+import { useTheme } from '../context/ThemeContext';
 import { MonitorIcon, MoonIcon, SunIcon } from './Icons';
 import styles from './ThemeToggle.module.css';
 

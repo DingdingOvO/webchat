@@ -60,8 +60,7 @@ export default function LandingPage() {
             随时说上话
           </h1>
           <p className={styles.heroLede}>
-            WebChat 是一个简单好用的聊天工具。
-            打开浏览器就能用，不用下载，不用注册一堆信息。
+            WebChat 是一个简单好用的聊天工具。 打开浏览器就能用，不用下载，不用注册一堆信息。
           </p>
           <div className={styles.heroActions}>
             <Link to="/register" className={styles.btnPrimary}>

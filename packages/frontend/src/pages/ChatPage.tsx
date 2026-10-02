@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { hueIndex } from '../components/avatarHue';
 import CreateGroupModal from '../components/CreateGroupModal';
 import { buildConversations } from '../components/conversations';
-import { hueIndex } from '../components/avatarHue';
 import {
   AddIcon,
   ArrowLeftIcon,
@@ -15,6 +15,7 @@ import {
 } from '../components/Icons';
 import { MessageList } from '../components/MessageList';
 import ThemeToggle from '../components/ThemeToggle';
+import { formatTime, toMillis } from '../components/time';
 import { useAuth } from '../context/AuthContext';
 import { useWs, WebSocketProvider } from '../context/WebSocketContext';
 import { useIsMobile } from '../hooks/useIsMobile';
@@ -61,7 +62,9 @@ function ChatPageInner() {
       setDataLoading(true);
       try {
         const [fRes, gRes, pRes] = await Promise.all([
-          fetch('/api/users/friends', { headers: { Authorization: `Bearer ${auth.token}`, 'X-Auth-Token': auth.token } }),
+          fetch('/api/users/friends', {
+            headers: { Authorization: `Bearer ${auth.token}`, 'X-Auth-Token': auth.token },
+          }),
           fetch('/api/groups', { headers: { Authorization: `Bearer ${auth.token}`, 'X-Auth-Token': auth.token } }),
           fetch('/api/users/friend-requests/pending', {
             headers: { Authorization: `Bearer ${auth.token}`, 'X-Auth-Token': auth.token },
@@ -121,12 +124,20 @@ function ChatPageInner() {
       if (cancelled) return;
       setConvMessages((prev) => {
         const n = new Map(prev);
-        for (const [key, msgs] of results) {
+        for (const [key, fetched] of results) {
+          if (fetched.length === 0) continue;
           const existing = n.get(key) || [];
-          if (msgs.length >= existing.length) {
-            const mine = new Set(existing.map((m) => m.id));
-            n.set(key, [...msgs, ...existing.filter((m) => !mine.has(m.id))]);
-          }
+          /* 按 id 去重合并，再按时间排序。
+             旧写法用 `msgs.length >= existing.length` 做门槛并直接把 fetched 放前面，
+             有两个问题：
+             1) 若期间 WebSocket 已推来更多消息（existing 更长），整个合并会被跳过，
+                拉到的历史被丢弃；
+             2) 拼接顺序不保证时间序，可能出现较新消息排在较旧消息之前。 */
+          const byId = new Map<string, MessageDTO>();
+          for (const m of fetched) if (m?.id) byId.set(m.id, m);
+          for (const m of existing) if (m?.id) byId.set(m.id, m);
+          const merged = [...byId.values()].sort((a, b) => toMillis(a.createdAt) - toMillis(b.createdAt));
+          n.set(key, merged);
         }
         return n;
       });
@@ -157,7 +168,16 @@ function ChatPageInner() {
         }
         setConvMessages((prev) => {
           const n = new Map(prev);
-          n.set(convKey, data);
+          /* 同样按 id 合并而不是直接覆盖：
+             拉取期间 WebSocket 可能已推来新消息，直接 set 会把它们冲掉。 */
+          const existing = n.get(convKey) || [];
+          const byId = new Map<string, MessageDTO>();
+          for (const m of data) if (m?.id) byId.set(m.id, m);
+          for (const m of existing) if (m?.id) byId.set(m.id, m);
+          n.set(
+            convKey,
+            [...byId.values()].sort((a, b) => toMillis(a.createdAt) - toMillis(b.createdAt)),
+          );
           return n;
         });
       } catch (_err) {
@@ -249,7 +269,11 @@ function ChatPageInner() {
     try {
       const res = await fetch('/api/users/friend-requests', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${auth.token}`, 'X-Auth-Token': auth.token },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${auth.token}`,
+          'X-Auth-Token': auth.token,
+        },
         body: JSON.stringify({ toUserId: id }),
       });
       if (res.ok) {
@@ -379,9 +403,7 @@ function ChatPageInner() {
           </div>
         </div>
 
-        {!connected && (
-          <div className={styles.offlineBar}>连接已断开，正在自动重连…</div>
-        )}
+        {!connected && <div className={styles.offlineBar}>连接已断开，正在自动重连…</div>}
 
         {pendingRequests.length > 0 && (
           <div className={styles.requests}>
@@ -469,13 +491,13 @@ function ChatPageInner() {
                     <div className={styles.rowBody}>
                       <div className={styles.rowTop}>
                         <span className={styles.rowName}>{conv.name}</span>
-                        <span className={styles.rowTime}>
-                          {new Date(conv.lastTime).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}
-                        </span>
+                        <span className={styles.rowTime}>{formatTime(conv.lastTime)}</span>
                       </div>
                       <div className={styles.rowBottom}>
                         <span className={styles.rowPreview}>{conv.lastMessage}</span>
-                        {conv.unread > 0 && <span className={styles.badge}>{conv.unread > 99 ? '99+' : conv.unread}</span>}
+                        {conv.unread > 0 && (
+                          <span className={styles.badge}>{conv.unread > 99 ? '99+' : conv.unread}</span>
+                        )}
                       </div>
                     </div>
                   </div>

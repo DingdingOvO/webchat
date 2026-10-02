@@ -37,55 +37,55 @@ export default function App() {
           <ErrorBoundary>
             <div className={styles.app}>
               <Routes>
-              {/* 公开页面 */}
-              <Route path="/" element={<HomeRoute />} />
-              <Route
-                path="/login"
-                element={
-                  <PublicRoute>
-                    <LoginPage />
-                  </PublicRoute>
-                }
-              />
-              <Route
-                path="/register"
-                element={
-                  <PublicRoute>
-                    <RegisterPage />
-                  </PublicRoute>
-                }
-              />
-              <Route path="/docs" element={<DocsPage />} />
-              <Route path="/feedback" element={<FeedbackPage />} />
+                {/* 公开页面 */}
+                <Route path="/" element={<HomeRoute />} />
+                <Route
+                  path="/login"
+                  element={
+                    <PublicRoute>
+                      <LoginPage />
+                    </PublicRoute>
+                  }
+                />
+                <Route
+                  path="/register"
+                  element={
+                    <PublicRoute>
+                      <RegisterPage />
+                    </PublicRoute>
+                  }
+                />
+                <Route path="/docs" element={<DocsPage />} />
+                <Route path="/feedback" element={<FeedbackPage />} />
 
-              {/* 应用（需登录） */}
-              <Route
-                path="/app"
-                element={
-                  <ProtectedRoute>
-                    <Navigate to="/app/chat" replace />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/app/chat"
-                element={
-                  <ProtectedRoute>
-                    <ChatPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/app/settings"
-                element={
-                  <ProtectedRoute>
-                    <SettingsPage />
-                  </ProtectedRoute>
-                }
-              />
+                {/* 应用（需登录） */}
+                <Route
+                  path="/app"
+                  element={
+                    <ProtectedRoute>
+                      <Navigate to="/app/chat" replace />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/app/chat"
+                  element={
+                    <ProtectedRoute>
+                      <ChatPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/app/settings"
+                  element={
+                    <ProtectedRoute>
+                      <SettingsPage />
+                    </ProtectedRoute>
+                  }
+                />
 
-              {/* 回退 */}
-              <Route path="*" element={<Navigate to="/" replace />} />
+                {/* 回退 */}
+                <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </div>
           </ErrorBoundary>

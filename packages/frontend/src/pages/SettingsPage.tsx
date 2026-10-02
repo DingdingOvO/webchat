@@ -140,7 +140,9 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      {msg && <div className={`${styles.toast} ${msg.type === 'ok' ? styles.toastOk : styles.toastErr}`}>{msg.text}</div>}
+      {msg && (
+        <div className={`${styles.toast} ${msg.type === 'ok' ? styles.toastOk : styles.toastErr}`}>{msg.text}</div>
+      )}
 
       <div className={styles.body}>
         {/* 外观 */}

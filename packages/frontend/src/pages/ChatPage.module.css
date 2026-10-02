@@ -433,14 +433,38 @@
 }
 
 /* 色相轮转：8 组，冷暖交替，保证相邻项不会撞色 */
-.hue0 { --avatar-bg: var(--hue-0-bg); --avatar-fg: var(--hue-0-fg); }
-.hue1 { --avatar-bg: var(--hue-1-bg); --avatar-fg: var(--hue-1-fg); }
-.hue2 { --avatar-bg: var(--hue-2-bg); --avatar-fg: var(--hue-2-fg); }
-.hue3 { --avatar-bg: var(--hue-3-bg); --avatar-fg: var(--hue-3-fg); }
-.hue4 { --avatar-bg: var(--hue-4-bg); --avatar-fg: var(--hue-4-fg); }
-.hue5 { --avatar-bg: var(--hue-5-bg); --avatar-fg: var(--hue-5-fg); }
-.hue6 { --avatar-bg: var(--hue-6-bg); --avatar-fg: var(--hue-6-fg); }
-.hue7 { --avatar-bg: var(--hue-7-bg); --avatar-fg: var(--hue-7-fg); }
+.hue0 {
+  --avatar-bg: var(--hue-0-bg);
+  --avatar-fg: var(--hue-0-fg);
+}
+.hue1 {
+  --avatar-bg: var(--hue-1-bg);
+  --avatar-fg: var(--hue-1-fg);
+}
+.hue2 {
+  --avatar-bg: var(--hue-2-bg);
+  --avatar-fg: var(--hue-2-fg);
+}
+.hue3 {
+  --avatar-bg: var(--hue-3-bg);
+  --avatar-fg: var(--hue-3-fg);
+}
+.hue4 {
+  --avatar-bg: var(--hue-4-bg);
+  --avatar-fg: var(--hue-4-fg);
+}
+.hue5 {
+  --avatar-bg: var(--hue-5-bg);
+  --avatar-fg: var(--hue-5-fg);
+}
+.hue6 {
+  --avatar-bg: var(--hue-6-bg);
+  --avatar-fg: var(--hue-6-fg);
+}
+.hue7 {
+  --avatar-bg: var(--hue-7-bg);
+  --avatar-fg: var(--hue-7-fg);
+}
 
 /* 群组沿用强调色，与个人区分开 */
 .rowAvatarGroup {

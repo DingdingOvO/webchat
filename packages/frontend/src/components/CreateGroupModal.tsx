@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import type { GroupDTO, UserDTO } from '../types';
-import { DismissIcon } from './Icons';
 import styles from './CreateGroupModal.module.css';
+import { DismissIcon } from './Icons';
 
 interface Props {
   readonly friends: UserDTO[];

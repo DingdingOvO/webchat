@@ -1,8 +1,9 @@
 import { memo, useEffect, useMemo, useRef } from 'react';
-import type { MessageDTO } from '../types';
-import { ChatIcon } from './Icons';
-import { hueIndex } from './avatarHue';
 import styles from '../pages/ChatPage.module.css';
+import type { MessageDTO } from '../types';
+import { hueIndex } from './avatarHue';
+import { ChatIcon } from './Icons';
+import { formatTime, toMillis } from './time';
 
 interface Props {
   messages: MessageDTO[];
@@ -13,24 +14,6 @@ interface Props {
 
 /** 相邻消息间隔超过 5 分钟，视为新一轮，重新显示分组头与时间戳 */
 const GROUP_GAP_MS = 5 * 60 * 1000;
-
-/**
- * createdAt 后端返回的是 epoch 秒（浮点），类型上声明为 string。
- * 两种形态都兼容一下，避免出现 Invalid Date。
- */
-function toMillis(ts: string | number): number {
-  const n = typeof ts === 'number' ? ts : Number(ts);
-  if (Number.isFinite(n)) {
-    // 10 位以内按秒，13 位按毫秒
-    return n < 1e12 ? n * 1000 : n;
-  }
-  const parsed = Date.parse(String(ts));
-  return Number.isFinite(parsed) ? parsed : Date.now();
-}
-
-function timeOf(ts: string | number) {
-  return new Date(toMillis(ts)).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
-}
 
 /**
  * 把扁平消息切成「组」。
@@ -122,7 +105,7 @@ function MessageListInner({ messages, userId, contactType, emptyIcon }: Props) {
               </div>
             ))}
           </div>
-          <span className={styles.msgTime}>{timeOf(g.items[g.items.length - 1]?.createdAt ?? Date.now())}</span>
+          <span className={styles.msgTime}>{formatTime(g.items[g.items.length - 1]?.createdAt)}</span>
         </div>
       ))}
       <div ref={bottomRef} />
