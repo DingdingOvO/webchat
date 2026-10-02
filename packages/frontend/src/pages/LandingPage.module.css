@@ -61,7 +61,23 @@
 .navLinks {
   display: flex;
   align-items: center;
+  gap: var(--s-6);
+}
+
+/* 内容入口组与操作组之间用一条细分隔线划开，
+   避免 5 个元素挤成平铺的一大串。 */
+.navGroup {
+  display: flex;
+  align-items: center;
   gap: var(--s-5);
+}
+
+.navActions {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  padding-left: var(--s-6);
+  border-left: 1px solid var(--border);
 }
 
 .navLink {
@@ -154,13 +170,21 @@
   transform: translateY(0.5px);
 }
 
+/* 次级按钮。
+   旧版只有 1px 边框、背景完全透明，与右侧的实心主按钮视觉重量差了一个量级，
+   在深色模式下几乎只剩一圈灰边，看起来像「幽灵」。
+   这里改为浅色填充 + 边框，让它有实体感，同时仍明显弱于主按钮。 */
 .btnGhost {
+  background: var(--surface-hover);
   border: 1px solid var(--border-strong);
   color: var(--text);
 }
 .btnGhost:hover {
-  background: var(--surface-hover);
+  background: var(--surface-active);
   color: var(--text);
+}
+.btnGhost:active {
+  transform: translateY(0.5px);
 }
 
 /* ---- 特性：三列，靠留白分隔，无卡片框 ---- */
@@ -260,11 +284,18 @@
 }
 
 @media (max-width: 640px) {
-  .navLinks {
+  /* 窄屏：收起内容入口组（这些链接页脚里也有），
+     只保留主题切换 + 登录 + 注册，避免导航挤成一坨。 */
+  .navGroup {
+    display: none;
+  }
+  .navActions {
+    padding-left: 0;
+    border-left: none;
     gap: var(--s-3);
   }
-  .navLink {
-    display: none;
+  .navLinks {
+    gap: var(--s-3);
   }
   .hero {
     padding: var(--s-12) var(--s-5) var(--s-10);
