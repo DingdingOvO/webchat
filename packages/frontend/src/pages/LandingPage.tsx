@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ChatIcon, PeopleIcon, SendIcon } from '../components/Icons';
+import { ChatIcon, CheckmarkIcon, PeopleIcon, SendIcon } from '../components/Icons';
 import ThemeToggle from '../components/ThemeToggle';
 import styles from './LandingPage.module.css';
 
@@ -24,6 +24,9 @@ const FEATURES = [
     desc: '聊天历史自动保存，换台设备打开也还在，随时往回翻。',
   },
 ];
+
+/** Hero 下方的信任锚点：三句话回答「我为什么要立刻用它」。 */
+const TRUST = ['无需下载', '打开即用', '聊天记录不丢'];
 
 export default function LandingPage() {
   return (
@@ -60,13 +63,17 @@ export default function LandingPage() {
 
       <section className={styles.hero}>
         <div className={styles.heroInner}>
+          <span className={styles.heroBadge}>
+            <span className={styles.badgeDot} />
+            现在就能用，不用等
+          </span>
           <h1 className={styles.heroTitle}>
             和在意的人，
             <br />
             随时说上话
           </h1>
           <p className={styles.heroLede}>
-            WebChat 是一个简单好用的聊天工具。 打开浏览器就能用，不用下载，不用注册一堆信息。
+            WebChat 是一个简单好用的聊天工具。打开浏览器就能用，不用下载，不用注册一堆信息。
           </p>
           <div className={styles.heroActions}>
             <Link to="/register" className={styles.btnPrimary}>
@@ -76,6 +83,14 @@ export default function LandingPage() {
               我已有账号
             </Link>
           </div>
+          <ul className={styles.heroTrust}>
+            {TRUST.map((text) => (
+              <li key={text} className={styles.trustItem}>
+                <CheckmarkIcon size={14} className={styles.trustIcon} />
+                {text}
+              </li>
+            ))}
+          </ul>
         </div>
       </section>
 

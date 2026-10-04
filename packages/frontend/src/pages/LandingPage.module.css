@@ -104,43 +104,100 @@
   color: var(--text-on-accent);
 }
 
-/* ---- Hero：大留白，左对齐。
-   左对齐与导航左起对齐一致，避免「导航左、标题居中」两套轴线的冲突。 */
+/* ---- Hero：极简居中大标题。
+   参考 Linear / Vercel：整块居中对齐，最大字号压住首屏，
+   背后铺一层极淡的氛围光把「纯白」撑出纵深（--glow），
+   不画边框、不加卡片，靠留白和字重建立层级。 */
 
 .hero {
+  position: relative;
   padding: var(--s-24) var(--s-6) var(--s-20);
+  text-align: center;
+  /* 氛围光只铺在 Hero 这一层，向下自然淡出，不干扰下方功能区 */
+  background-image: var(--glow);
+  background-repeat: no-repeat;
+  background-position: top center;
 }
 
 .heroInner {
-  max-width: var(--w-wide);
+  position: relative;
+  max-width: var(--w-content);
   margin: 0 auto;
-  padding-left: 0;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
+}
+
+/* 顶部胶囊徽标：给首屏一个「这产品是活的」的信号 */
+.heroBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  padding: var(--s-1) var(--s-3);
+  margin-bottom: var(--s-6);
+  border: 1px solid var(--border);
+  border-radius: var(--r-full);
+  background: var(--surface);
+  font-size: var(--t-sm);
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.badgeDot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--r-full);
+  background: var(--success);
+  box-shadow: 0 0 0 3px var(--success-subtle);
+  flex-shrink: 0;
 }
 
 .heroTitle {
-  font-size: var(--t-display);
+  font-size: clamp(38px, 6.2vw, 68px);
   font-weight: 700;
-  line-height: var(--lh-display);
-  letter-spacing: -0.03em;
+  line-height: 1.08;
+  letter-spacing: -0.035em;
   color: var(--text);
-  margin-bottom: var(--s-5);
+  margin-bottom: var(--s-6);
 }
 
 .heroLede {
   font-size: var(--t-body-lg);
   color: var(--text-secondary);
-  line-height: 1.75;
-  max-width: 520px;
+  line-height: 1.7;
+  max-width: 560px;
   margin-bottom: var(--s-8);
 }
 
 .heroActions {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: var(--s-3);
+  margin-bottom: var(--s-6);
+}
+
+/* 信任锚点：三句短话，用对勾串起来，回答「我为什么要立刻用它」 */
+.heroTrust {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: var(--s-5);
+  list-style: none;
+}
+
+.trustItem {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-1);
+  font-size: var(--t-sm);
+  color: var(--text-tertiary);
+}
+
+.trustIcon {
+  color: var(--success);
+  flex-shrink: 0;
 }
 
 .btnPrimary,
@@ -279,7 +336,7 @@
     padding: var(--s-16) var(--s-6) var(--s-12);
   }
   .heroTitle {
-    font-size: 32px;
+    font-size: clamp(32px, 7vw, 44px);
   }
 }
 
@@ -299,6 +356,9 @@
   }
   .hero {
     padding: var(--s-12) var(--s-5) var(--s-10);
+  }
+  .heroTitle {
+    font-size: clamp(30px, 9vw, 38px);
   }
   .heroActions {
     flex-direction: column;
