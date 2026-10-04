@@ -55,13 +55,20 @@
   padding: var(--s-8) var(--s-5) var(--s-16);
   display: flex;
   flex-direction: column;
-  gap: var(--s-10);
+  gap: var(--s-5);
 }
 
+/* 每个设置分组自成一张卡片。
+   旧版各分组直接铺在页面底色上、仅靠留白分隔，
+   在宽屏下会散成一段段孤立文字，找不到「这几项属于同一件事」的边界。 */
 .section {
   display: flex;
   flex-direction: column;
   gap: var(--s-4);
+  padding: var(--s-5);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
 }
 
 .sectionTitle {
