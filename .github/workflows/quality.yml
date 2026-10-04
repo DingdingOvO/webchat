@@ -55,6 +55,8 @@ jobs:
 
       # 拼写检查：typos CLI 以独立二进制分发（非 npm 包），
       # 在此固定版本安装，扫描范围由 packages/frontend/_typos.toml 定义。
+      # 注意：归档内路径为 ./typos（带 ./ 前缀），必须整体解压再取用，
+      # 不能写 `tar -xzf x.tar.gz typos`，否则报「Not found in archive」。
       - name: Install typos CLI
         working-directory: .
         run: |
@@ -63,8 +65,9 @@ jobs:
           BASE="typos-v${VER}-x86_64-unknown-linux-musl.tar.gz"
           URL="https://github.com/crate-ci/typos/releases/download/v${VER}/${BASE}"
           curl -fsSL --retry 3 --retry-delay 5 -o "/tmp/${BASE}" "${URL}"
-          tar -xzf "/tmp/${BASE}" -C /tmp typos
-          install /tmp/typos /usr/local/bin/typos
+          mkdir -p /tmp/typos-dist
+          tar -xzf "/tmp/${BASE}" -C /tmp/typos-dist
+          install /tmp/typos-dist/typos /usr/local/bin/typos
           typos --version
 
       - name: Spell check
