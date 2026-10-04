@@ -1,4 +1,15 @@
-name: CI/CD — Build, Test & Deploy
+name: Build & Deploy
+
+# ================================================================
+# 构建与交付 —— 只负责「出可交付制品」与「部署」。
+#
+# 与 Quality Gate 的分工：
+#   · Quality Gate  → 代码检查（格式/静态分析/测试/覆盖率/安全扫描）
+#   · 本工作流      → 出制品（JAR / 前端 dist）+ 构建镜像 + 部署
+#
+# 因此这里只跑「打包」，不重复执行 spotless / checkstyle / pmd / spotbugs；
+# 测试与静态检查已由 Quality Gate 把关，避免同一份后端被构建两遍。
+# ================================================================
 
 on:
   push:
@@ -8,12 +19,19 @@ on:
     branches: [main, master]
   workflow_dispatch:
 
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   REGISTRY: ghcr.io
   BACKEND_IMAGE: ghcr.io/${{ github.repository }}-backend
   FRONTEND_IMAGE: ghcr.io/${{ github.repository }}-frontend
 
 jobs:
+  # ================================================================
+  # 构建后端制品（跳过测试：测试已由 Quality Gate 执行）
+  # ================================================================
   build-backend:
     name: Build Backend (Spring Boot)
     runs-on: ubuntu-latest
@@ -27,8 +45,8 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Build with Maven (verify — no skipTests)
-        run: cd packages/server && mvn clean verify
+      - name: Package JAR
+        run: cd packages/server && mvn --batch-mode clean package -DskipTests
 
       - name: Upload JAR artifact
         uses: actions/upload-artifact@v4
@@ -36,6 +54,9 @@ jobs:
           name: backend-jar
           path: packages/server/target/*.jar
 
+  # ================================================================
+  # 构建前端制品
+  # ================================================================
   build-frontend:
     name: Build Frontend (React)
     runs-on: ubuntu-latest
@@ -64,6 +85,9 @@ jobs:
           name: frontend-dist
           path: packages/frontend/dist
 
+  # ================================================================
+  # 构建并推送镜像（仅非 PR）
+  # ================================================================
   docker:
     name: Build & Push Docker Images
     needs: [build-backend, build-frontend]
@@ -141,6 +165,10 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+  # ================================================================
+  # 部署：SSH（Docker Compose 主机）
+  # 未配置 SSH_* secret 时自动跳过，不使流水线失败。
+  # ================================================================
   deploy-ssh:
     name: Deploy via SSH
     needs: docker
@@ -174,6 +202,10 @@ jobs:
             docker compose up -d --remove-orphans
             docker image prune -f
 
+  # ================================================================
+  # 部署：Kubernetes
+  # 未配置 KUBE_CONFIG secret 时自动跳过。
+  # ================================================================
   deploy-k8s:
     name: Deploy to Kubernetes
     needs: docker

@@ -1,0 +1,21 @@
+# typos 拼写检查配置
+# 目的：让 CI 里「Spell」这一步名副其实（此前检查名写了却从未真正执行）。
+# 只扫描源码与文档，忽略构建产物、依赖与生成物。
+
+[files]
+extend-exclude = [
+  "node_modules/",
+  "dist/",
+  "package-lock.json",
+  "*.min.js",
+  "*.min.css",
+  "target/",
+]
+
+[default]
+# 中文项目：允许源码中出现 CJK 字符（typos 默认不检查非 ASCII，此处仅显式声明意图）
+locale = "en"
+
+[type.css]
+# CSS 自定义属性与类名中的标识符不参与拼写
+check-filename = false

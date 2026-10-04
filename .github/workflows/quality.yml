@@ -1,14 +1,29 @@
-name: Quality Gate — Zero-Tolerance
+name: Quality Gate
+
+# ================================================================
+# 质量门禁 —— 分支保护的必需检查全部在此产出。
+#
+# 设计原则：
+#   1. 分支保护要求的 6 个 context 名必须逐字稳定，本文件是它们的唯一来源。
+#   2. 每个 job 只做一件事，名字必须与「实际执行的检查」完全一致。
+#   3. 构建产物由 Build 工作流负责；此处只做「检查」，不重复出包。
+# ================================================================
 
 on:
   push:
     branches: [main, master, develop]
   pull_request:
     branches: [main, master]
+  workflow_dispatch:
+
+concurrency:
+  group: quality-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   # ================================================================
-  # Frontend Quality
+  # 前端质量：TypeCheck + Biome + Stylelint + 拼写 + 构建
+  # 检查名里的每一项都真实执行（此前 Stylelint / Spell 只写在名字里）。
   # ================================================================
   frontend-quality:
     name: Frontend — TypeCheck + Lint + Format + Stylelint + Spell
@@ -30,16 +45,38 @@ jobs:
         run: npm ci
 
       - name: Type check
-        run: npx tsc --noEmit
+        run: npm run typecheck
 
-      - name: Biome check
-        run: npx biome check src/
+      - name: Biome check (lint + format)
+        run: npm run lint
+
+      - name: Stylelint check
+        run: npm run lint:css
+
+      # 拼写检查：typos CLI 以独立二进制分发（非 npm 包），
+      # 在此固定版本安装，扫描范围由 packages/frontend/_typos.toml 定义。
+      - name: Install typos CLI
+        working-directory: .
+        run: |
+          set -euo pipefail
+          VER=1.31.1
+          BASE="typos-v${VER}-x86_64-unknown-linux-musl.tar.gz"
+          URL="https://github.com/crate-ci/typos/releases/download/v${VER}/${BASE}"
+          curl -fsSL --retry 3 --retry-delay 5 -o "/tmp/${BASE}" "${URL}"
+          tar -xzf "/tmp/${BASE}" -C /tmp typos
+          install /tmp/typos /usr/local/bin/typos
+          typos --version
+
+      - name: Spell check
+        run: npm run spell
 
       - name: Build
         run: npm run build
 
   # ================================================================
-  # Backend Quality
+  # 后端质量：Spotless + Checkstyle + PMD + SpotBugs + Verify
+  # 单次 mvn verify 已串联全部质量插件；不再逐个重复调用，
+  # 也不与 Build 工作流重复构建（后者只负责出 JAR 制品）。
   # ================================================================
   backend-quality:
     name: Backend — Spotless + Checkstyle + PMD + SpotBugs + Verify
@@ -54,23 +91,13 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Spotless apply & check
-        run: cd packages/server && mvn spotless:apply -q && mvn spotless:check -q
-
-      - name: Checkstyle check
-        run: cd packages/server && mvn checkstyle:check -q
-
-      - name: PMD check
-        run: cd packages/server && mvn pmd:check -q
-
-      - name: SpotBugs check
-        run: cd packages/server && mvn spotbugs:check -q
-
-      - name: Verify (test + JaCoCo)
-        run: cd packages/server && mvn verify -q
+      # verify 阶段在 pom 中已绑定 checkstyle / pmd / spotbugs / jacoco，
+      # 一次执行即可覆盖「格式 + 静态检查 + 测试 + 覆盖率」。
+      - name: Verify (Spotless + Checkstyle + PMD + SpotBugs + tests + JaCoCo)
+        run: cd packages/server && mvn --batch-mode clean verify
 
   # ================================================================
-  # Secret Scan
+  # 密钥扫描
   # ================================================================
   secret-scan:
     name: Gitleaks — Secret Scan
@@ -133,7 +160,8 @@ jobs:
           fi
 
   # ================================================================
-  # CodeQL
+  # CodeQL 安全分析（java / javascript 各一个矩阵任务）
+  # 分支保护要求的 context 带语言后缀，由 matrix 自动拼出。
   # ================================================================
   codeql:
     name: CodeQL — Security Analysis
@@ -141,41 +169,43 @@ jobs:
     permissions:
       security-events: write
       actions: read
+      contents: read
     strategy:
+      fail-fast: false
       matrix:
         language: [java, javascript]
     steps:
       - uses: actions/checkout@v4
 
       - name: Set up Java 26
+        if: matrix.language == 'java'
         uses: actions/setup-java@v4
         with:
           java-version: '26'
           distribution: 'temurin'
-        if: matrix.language == 'java'
 
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@v4
-        with:
-          languages: ${{ matrix.language }}
-          build-mode: manual
+      - name: Initialize CodeQL — Java
         if: matrix.language == 'java'
+        uses: github/codeql-action/init@v3
+        with:
+          languages: java
+          build-mode: manual
 
       - name: Build Java
         if: matrix.language == 'java'
-        run: cd packages/server && mvn clean package -DskipTests -q
+        run: cd packages/server && mvn --batch-mode clean package -DskipTests -q
 
-      - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v4
+      - name: Analyze — Java
         if: matrix.language == 'java'
+        uses: github/codeql-action/analyze@v3
 
-      - name: Initialize CodeQL (JavaScript)
-        uses: github/codeql-action/init@v4
+      - name: Initialize CodeQL — JavaScript
+        if: matrix.language == 'javascript'
+        uses: github/codeql-action/init@v3
         with:
           languages: javascript
           build-mode: none
-        if: matrix.language == 'javascript'
 
-      - name: Perform CodeQL Analysis (JavaScript)
-        uses: github/codeql-action/analyze@v4
+      - name: Analyze — JavaScript
         if: matrix.language == 'javascript'
+        uses: github/codeql-action/analyze@v3
