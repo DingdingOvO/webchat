@@ -1,3 +1,14 @@
 .app {
   height: 100%;
 }
+
+/* 路由懒加载占位：整屏居中，避免切换瞬间的白屏闪烁 */
+.fallback {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--t-sm);
+  color: var(--text-tertiary);
+  background: var(--bg);
+}

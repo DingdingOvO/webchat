@@ -46,4 +46,6 @@ export interface AuthInfo {
   userId: number;
   username: string;
   nickname: string;
+  /** 头像（data URL 或链接），未设置时为 null。 */
+  avatar?: string | null;
 }

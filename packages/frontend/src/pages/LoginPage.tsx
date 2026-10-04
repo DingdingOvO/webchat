@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { ApiError, authApi } from '../api';
 import ThemeToggle from '../components/ThemeToggle';
 import { useAuth } from '../context/AuthContext';
 import styles from './AuthPage.module.css';
@@ -17,21 +18,12 @@ export default function LoginPage() {
     setError('');
     setLoading(true);
     try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error || '登录失败');
-        setLoading(false);
-        return;
-      }
+      const data = await authApi.login({ username, password });
       setAuth(data);
       navigate('/app');
-    } catch {
-      setError('网络连接失败');
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : '网络连接失败');
+    } finally {
       setLoading(false);
     }
   }
@@ -39,6 +31,9 @@ export default function LoginPage() {
   return (
     <div className={styles.page}>
       <div className={styles.themeSlot}>
+        <Link to="/" className={styles.backHome}>
+          返回首页
+        </Link>
         <ThemeToggle />
       </div>
 

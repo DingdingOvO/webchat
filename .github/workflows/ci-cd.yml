@@ -39,9 +39,6 @@ jobs:
   build-frontend:
     name: Build Frontend (React)
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: packages/frontend
     steps:
       - uses: actions/checkout@v4
 
@@ -50,12 +47,15 @@ jobs:
         with:
           node-version: '22'
           cache: npm
-          cache-dependency-path: packages/frontend/package-lock.json
+          # 本仓库是 npm workspaces 单仓，依赖统一安装在根目录，
+          # lock 文件同样只有根目录这一份。
+          cache-dependency-path: package-lock.json
 
-      - name: Install dependencies
+      - name: Install dependencies (workspaces)
         run: npm ci
 
       - name: Build
+        working-directory: packages/frontend
         run: npm run build
 
       - name: Upload frontend artifact

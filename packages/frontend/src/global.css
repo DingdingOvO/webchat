@@ -26,11 +26,14 @@
   --accent-subtle-500: #eff4ff;
 }
 
-/* ---------- 2. 语义令牌（浅色） ---------- */
+/* ---------- 2. 语义令牌（浅色） ----------
+   底色刻意「提纯」：--bg 用近纯白而不是灰白。
+   旧值 #fcfcfd 比纯白低 3 个点，大面积铺开会让整站发闷、显米灰
+   （用户反馈的「一坨米色」正是这种大面积低纯度导致的观感）。 */
 :root {
-  --bg: var(--n-25);
+  --bg: #fafbfc;
   --surface: var(--n-0);
-  --surface-sunken: var(--n-50);
+  --surface-sunken: #f4f6f8;
   --surface-hover: var(--n-100);
   --surface-active: var(--n-200);
 
@@ -87,6 +90,15 @@
 
   --ring: 0 0 0 3px rgba(37, 99, 235, 0.2);
   --scrim: rgba(16, 24, 40, 0.45);
+
+  /* 首屏光晕：给近纯白底一点极淡的冷色纵深，避免大片死白。
+     仅用于 Hero 等首屏区块，不参与常规内容背景。 */
+  --glow: radial-gradient(
+    ellipse 80% 60% at 50% -10%,
+    rgba(37, 99, 235, 0.1),
+    rgba(37, 99, 235, 0.03) 45%,
+    transparent 70%
+  );
 
   color-scheme: light;
 }
@@ -149,6 +161,14 @@
 
   --ring: 0 0 0 3px rgba(77, 132, 245, 0.28);
   --scrim: rgba(0, 0, 0, 0.6);
+
+  /* 深色下的首屏光晕：冷色更亮，抵消深底容易出现的「糊成一团」 */
+  --glow: radial-gradient(
+    ellipse 80% 60% at 50% -10%,
+    rgba(77, 132, 245, 0.16),
+    rgba(77, 132, 245, 0.05) 45%,
+    transparent 70%
+  );
 
   color-scheme: dark;
 }

@@ -13,7 +13,7 @@ import { Link } from 'react-router-dom';
 import type { DocsConfig, Section } from '../types/docs';
 import styles from './DocsPage.module.css';
 
-const config = docsConfig as DocsConfig;
+const config = docsConfig as unknown as DocsConfig;
 
 const mdMap: Record<string, string> = {
   overview: overviewMd,
@@ -39,8 +39,11 @@ export default function DocsPage() {
   // 创建带自定义 heading 渲染的 marked 实例
   const marked = useMemo(() => {
     const renderer = new Renderer();
-    renderer.heading = ({ tokens, depth }: { tokens: any; depth: number }) => {
-      const text = tokens.map((t: any) => t.text || t.raw || '').join('');
+    /* marked 的 token 是联合类型，这里的 heading 渲染只关心其文本内容，
+       用最小结构 { text?: string; raw?: string } 描述即可，避免 any 逃逸类型检查。 */
+    type HeadingToken = { text?: string; raw?: string };
+    renderer.heading = ({ tokens, depth }: { tokens: HeadingToken[]; depth: number }) => {
+      const text = tokens.map((t) => t.text || t.raw || '').join('');
       const id = slugify(text);
       return `<h${depth} id="${id}">${text}</h${depth}>`;
     };

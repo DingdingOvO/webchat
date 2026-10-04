@@ -104,43 +104,100 @@
   color: var(--text-on-accent);
 }
 
-/* ---- Hero：大留白，左对齐。
-   左对齐与导航左起对齐一致，避免「导航左、标题居中」两套轴线的冲突。 */
+/* ---- Hero：极简居中。
+   不放插画/截图，靠留白、字号跳跃和一条极淡光晕拉出纵深。
+   背景光晕用 --glow（随主题切换），避免近纯白底出现大片死白。 */
 
 .hero {
+  position: relative;
   padding: var(--s-24) var(--s-6) var(--s-20);
+  background-image: var(--glow);
+  background-repeat: no-repeat;
+  text-align: center;
 }
 
 .heroInner {
-  max-width: var(--w-wide);
+  max-width: var(--w-content);
   margin: 0 auto;
-  padding-left: 0;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
+}
+
+/* 首屏徽标：小圆点 + 一句状态，给页面一个「活着」的信号 */
+.heroBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  height: 30px;
+  padding: 0 var(--s-4);
+  margin-bottom: var(--s-6);
+  border: 1px solid var(--border);
+  border-radius: var(--r-full);
+  background: var(--surface);
+  color: var(--text-secondary);
+  font-size: var(--t-sm);
+  font-weight: 500;
+}
+
+.badgeDot {
+  width: 7px;
+  height: 7px;
+  border-radius: var(--r-full);
+  background: var(--success);
+  box-shadow: 0 0 0 3px var(--success-subtle);
 }
 
 .heroTitle {
-  font-size: var(--t-display);
+  font-size: clamp(38px, 6.2vw, 68px);
   font-weight: 700;
-  line-height: var(--lh-display);
-  letter-spacing: -0.03em;
+  line-height: 1.08;
+  letter-spacing: -0.035em;
   color: var(--text);
   margin-bottom: var(--s-5);
+  text-wrap: balance;
 }
 
 .heroLede {
   font-size: var(--t-body-lg);
   color: var(--text-secondary);
   line-height: 1.75;
-  max-width: 520px;
+  max-width: 560px;
   margin-bottom: var(--s-8);
 }
 
 .heroActions {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: var(--s-3);
+  margin-bottom: var(--s-8);
+}
+
+/* 三个安心点：等宽排开，窄屏自动换行 */
+.heroTrust {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-3) var(--s-6);
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.trustItem {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  color: var(--text-tertiary);
+  font-size: var(--t-sm);
+  font-weight: 500;
+}
+
+.trustIcon {
+  color: var(--success);
+  flex: none;
 }
 
 .btnPrimary,
@@ -279,7 +336,7 @@
     padding: var(--s-16) var(--s-6) var(--s-12);
   }
   .heroTitle {
-    font-size: 32px;
+    font-size: clamp(32px, 7vw, 44px);
   }
 }
 
@@ -299,6 +356,12 @@
   }
   .hero {
     padding: var(--s-12) var(--s-5) var(--s-10);
+  }
+  .heroTitle {
+    font-size: clamp(30px, 9vw, 38px);
+  }
+  .heroLede {
+    font-size: var(--t-body);
   }
   .heroActions {
     flex-direction: column;

@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ApiError, chatApi, groupApi, type PendingRequest, userApi } from '../api';
 import { hueIndex } from '../components/avatarHue';
 import CreateGroupModal from '../components/CreateGroupModal';
 import { buildConversations } from '../components/conversations';
@@ -23,12 +24,6 @@ import type { Contact, GroupDTO, MessageDTO, UserDTO } from '../types';
 import styles from './ChatPage.module.css';
 
 /* ============ Inner (with WebSocket) ============ */
-
-interface PendingRequest {
-  id: number;
-  fromUserId: number;
-  status: string;
-}
 
 function ChatPageInner() {
   const navigate = useNavigate();
@@ -54,6 +49,9 @@ function ChatPageInner() {
   const [showChat, setShowChat] = useState(false);
   const [dataLoading, setDataLoading] = useState(true);
   const [messageLoading, setMessageLoading] = useState(false);
+  /* 「对方正在输入」：后端已完整实现 typing 的接收/存储/转发，
+     但前端此前既不上报也不展示，导致该能力形同虚设。此处补全。 */
+  const [typingUsers, setTypingUsers] = useState<Set<number>>(new Set());
 
   /* ---- load initial data ---- */
   useEffect(() => {
@@ -61,19 +59,12 @@ function ChatPageInner() {
     (async () => {
       setDataLoading(true);
       try {
-        const [fRes, gRes, pRes] = await Promise.all([
-          fetch('/api/users/friends', {
-            headers: { Authorization: `Bearer ${auth.token}`, 'X-Auth-Token': auth.token },
-          }),
-          fetch('/api/groups', { headers: { Authorization: `Bearer ${auth.token}`, 'X-Auth-Token': auth.token } }),
-          fetch('/api/users/friend-requests/pending', {
-            headers: { Authorization: `Bearer ${auth.token}`, 'X-Auth-Token': auth.token },
-          }),
+        const [fData, gData, pData] = await Promise.all([
+          userApi.friends(),
+          groupApi.list(),
+          // 待处理请求失败不应拖垮首屏，降级为空列表
+          userApi.pendingRequests().catch(() => [] as PendingRequest[]),
         ]);
-        if (!fRes.ok || !gRes.ok) return;
-        const fData: UserDTO[] = await fRes.json();
-        const gData: GroupDTO[] = await gRes.json();
-        const pData: PendingRequest[] = await (pRes.ok ? pRes.json() : []);
         setFriends(fData);
         setGroups(gData);
         setPendingRequests(pData);
@@ -110,11 +101,7 @@ function ChatPageInner() {
       const results = await Promise.all(
         contacts.map(async (c) => {
           try {
-            const res = await fetch(`/api/chat/messages?convKey=${encodeURIComponent(c.key)}`, {
-              headers: { Authorization: `Bearer ${auth.token}`, 'X-Auth-Token': auth.token },
-            });
-            if (!res.ok) return [c.key, [] as MessageDTO[]] as const;
-            const data: MessageDTO[] = await res.json();
+            const data = await chatApi.messages(c.key);
             return [c.key, data] as const;
           } catch {
             return [c.key, [] as MessageDTO[]] as const;
@@ -153,19 +140,7 @@ function ChatPageInner() {
       if (!auth) return;
       setMessageLoading(true);
       try {
-        const res = await fetch(`/api/chat/messages?convKey=${encodeURIComponent(convKey)}`, {
-          headers: { Authorization: `Bearer ${auth.token}`, 'X-Auth-Token': auth.token },
-        });
-        if (!res.ok) {
-          return;
-        }
-        const text = await res.text();
-        let data: MessageDTO[];
-        try {
-          data = JSON.parse(text);
-        } catch {
-          return;
-        }
+        const data = await chatApi.messages(convKey);
         setConvMessages((prev) => {
           const n = new Map(prev);
           /* 同样按 id 合并而不是直接覆盖：
@@ -229,17 +204,63 @@ function ChatPageInner() {
       }
     });
 
-    const unsub2 = subscribe('presence', (msg) => {
-      const data = msg.data as { userId: number; online: boolean };
-      if (!data) return;
-      setFriends((prev) => prev.map((f) => (f.id === data.userId ? { ...f, online: data.online } : f)));
+    /* 后端广播的 action 是 'online'，且 payload 是「扁平」的
+       （userId / nickname / online 直接挂在顶层，不套 data），
+       与 'message' 的 { action, data } 结构不同，这里必须按真实契约解析。
+       旧代码订阅的 action 名是 'presence'、又从 msg.data 取值，
+       两处都对不上，导致好友在线状态永远不刷新。 */
+    const unsub2 = subscribe('online', (msg) => {
+      const userId2 = msg.userId as number | undefined;
+      const online = msg.online as boolean | undefined;
+      if (typeof userId2 !== 'number' || typeof online !== 'boolean') return;
+      setFriends((prev) => prev.map((f) => (f.id === userId2 ? { ...f, online } : f)));
+    });
+
+    /* 后端 typing 事件同样是扁平结构：{ action:'typing', userId, conversationKey }。
+       收到后加入 typingUsers，3 秒无新事件自动移除（对方停手后不该一直显示）。 */
+    const unsub3 = subscribe('typing', (msg) => {
+      const who = msg.userId as number | undefined;
+      if (typeof who !== 'number') return;
+      setTypingUsers((prev) => {
+        const n = new Set(prev);
+        n.add(who);
+        return n;
+      });
     });
 
     return () => {
       unsub1();
       unsub2();
+      unsub3();
     };
   }, [subscribe, activeConvKey, userId]);
+
+  /* ---- 发送「正在输入」节流 ----
+     输入框每次按键都发 WS 会打爆连接，这里限制为「每 2 秒最多发一次」。
+     仅在当前是 P2P 会话时上报：群聊的多方 typing 状态较复杂，后端也只按 P2P 计算会话键。 */
+  const lastTypingSent = useRef(0);
+  function notifyTyping() {
+    if (!activeConvKey || !activeConvKey.startsWith('p2p:')) return;
+    const now = Date.now();
+    if (now - lastTypingSent.current < 2000) return;
+    lastTypingSent.current = now;
+    const peer =
+      activeConvKey
+        .replace('p2p:', '')
+        .split(':')
+        .map(Number)
+        .find((id) => id !== userId) ?? 0;
+    if (peer) wsSend({ type: 'typing', receiverId: peer });
+  }
+
+  /* ---- typing 指示自动过期 ----
+     后端只在「有按键」时推送 typing，没有显式的「停止」事件。
+     这里给每个用户设 3 秒倒计时，期间没有新事件就把他从 typingUsers 里移除。 */
+  useEffect(() => {
+    if (typingUsers.size === 0) return;
+    const t = setTimeout(() => setTypingUsers(new Set()), 3000);
+    return () => clearTimeout(t);
+  }, [typingUsers]);
 
   /* ---- actions ---- */
   async function handleSearch(q: string) {
@@ -250,14 +271,7 @@ function ChatPageInner() {
       return;
     }
     try {
-      const res = await fetch(`/api/users/search?q=${encodeURIComponent(q.trim())}`, {
-        headers: { Authorization: `Bearer ${auth.token}`, 'X-Auth-Token': auth.token },
-      });
-      if (!res.ok) {
-        setSearchResults([]);
-        return;
-      }
-      const data: UserDTO[] = await res.json();
+      const data = await userApi.search(q.trim());
       setSearchResults(data.filter((u) => u.id !== userId));
     } catch {
       setSearchResults([]);
@@ -267,40 +281,21 @@ function ChatPageInner() {
   async function addFriend(id: number) {
     if (!auth) return;
     try {
-      const res = await fetch('/api/users/friend-requests', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${auth.token}`,
-          'X-Auth-Token': auth.token,
-        },
-        body: JSON.stringify({ toUserId: id }),
-      });
-      if (res.ok) {
-        setSearchResults((prev) => prev.filter((u) => u.id !== id));
-      } else {
-        const data = await res.json().catch(() => ({}));
-        setSearchError(data.error || '添加失败');
-      }
-    } catch {
-      setSearchError('网络错误');
+      await userApi.sendFriendRequest(id);
+      setSearchResults((prev) => prev.filter((u) => u.id !== id));
+    } catch (err) {
+      setSearchError(err instanceof ApiError ? err.message : '网络错误');
     }
   }
 
   async function handleRequestAction(id: number, action: 'accept' | 'reject') {
     if (!auth) return;
     try {
-      const res = await fetch(`/api/users/friend-requests/${id}/${action}`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${auth.token}`, 'X-Auth-Token': auth.token },
-      });
-      if (res.ok) {
-        setPendingRequests((prev) => prev.filter((r) => r.id !== id));
-        const fRes = await fetch('/api/users/friends', {
-          headers: { Authorization: `Bearer ${auth.token}`, 'X-Auth-Token': auth.token },
-        });
-        if (fRes.ok) setFriends(await fRes.json());
-      }
+      if (action === 'accept') await userApi.acceptFriendRequest(id);
+      else await userApi.rejectFriendRequest(id);
+      setPendingRequests((prev) => prev.filter((r) => r.id !== id));
+      // 接受后好友列表会变化，重新拉取
+      setFriends(await userApi.friends());
     } catch (_err) {
       /* 忽略 */
     }
@@ -330,6 +325,12 @@ function ChatPageInner() {
 
   const activeContact = contacts.find((c) => c.key === activeConvKey);
   const activeMessages = activeConvKey ? convMessages.get(activeConvKey) || [] : [];
+
+  /* 当前会话里谁正在输入。P2P 只可能有一位对端；群聊则多人。
+     注意排除自己：typingUsers 只应包含对端，但保险起见仍过滤 userId。 */
+  const othersTyping = [...typingUsers].filter((id) => id !== userId);
+  const peerTyping = activeConvKey?.startsWith('p2p:') === true && othersTyping.length > 0;
+  const groupTyping = activeConvKey?.startsWith('group:') === true && othersTyping.length > 0;
 
   function selectConv(key: string) {
     setActiveConvKey(key);
@@ -584,10 +585,14 @@ function ChatPageInner() {
                 <div className={styles.chatName}>{activeContact.name}</div>
                 <div className={styles.chatSub}>
                   {activeContact.type === 'p2p'
-                    ? activeContact.user?.online
-                      ? '在线'
-                      : '离线'
-                    : `群组 · ${activeContact.group?.memberCount || '?'} 人`}
+                    ? peerTyping
+                      ? '正在输入…'
+                      : activeContact.user?.online
+                        ? '在线'
+                        : '离线'
+                    : groupTyping
+                      ? '有人正在输入…'
+                      : `群组 · ${activeContact.group?.memberCount || '?'} 人`}
                 </div>
               </div>
             </header>
@@ -609,7 +614,10 @@ function ChatPageInner() {
                   type="text"
                   placeholder="输入消息…"
                   value={inputText}
-                  onChange={(e) => setInputText(e.target.value)}
+                  onChange={(e) => {
+                    setInputText(e.target.value);
+                    notifyTyping();
+                  }}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && !e.shiftKey) {
                       e.preventDefault();
