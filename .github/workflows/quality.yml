@@ -6,16 +6,22 @@ on:
   pull_request:
     branches: [main, master]
 
+# 同一分支的新推送取消上一轮未完成的检查：
+# 否则连续推送会并行跑多轮全量检查，纯粹浪费 runner 分钟数。
+concurrency:
+  group: quality-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   # ================================================================
   # Frontend Quality
+  #
+  # ⚠️ job 的 name 是 main 分支保护里登记的必需检查项，必须逐字保持，
+  #    否则合并会被永久阻塞。改动前先确认分支保护配置。
   # ================================================================
   frontend-quality:
     name: Frontend — TypeCheck + Lint + Format + Stylelint + Spell
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: packages/frontend
     steps:
       - uses: actions/checkout@v4
 
@@ -24,22 +30,56 @@ jobs:
         with:
           node-version: '22'
           cache: npm
-          cache-dependency-path: packages/frontend/package-lock.json
+          # 本仓库是 npm workspaces 单仓，依赖统一安装在根目录，
+          # 因此 lock 文件只有根目录这一份，缓存键也必须指向它。
+          cache-dependency-path: package-lock.json
 
-      - name: Install dependencies
+      - name: Install dependencies (workspaces)
         run: npm ci
 
       - name: Type check
+        working-directory: packages/frontend
         run: npx tsc --noEmit
 
-      - name: Biome check
+      - name: Biome check (lint + format)
+        working-directory: packages/frontend
         run: npx biome check src/
 
+      - name: Stylelint check
+        working-directory: packages/frontend
+        run: npm run lint:css
+
+      # typos 是 Rust 写的独立二进制，npm 里没有官方包，只能下载 release。
+      # 注意：归档里的路径带 ./ 前缀，`tar -xzf x.tar.gz typos` 会匹配失败，
+      # 必须整包解压后再取文件。
+      - name: Install typos CLI
+        run: |
+          set -euo pipefail
+          VER=1.31.1
+          BASE="typos-v${VER}-x86_64-unknown-linux-musl.tar.gz"
+          URL="https://github.com/crate-ci/typos/releases/download/v${VER}/${BASE}"
+          curl -fsSL --retry 3 --retry-delay 5 -o "/tmp/${BASE}" "${URL}"
+          mkdir -p /tmp/typos-dist
+          tar -xzf "/tmp/${BASE}" -C /tmp/typos-dist
+          install /tmp/typos-dist/typos /usr/local/bin/typos
+          typos --version
+
+      - name: Spell check
+        working-directory: packages/frontend
+        run: npm run spell
+
       - name: Build
+        working-directory: packages/frontend
         run: npm run build
 
   # ================================================================
   # Backend Quality
+  #
+  # ⚠️ name 同为分支保护必需检查项。
+  # 旧版把 Spotless / Checkstyle / PMD / SpotBugs 拆成 5 个独立 mvn 调用，
+  # 每一步都要重新解析依赖与启动 JVM，等于把同一个构建跑了 5 遍。
+  # 这些插件已全部绑定到 verify 阶段（见 packages/server/pom.xml），
+  # 因此一次 `mvn verify` 即可覆盖全部检查，且行为与本地完全一致。
   # ================================================================
   backend-quality:
     name: Backend — Spotless + Checkstyle + PMD + SpotBugs + Verify
@@ -54,20 +94,8 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Spotless apply & check
-        run: cd packages/server && mvn spotless:apply -q && mvn spotless:check -q
-
-      - name: Checkstyle check
-        run: cd packages/server && mvn checkstyle:check -q
-
-      - name: PMD check
-        run: cd packages/server && mvn pmd:check -q
-
-      - name: SpotBugs check
-        run: cd packages/server && mvn spotbugs:check -q
-
-      - name: Verify (test + JaCoCo)
-        run: cd packages/server && mvn verify -q
+      - name: Verify (spotless + checkstyle + pmd + spotbugs + test + jacoco)
+        run: cd packages/server && mvn --batch-mode clean verify
 
   # ================================================================
   # Secret Scan

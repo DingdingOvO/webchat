@@ -191,6 +191,17 @@
                     <failOnViolation>true</failOnViolation>
                     <violationSeverity>error</violationSeverity>
                 </configuration>
+                <!-- 绑定到 verify：否则 `mvn verify` 不会执行 checkstyle，
+                     CI 检查名里的「Checkstyle」就成了空话。 -->
+                <executions>
+                    <execution>
+                        <id>checkstyle-verify</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
 
             <!-- ============================================ -->
@@ -219,6 +230,16 @@
                     <failOnViolation>true</failOnViolation>
                     <printFailingErrors>true</printFailingErrors>
                 </configuration>
+                <!-- 绑定到 verify：否则 `mvn verify` 不会执行 PMD。 -->
+                <executions>
+                    <execution>
+                        <id>pmd-verify</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
 
             <!-- ============================================ -->
@@ -240,6 +261,17 @@
                     <threshold>Low</threshold>
                     <excludeFilterFile>spotbugs-exclude.xml</excludeFilterFile>
                 </configuration>
+                <!-- 绑定到 verify：否则 `mvn verify` 不会执行 SpotBugs，
+                     FindSecBugs 的安全规则也就永远不会被触发。 -->
+                <executions>
+                    <execution>
+                        <id>spotbugs-verify</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
 
             <!-- ============================================ -->

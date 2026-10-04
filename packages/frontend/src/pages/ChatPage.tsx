@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { hueIndex } from '../components/avatarHue';
 import CreateGroupModal from '../components/CreateGroupModal';
@@ -54,6 +54,9 @@ function ChatPageInner() {
   const [showChat, setShowChat] = useState(false);
   const [dataLoading, setDataLoading] = useState(true);
   const [messageLoading, setMessageLoading] = useState(false);
+  /* 「对方正在输入」：后端已完整实现 typing 的接收/存储/转发，
+     但前端此前既不上报也不展示，导致该能力形同虚设。此处补全。 */
+  const [typingUsers, setTypingUsers] = useState<Set<number>>(new Set());
 
   /* ---- load initial data ---- */
   useEffect(() => {
@@ -229,17 +232,63 @@ function ChatPageInner() {
       }
     });
 
-    const unsub2 = subscribe('presence', (msg) => {
-      const data = msg.data as { userId: number; online: boolean };
-      if (!data) return;
-      setFriends((prev) => prev.map((f) => (f.id === data.userId ? { ...f, online: data.online } : f)));
+    /* 后端广播的 action 是 'online'，且 payload 是「扁平」的
+       （userId / nickname / online 直接挂在顶层，不套 data），
+       与 'message' 的 { action, data } 结构不同，这里必须按真实契约解析。
+       旧代码订阅的 action 名是 'presence'、又从 msg.data 取值，
+       两处都对不上，导致好友在线状态永远不刷新。 */
+    const unsub2 = subscribe('online', (msg) => {
+      const userId2 = msg.userId as number | undefined;
+      const online = msg.online as boolean | undefined;
+      if (typeof userId2 !== 'number' || typeof online !== 'boolean') return;
+      setFriends((prev) => prev.map((f) => (f.id === userId2 ? { ...f, online } : f)));
+    });
+
+    /* 后端 typing 事件同样是扁平结构：{ action:'typing', userId, conversationKey }。
+       收到后加入 typingUsers，3 秒无新事件自动移除（对方停手后不该一直显示）。 */
+    const unsub3 = subscribe('typing', (msg) => {
+      const who = msg.userId as number | undefined;
+      if (typeof who !== 'number') return;
+      setTypingUsers((prev) => {
+        const n = new Set(prev);
+        n.add(who);
+        return n;
+      });
     });
 
     return () => {
       unsub1();
       unsub2();
+      unsub3();
     };
   }, [subscribe, activeConvKey, userId]);
+
+  /* ---- 发送「正在输入」节流 ----
+     输入框每次按键都发 WS 会打爆连接，这里限制为「每 2 秒最多发一次」。
+     仅在当前是 P2P 会话时上报：群聊的多方 typing 状态较复杂，后端也只按 P2P 计算会话键。 */
+  const lastTypingSent = useRef(0);
+  function notifyTyping() {
+    if (!activeConvKey || !activeConvKey.startsWith('p2p:')) return;
+    const now = Date.now();
+    if (now - lastTypingSent.current < 2000) return;
+    lastTypingSent.current = now;
+    const peer =
+      activeConvKey
+        .replace('p2p:', '')
+        .split(':')
+        .map(Number)
+        .find((id) => id !== userId) ?? 0;
+    if (peer) wsSend({ type: 'typing', receiverId: peer });
+  }
+
+  /* ---- typing 指示自动过期 ----
+     后端只在「有按键」时推送 typing，没有显式的「停止」事件。
+     这里给每个用户设 3 秒倒计时，期间没有新事件就把他从 typingUsers 里移除。 */
+  useEffect(() => {
+    if (typingUsers.size === 0) return;
+    const t = setTimeout(() => setTypingUsers(new Set()), 3000);
+    return () => clearTimeout(t);
+  }, [typingUsers]);
 
   /* ---- actions ---- */
   async function handleSearch(q: string) {
@@ -330,6 +379,12 @@ function ChatPageInner() {
 
   const activeContact = contacts.find((c) => c.key === activeConvKey);
   const activeMessages = activeConvKey ? convMessages.get(activeConvKey) || [] : [];
+
+  /* 当前会话里谁正在输入。P2P 只可能有一位对端；群聊则多人。
+     注意排除自己：typingUsers 只应包含对端，但保险起见仍过滤 userId。 */
+  const othersTyping = [...typingUsers].filter((id) => id !== userId);
+  const peerTyping = activeConvKey?.startsWith('p2p:') === true && othersTyping.length > 0;
+  const groupTyping = activeConvKey?.startsWith('group:') === true && othersTyping.length > 0;
 
   function selectConv(key: string) {
     setActiveConvKey(key);
@@ -584,10 +639,14 @@ function ChatPageInner() {
                 <div className={styles.chatName}>{activeContact.name}</div>
                 <div className={styles.chatSub}>
                   {activeContact.type === 'p2p'
-                    ? activeContact.user?.online
-                      ? '在线'
-                      : '离线'
-                    : `群组 · ${activeContact.group?.memberCount || '?'} 人`}
+                    ? peerTyping
+                      ? '正在输入…'
+                      : activeContact.user?.online
+                        ? '在线'
+                        : '离线'
+                    : groupTyping
+                      ? '有人正在输入…'
+                      : `群组 · ${activeContact.group?.memberCount || '?'} 人`}
                 </div>
               </div>
             </header>
@@ -609,7 +668,10 @@ function ChatPageInner() {
                   type="text"
                   placeholder="输入消息…"
                   value={inputText}
-                  onChange={(e) => setInputText(e.target.value)}
+                  onChange={(e) => {
+                    setInputText(e.target.value);
+                    notifyTyping();
+                  }}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && !e.shiftKey) {
                       e.preventDefault();
