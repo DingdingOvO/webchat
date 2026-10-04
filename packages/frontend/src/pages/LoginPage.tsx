@@ -39,6 +39,9 @@ export default function LoginPage() {
   return (
     <div className={styles.page}>
       <div className={styles.themeSlot}>
+        <Link to="/" className={styles.backHome}>
+          返回首页
+        </Link>
         <ThemeToggle />
       </div>
 
