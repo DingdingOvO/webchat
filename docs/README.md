@@ -7,5 +7,6 @@
 | API 参考 | [docs/api/README.md](api/README.md) | 认证、用户、好友、群组、消息、设置、WebSocket、错误码 |
 | 设计语言 | [docs/design/README.md](design/README.md) | 设计原则、色板、字体、间距、组件规范、设计稿尺寸 |
 | 技术栈 | [docs/tech/README.md](tech/README.md) | 前后端技术、存储层、数据流 |
-| 部署指南 | [docs/deploy/README.md](deploy/README.md) | 19 种部署方式总览、Docker/K8s/VPS 部署 |
-| 完整部署 | [DEPLOY.md](../DEPLOY.md) | 19 种部署方式完整文档 |
+| 部署指南 | [docs/deploy/README.md](deploy/README.md) | 部署方式总览（Docker Compose / K8s / 云平台） |
+| 完整部署 | [DEPLOY.md](../DEPLOY.md) | 各方式完整操作步骤、Nginx + SSL、CI/CD 配置 |
+| 部署踩坑记录 | [docs/DEPLOY_NOTES.md](DEPLOY_NOTES.md) | 生产环境故障排查（网关改头、代理分帧） |

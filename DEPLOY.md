@@ -1,498 +1,201 @@
 # WebChat 部署指南
 
-> **技术栈**: Spring Boot 3.5.16 (Java 26) + React 19 + Webpack + MySQL 8.4 + MongoDB 8.3 + Redis 7.4
+> **技术栈**：Spring Boot 3.5（Java 26）+ React 19 + Webpack 5 + MySQL 8.4 + MongoDB 8.3 + Redis 7.4
 
-本文档涵盖 **16 种不同的部署方式**，从本地开发到生产级集群全覆盖。
+本文档覆盖**官方支持的三类主流部署方式**：Docker Compose（单机）、Kubernetes（集群）、云平台（托管）。
+每种方式都配有仓库内可直接使用的配置文件。
 
 ---
 
 ## 目录
 
-1. [Docker Compose（全量）](#1-docker-compose全量)
-2. [Docker Compose（仅数据库 + 本地开发）](#2-docker-compose仅数据库--本地开发)
-3. [Docker Compose（生产优化版）](#3-docker-compose生产优化版)
-4. [Docker Swarm](#4-docker-swarm)
-5. [Kubernetes + Kustomize](#5-kubernetes--kustomize)
-6. [Helm Chart](#6-helm-chart)
-7. [裸机/VPS 一键脚本](#7-裸机vps-一键脚本)
-8. [Systemd 服务管理](#8-systemd-服务管理)
-9. [Supervisor 进程管理](#9-supervisor-进程管理)
-10. [Ansible 自动化部署](#10-ansible-自动化部署)
-11. [Makefile 构建管理](#11-makefile-构建管理)
-12. [DevContainer（VS Code）](#12-devcontainervs-code)
-13. [GitHub Actions CI/CD](#13-github-actions-cicd)
-14. [Fly.io](#14-flyio)
-15. [Railway](#15-railway)
-16. [Render](#16-render)
-17. [Zeabur](#17-zeabur)
-18. [Heroku](#18-heroku)
-19. [Nginx 反向代理 + SSL](#19-nginx-反向代理--ssl)
+| # | 方式 | 适用场景 | 配置位置 |
+| --- | --- | --- | --- |
+| 1 | [Docker Compose（全量）](#1-docker-compose全量) | 单机生产 / 本地完整体验 | `docker-compose.yaml` |
+| 2 | [Docker Compose（仅数据库）](#2-docker-compose仅数据库) | 本地开发，前后端跑在宿主机 | `deploy/scripts/docker-db-only.yaml` |
+| 3 | [Kubernetes + Kustomize](#3-kubernetes--kustomize) | K8s 集群 | `deploy/kubernetes/` |
+| 4 | [云平台托管](#4-云平台托管) | 不想自己运维 | `deploy/cloud/` |
+| 5 | [GitHub Actions CI/CD](#5-github-actions-cicd) | 自动构建与部署 | `.github/workflows/` |
+| 6 | [Makefile 快捷命令](#6-makefile-快捷命令) | 日常开发 | `Makefile` |
+
+> 需要 Nginx 反向代理、SSL 证书等，见文末 [附录](#附录nginx--ssl)。
 
 ---
 
 ## 1. Docker Compose（全量）
 
-项目根目录已有 `docker-compose.yaml`，一键启动全部服务：
+项目根目录的 `docker-compose.yaml` 一键拉起**全部服务**（MySQL + MongoDB + Redis + 后端 + 前端）：
 
 ```bash
-# 启动（后台）
-docker compose up -d --build
-
-# 查看状态
-docker compose ps
-
-# 查看日志
-docker compose logs -f
-
-# 停止
-docker compose down
-
-# 停止并删除数据卷
-docker compose down -v
+docker compose up -d --build   # 构建并启动
+docker compose ps              # 查看状态
+docker compose logs -f         # 跟踪日志
+docker compose down            # 停止
+docker compose down -v         # 停止并删除数据卷（清空数据）
 ```
 
-**架构**: MySQL + MongoDB + Redis + Backend + Frontend（共 5 个容器）
+启动后访问 <http://localhost:3000>。
+
+**生产环境注意事项**
+
+| 项 | 说明 |
+| --- | --- |
+| `JWT_SECRET` | 必须替换为强随机值，不要使用 compose 中的默认值 |
+| 数据库口令 | 同理，通过环境变量或 `.env` 注入，不要硬编码 |
+| 健康检查 | 后端暴露 `/actuator/health`，compose 已配置探针 |
 
 ---
 
-## 2. Docker Compose（仅数据库 + 本地开发）
+## 2. Docker Compose（仅数据库）
 
-适合本地开发：宿主机运行 Spring Boot，容器只跑数据库：
+本地开发时只启动中间件，前后端跑在宿主机，改代码即时生效：
 
 ```bash
-# 启动数据库
 docker compose -f deploy/scripts/docker-db-only.yaml up -d
+```
 
-# 宿主机运行后端（自动连接 127.0.0.1 上的数据库）
-mvn spring-boot:run
+随后：
 
-# 宿主机运行前端开发服务器
-cd frontend && npm run dev
+```bash
+# 后端（默认 :8080）
+cd packages/server && ./mvnw spring-boot:run
+
+# 前端（默认 :3000，代理到后端）
+cd packages/frontend && npm install && npm run dev
 ```
 
 ---
 
-## 3. Docker Compose（生产优化版）
+## 3. Kubernetes + Kustomize
 
-相比根目录的基础版，增加了资源限制、健康检查、日志轮转、网络隔离：
-
-```bash
-docker compose -f deploy/scripts/docker-compose-prod.yaml up -d
-```
-
-**增强功能**:
-- 所有服务 `restart: unless-stopped` + 健康检查依赖
-- 内存上限: Backend 1G, MySQL 1G, MongoDB 512M, Redis 256M, Frontend 256M
-- 日志轮转: 每文件 10MB，保留 3 个
-- 独立 bridge 网络 `webchat-net`
-- Backend 端口绑定 `127.0.0.1`，不对外暴露
-- 支持 `.env` 文件自定义密码
-
----
-
-## 4. Docker Swarm
-
-适合多节点 Docker Swarm 集群：
+`deploy/kubernetes/` 包含完整清单：`namespace` / `configmap` / `mysql` / `mongodb` / `redis` / `backend` / `frontend`。
 
 ```bash
-# 初始化 Swarm（仅集群管理器执行）
-docker swarm init
-
-# 部署
-docker stack deploy -c deploy/swarm/docker-stack.yaml webchat
-
-# 查看服务
-docker stack services webchat
-
-# 查看日志
-docker service logs webchat_backend
-
-# 滚动更新
-docker service update --image ghcr.io/dingdingovo/webchat-backend:latest webchat_backend
-
-# 移除
-docker stack rm webchat
-```
-
-**特性**: 2 副本后端/前端、滚动更新策略、回滚策略、资源限制、overlay 网络
-
----
-
-## 5. Kubernetes + Kustomize
-
-```bash
-# 使用 Kustomize 一键部署
+# 一键部署
 kubectl apply -k deploy/kubernetes/
 
-# 或手动分步部署
-kubectl apply -f deploy/kubernetes/namespace.yaml
-kubectl apply -f deploy/kubernetes/configmap.yaml
-kubectl apply -f deploy/kubernetes/mysql.yaml
-kubectl apply -f deploy/kubernetes/mongodb.yaml
-kubectl apply -f deploy/kubernetes/redis.yaml
-kubectl apply -f deploy/kubernetes/backend.yaml
-kubectl apply -f deploy/kubernetes/frontend.yaml
-
 # 查看状态
-kubectl get all -n webchat
-kubectl rollout status deployment/webchat-backend -n webchat
+kubectl get pods -n webchat
+kubectl rollout status deployment/webchat-backend -n webchat --timeout=180s
 
-# 端口转发（本地访问）
-kubectl port-forward svc/webchat-frontend -n webchat 3000:80
-kubectl port-forward svc/webchat-backend -n webchat 8080:8080
-
-# 卸载
-kubectl delete ns webchat
-```
-
-**特性**: StatefulSet + PVC 持久化、Ingress + TLS、Liveness/Readiness 探针、HPA 自动扩缩（backend）
-
----
-
-## 6. Helm Chart
-
-```bash
-# 直接安装
-helm upgrade --install webchat deploy/helm/webchat \
-  --namespace webchat --create-namespace
-
-# 自定义配置安装
-helm upgrade --install webchat deploy/helm/webchat \
-  --namespace webchat --create-namespace \
-  --set replicaCount=3 \
-  --set domain=chat.mydomain.com \
-  --set secrets.mysqlPassword=MyStr0ng!Pass \
-  --set secrets.jwtSecret=super-secret-jwt-key
-
-# 使用自定义 values 文件
-helm upgrade --install webchat deploy/helm/webchat \
-  --namespace webchat --create-namespace \
-  -f my-values.yaml
-
-# 查看已部署的 values
-helm get values webchat -n webchat
-
-# 回滚
-helm rollback webchat 1 -n webchat
+# 本地访问
+kubectl port-forward -n webchat svc/webchat-frontend 3000:80
 
 # 卸载
-helm uninstall webchat -n webchat
+kubectl delete -k deploy/kubernetes/
 ```
+
+> 生产环境请将 `configmap.yaml` 中的口令与密钥替换为 Secret（`kubectl create secret`），
+> 或接入外部密钥管理。CI 部署见 [第 5 节](#5-github-actions-cicd)。
 
 ---
 
-## 7. 裸机/VPS 一键脚本
+## 4. 云平台托管
 
-适用于干净的 Ubuntu 20.04+ / CentOS 7+：
+各平台的配置模板都在 `deploy/cloud/`：
+
+| 平台 | 配置文件 | 说明 |
+| --- | --- | --- |
+| **Railway** | `deploy/cloud/railway.toml` | Docker 构建，推荐只部署 backend（Dockerfile 已含前端）+ 三个数据库插件 |
+| **Fly.io** | `deploy/cloud/fly.toml` | `fly launch --copy-config` 后 `fly deploy` |
+| **Render** | `deploy/cloud/render.yaml` | 基础设施即代码，前后端分服务 |
+| **Zeabur** | `deploy/cloud/zeabur.md` | 自动检测 Dockerfile，国内访问友好 |
+| **Heroku** | `deploy/cloud/heroku.md` | 传统 PaaS（容器化部署） |
+| **通用 PaaS** | `deploy/cloud/nixpacks.toml` | Nixpacks 构建：前端产物并入后端 JAR，单镜像启动 |
+
+**Railway 快速开始**
 
 ```bash
-# 下载项目
-git clone https://github.com/DingdingOvO/webchat.git
-cd webchat
-
-# 运行一键部署脚本
-sudo bash deploy/scripts/deploy.sh
+# 在 Railway Dashboard 新建项目，连接本仓库
+# 添加 MySQL / MongoDB / Redis 插件
+# Railway 会自动读取 deploy/cloud/railway.toml
 ```
 
-**脚本自动完成**:
-1. 安装 Java 26、MySQL、MongoDB、Redis、Nginx、Certbot
-2. 创建 `webchat` 用户和 `/opt/webchat` 目录
-3. 初始化数据库和表
-4. 安装 Systemd 服务
-5. 配置 Nginx 反向代理
-6. 启动所有服务
-
-> **注意**: 脚本需要你手动将构建好的 `app.jar` 和前端 `dist/` 放到对应目录。
+> ⚠️ Railway 在仓库根目录读取 `railway.toml`。若你的项目结构不同，
+> 请在 Dashboard 中指定配置路径为 `deploy/cloud/railway.toml`。
 
 ---
 
-## 8. Systemd 服务管理
+## 5. GitHub Actions CI/CD
 
-适合已手动部署后端的场景：
+仓库内置两个工作流，职责分离：
+
+| 工作流 | 职责 | 触发 |
+| --- | --- | --- |
+| `Quality Gate` | 代码检查：TypeCheck / Biome / Stylelint / 拼写 / 后端 verify / CodeQL / 密钥扫描 | push、PR |
+| `Build & Deploy` | 出制品 + 构建推送镜像 + 部署 | push main/master/develop、tag、PR |
+
+**启用自动部署**：在仓库 **Settings → Secrets and variables → Actions** 配置以下密钥，
+未配置时对应部署任务会自动跳过（不会让流水线失败）：
+
+| 目标 | 需要的 Secret |
+| --- | --- |
+| SSH（Docker Compose 主机） | `SSH_HOST`、`SSH_USER`、`SSH_PRIVATE_KEY` |
+| Kubernetes | `KUBE_CONFIG`（base64 编码的 kubeconfig） |
+
+镜像推送到 GitHub Container Registry（`ghcr.io/<owner>/<repo>-backend` / `-frontend`）。
+
+---
+
+## 6. Makefile 快捷命令
 
 ```bash
-# 安装服务
-sudo cp deploy/systemd/webchat.service /etc/systemd/system/
-
-# 修改配置文件中的数据库连接和路径
-sudo vim /etc/systemd/system/webchat.service
-
-# 重新加载并启动
-sudo systemctl daemon-reload
-sudo systemctl enable --now webchat
-
-# 管理命令
-sudo systemctl status webchat      # 查看状态
-sudo journalctl -u webchat -f      # 实时日志
-sudo systemctl restart webchat     # 重启
-sudo systemctl stop webchat        # 停止
+make help            # 列出全部命令
+make build-all       # 构建后端 JAR + 前端产物
+make run-backend     # 仅启动后端
+make run-frontend    # 仅启动前端开发服务器
+make preview         # 单端口预览已构建的前端（默认 3000）
+make run-prod        # 生产模式：后端 + 单端口前端与代理
+make clean           # 清理构建产物
 ```
 
 ---
 
-## 9. Supervisor 进程管理
+## 附录：Nginx + SSL
 
-适合容器环境或无 Systemd 的系统：
+若在前面加一层 Nginx 做反向代理与 HTTPS 终结，配置要点：
+
+```nginx
+server {
+    listen 443 ssl http2;
+    server_name your-domain.com;
+
+    ssl_certificate     /etc/letsencrypt/live/your-domain.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/your-domain.com/privkey.pem;
+
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_set_header Host              $host;
+        proxy_set_header X-Real-IP         $remote_addr;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # WebSocket 升级
+    location /ws/ {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade    $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_read_timeout 3600s;
+    }
+}
+```
+
+证书签发：
 
 ```bash
-# 安装 Supervisor
-sudo apt install supervisor    # Ubuntu/Debian
-sudo yum install supervisor    # CentOS/RHEL
-
-# 复制配置
-sudo cp deploy/scripts/supervisor.conf /etc/supervisor/conf.d/webchat.conf
-
-# 加载并启动
-sudo supervisorctl reread
-sudo supervisorctl update
-sudo supervisorctl start webchat
-
-# 管理
-sudo supervisorctl status webchat
-sudo supervisorctl restart webchat
-sudo supervisorctl tail -f webchat stdout
+sudo certbot --nginx -d your-domain.com
 ```
 
----
-
-## 10. Ansible 自动化部署
-
-适合多台服务器的批量部署：
-
-```bash
-# 安装 Ansible
-sudo apt install ansible
-
-# 修改 inventory 中的服务器地址
-vim deploy/ansible/inventory/hosts.ini
-
-# 执行部署
-ansible-playbook -i deploy/ansible/inventory/hosts.ini deploy/ansible/site.yml
-```
-
-**Playbook 结构**:
-- `common` — 系统依赖、Java 26、系统用户
-- `databases` — MySQL、MongoDB、Redis 安装与初始化
-- `backend` — 构建 JAR、Systemd 服务配置
-- `frontend` — 构建前端、Nginx 配置
+> **注意**：应用自定义使用 `X-Auth-Token` 头传递认证信息
+> （部分部署平台网关会覆盖 `Authorization`）。Nginx 默认透传所有自定义头，
+> 但若你配置了白名单，请确保放行 `X-Auth-Token`。
 
 ---
 
-## 11. Makefile 构建管理
+## 相关文档
 
-常用构建命令：
-
-```bash
-make help              # 显示所有命令
-make build-backend     # 构建后端
-make build-frontend    # 构建前端
-make build-all         # 构建全部
-make test              # 运行后端测试
-make run-docker        # Docker Compose 启动
-make deploy-helm       # Helm 部署
-make deploy-kubectl    # Kubectl 部署
-make deploy-stack      # Swarm 部署
-make clean             # 清理构建产物
-```
-
----
-
-## 12. DevContainer（VS Code）
-
-在 VS Code 中打开后自动提供完整开发环境：
-
-```bash
-# 前提: VS Code + Dev Containers 扩展
-# 在项目根目录创建 .devcontainer 软链接
-ln -sf deploy/devcontainer/devcontainer.json .devcontainer.json
-
-# VS Code → Ctrl+Shift+P → "Reopen in Container"
-```
-
-**容器内预装**: Java 扩展包、Spring Boot Dashboard、ESLint、Prettier、Docker、SQLTools
-
----
-
-## 13. GitHub Actions CI/CD
-
-提交代码到 main 分支时自动触发完整 CI/CD 流水线。
-
-**工作流文件**: `.github/workflows/ci-cd.yml`
-
-**自动完成**:
-1. 构建后端（Maven + Java 26）
-2. 构建前端（Node.js 22 + Webpack）
-3. 构建 Docker 镜像并推送到 GHCR
-4. 通过 SSH 部署到生产服务器
-5. 通过 kubectl 部署到 K8s 集群
-
-**仓库 Secrets 设置**:
-| Secret | 说明 |
-|--------|------|
-| `SSH_HOST` | 部署服务器地址 |
-| `SSH_USER` | SSH 用户名 |
-| `SSH_PRIVATE_KEY` | SSH 私钥 |
-| `KUBE_CONFIG` | K8s kubeconfig（base64） |
-
----
-
-## 14. Fly.io
-
-```bash
-# 安装 Fly CLI
-curl -L https://fly.io/install.sh | sh
-
-# 登录
-fly auth login
-
-# 部署
-fly launch --copy-config --name webchat-app
-fly deploy
-
-# 创建托管数据库
-fly postgres create --name webchat-pg
-fly redis create --name webchat-redis
-fly mongo create --name webchat-mongo
-
-# 设置 secrets
-fly secrets set JWT_SECRET=your-secret
-
-# 查看
-fly open
-fly logs
-```
-
-**配置**: `deploy/cloud/fly.toml`
-
----
-
-## 15. Railway
-
-1. 登录 [Railway](https://railway.app)
-2. 创建项目 → Deploy from GitHub repo → 选择 `DingdingOvO/webchat`
-3. 添加插件: **MySQL**、**MongoDB**、**Redis**
-4. 设置环境变量: `JWT_SECRET`
-5. Railway 自动使用 `deploy/cloud/railway.json` 配置构建
-
-**配置**: `deploy/cloud/railway.json`
-
----
-
-## 16. Render
-
-1. 登录 [Render Dashboard](https://dashboard.render.com)
-2. New Blueprint → 连接 GitHub 仓库
-3. Render 自动读取 `deploy/cloud/render.yaml`
-4. 一键部署全部服务（前端 + 后端 + MySQL + MongoDB + Redis）
-
-**配置**: `deploy/cloud/render.yaml`
-
----
-
-## 17. Zeabur
-
-1. 登录 [Zeabur](https://zeabur.com)
-2. 创建项目 → 添加服务 → 从 GitHub 导入 → 选择 `webchat` 仓库
-3. Zeabur 自动检测 `Dockerfile` 构建
-4. 添加 MySQL / MongoDB / Redis 模板服务
-5. 在 backend 环境变量中关联数据库地址
-
----
-
-## 18. Heroku
-
-```bash
-# 安装 Heroku CLI
-brew install heroku     # macOS
-# 或 curl https://cli-assets.heroku.com/install.sh | sh
-
-# 登录
-heroku login
-
-# 创建应用（使用容器栈）
-heroku create webchat-app --stack container
-
-# 添加数据库插件
-heroku addons:create jawsdb:kitefin        # MySQL
-heroku addons:create mongodbye:free         # MongoDB
-heroku addons:create rediscloud:30          # Redis
-
-# 配置环境变量
-heroku config:set JWT_SECRET=your-secret
-
-# 部署
-heroku container:push web
-heroku container:release web
-
-# 打开
-heroku open
-```
-
----
-
-## 19. Nginx 反向代理 + SSL
-
-适用于独立服务器部署，提供完整的 SSL/TLS + HTTP/2 支持：
-
-```bash
-# 复制配置
-sudo cp deploy/nginx/webchat.conf /etc/nginx/sites-available/webchat
-
-# 启用站点
-sudo ln -sf /etc/nginx/sites-available/webchat /etc/nginx/sites-enabled/
-sudo rm -f /etc/nginx/sites-enabled/default
-
-# 检查配置
-sudo nginx -t
-
-# 配置 SSL（使用 Let's Encrypt）
-sudo certbot --nginx -d chat.yourdomain.com
-
-# 重启
-sudo systemctl restart nginx
-```
-
-**配置特性**:
-- HTTP → HTTPS 301 重定向
-- HTTP/2 + TLS 1.2/1.3
-- 安全响应头（HSTS、X-Content-Type-Options、X-Frame-Options）
-- 静态资源 1 年缓存
-- WebSocket 长连接支持（3600s 超时）
-- 后端负载均衡（支持多实例）
-
----
-
-## 部署方式速查表
-
-| # | 方式 | 适用场景 | 复杂度 | 生产可用 |
-|---|------|---------|--------|---------|
-| 1 | Docker Compose（基础版） | 本地测试、小团队 | ⭐ | ✅ |
-| 2 | Docker Compose（仅 DB） | 本地开发 | ⭐ | ❌ |
-| 3 | Docker Compose（生产版） | 单机生产 | ⭐⭐ | ✅ |
-| 4 | Docker Swarm | 多节点容器集群 | ⭐⭐⭐ | ✅ |
-| 5 | Kubernetes + Kustomize | K8s 集群生产部署 | ⭐⭐⭐⭐ | ✅ |
-| 6 | Helm Chart | K8s 集群（需配置化） | ⭐⭐⭐⭐ | ✅ |
-| 7 | VPS 一键脚本 | 裸机/VPS 快速部署 | ⭐ | ✅ |
-| 8 | Systemd | 手动管理的 Linux 服务器 | ⭐⭐ | ✅ |
-| 9 | Supervisor | 容器/无 systemd 环境 | ⭐⭐ | ✅ |
-| 10 | Ansible | 批量服务器部署 | ⭐⭐⭐ | ✅ |
-| 11 | Makefile | 本地构建管理 | ⭐ | ❌ |
-| 12 | DevContainer | VS Code 远程开发 | ⭐ | ❌ |
-| 13 | GitHub Actions | CI/CD 自动化 | ⭐⭐⭐ | ✅ |
-| 14 | Fly.io | 全球边缘部署 | ⭐⭐ | ✅ |
-| 15 | Railway | 快速托管 | ⭐ | ✅ |
-| 16 | Render | 基础设施即代码 | ⭐⭐ | ✅ |
-| 17 | Zeabur | 国内友好托管 | ⭐ | ✅ |
-| 18 | Heroku | 传统 PaaS | ⭐⭐ | ✅ |
-| 19 | Nginx + SSL | 独立服务器前段 | ⭐⭐ | ✅ |
-
----
-
-## 推荐部署流程
-
-**开发环境**: Docker Compose（仅 DB）+ 本地运行前后端
-**小团队生产**: Docker Compose（生产优化版）
-**正式生产**: Kubernetes + Helm（或 Docker Swarm）
-**CI/CD**: GitHub Actions → Docker → SSH/K8s 自动部署
-
-> 有问题请提交 [GitHub Issues](https://github.com/DingdingOvO/webchat/issues)
+- [docs/quickstart](docs/quickstart/README.md) —— 环境准备与本地启动
+- [docs/DEPLOY_NOTES.md](docs/DEPLOY_NOTES.md) —— 生产环境踩坑记录与故障排查
+- [README.md](README.md) —— 项目总览
