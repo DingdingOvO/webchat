@@ -9,6 +9,11 @@ module.exports = (env, argv) => {
     output: {
       path: path.resolve(__dirname, 'dist'),
       filename: 'bundle.[contenthash:8].js',
+      /* 懒加载 chunk 的公共前缀用绝对路径 '/'，
+         否则在 /app/chat 这类深层路由下，浏览器会相对当前路径去取 chunk
+         （如 /app/chunk.js）而 404。单端口部署由后端直接托管 dist，也依赖此设置。 */
+      publicPath: '/',
+      chunkFilename: 'chunk.[name].[contenthash:8].js',
       clean: true,
     },
     resolve: {
