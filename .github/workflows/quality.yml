@@ -1,36 +1,27 @@
-name: Quality Gate
-
-# ================================================================
-# 质量门禁 —— 分支保护的必需检查全部在此产出。
-#
-# 设计原则：
-#   1. 分支保护要求的 6 个 context 名必须逐字稳定，本文件是它们的唯一来源。
-#   2. 每个 job 只做一件事，名字必须与「实际执行的检查」完全一致。
-#   3. 构建产物由 Build 工作流负责；此处只做「检查」，不重复出包。
-# ================================================================
+name: Quality Gate — Zero-Tolerance
 
 on:
   push:
     branches: [main, master, develop]
   pull_request:
     branches: [main, master]
-  workflow_dispatch:
 
+# 同一分支的新推送取消上一轮未完成的检查：
+# 否则连续推送会并行跑多轮全量检查，纯粹浪费 runner 分钟数。
 concurrency:
   group: quality-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   # ================================================================
-  # 前端质量：TypeCheck + Biome + Stylelint + 拼写 + 构建
-  # 检查名里的每一项都真实执行（此前 Stylelint / Spell 只写在名字里）。
+  # Frontend Quality
+  #
+  # ⚠️ job 的 name 是 main 分支保护里登记的必需检查项，必须逐字保持，
+  #    否则合并会被永久阻塞。改动前先确认分支保护配置。
   # ================================================================
   frontend-quality:
     name: Frontend — TypeCheck + Lint + Format + Stylelint + Spell
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: packages/frontend
     steps:
       - uses: actions/checkout@v4
 
@@ -39,26 +30,29 @@ jobs:
         with:
           node-version: '22'
           cache: npm
-          cache-dependency-path: packages/frontend/package-lock.json
+          # 本仓库是 npm workspaces 单仓，依赖统一安装在根目录，
+          # 因此 lock 文件只有根目录这一份，缓存键也必须指向它。
+          cache-dependency-path: package-lock.json
 
-      - name: Install dependencies
+      - name: Install dependencies (workspaces)
         run: npm ci
 
       - name: Type check
-        run: npm run typecheck
+        working-directory: packages/frontend
+        run: npx tsc --noEmit
 
       - name: Biome check (lint + format)
-        run: npm run lint
+        working-directory: packages/frontend
+        run: npx biome check src/
 
       - name: Stylelint check
+        working-directory: packages/frontend
         run: npm run lint:css
 
-      # 拼写检查：typos CLI 以独立二进制分发（非 npm 包），
-      # 在此固定版本安装，扫描范围由 packages/frontend/_typos.toml 定义。
-      # 注意：归档内路径为 ./typos（带 ./ 前缀），必须整体解压再取用，
-      # 不能写 `tar -xzf x.tar.gz typos`，否则报「Not found in archive」。
+      # typos 是 Rust 写的独立二进制，npm 里没有官方包，只能下载 release。
+      # 注意：归档里的路径带 ./ 前缀，`tar -xzf x.tar.gz typos` 会匹配失败，
+      # 必须整包解压后再取文件。
       - name: Install typos CLI
-        working-directory: .
         run: |
           set -euo pipefail
           VER=1.31.1
@@ -71,15 +65,21 @@ jobs:
           typos --version
 
       - name: Spell check
+        working-directory: packages/frontend
         run: npm run spell
 
       - name: Build
+        working-directory: packages/frontend
         run: npm run build
 
   # ================================================================
-  # 后端质量：Spotless + Checkstyle + PMD + SpotBugs + Verify
-  # 单次 mvn verify 已串联全部质量插件；不再逐个重复调用，
-  # 也不与 Build 工作流重复构建（后者只负责出 JAR 制品）。
+  # Backend Quality
+  #
+  # ⚠️ name 同为分支保护必需检查项。
+  # 旧版把 Spotless / Checkstyle / PMD / SpotBugs 拆成 5 个独立 mvn 调用，
+  # 每一步都要重新解析依赖与启动 JVM，等于把同一个构建跑了 5 遍。
+  # 这些插件已全部绑定到 verify 阶段（见 packages/server/pom.xml），
+  # 因此一次 `mvn verify` 即可覆盖全部检查，且行为与本地完全一致。
   # ================================================================
   backend-quality:
     name: Backend — Spotless + Checkstyle + PMD + SpotBugs + Verify
@@ -94,13 +94,11 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      # verify 阶段在 pom 中已绑定 checkstyle / pmd / spotbugs / jacoco，
-      # 一次执行即可覆盖「格式 + 静态检查 + 测试 + 覆盖率」。
-      - name: Verify (Spotless + Checkstyle + PMD + SpotBugs + tests + JaCoCo)
+      - name: Verify (spotless + checkstyle + pmd + spotbugs + test + jacoco)
         run: cd packages/server && mvn --batch-mode clean verify
 
   # ================================================================
-  # 密钥扫描
+  # Secret Scan
   # ================================================================
   secret-scan:
     name: Gitleaks — Secret Scan
@@ -163,8 +161,7 @@ jobs:
           fi
 
   # ================================================================
-  # CodeQL 安全分析（java / javascript 各一个矩阵任务）
-  # 分支保护要求的 context 带语言后缀，由 matrix 自动拼出。
+  # CodeQL
   # ================================================================
   codeql:
     name: CodeQL — Security Analysis
@@ -172,43 +169,41 @@ jobs:
     permissions:
       security-events: write
       actions: read
-      contents: read
     strategy:
-      fail-fast: false
       matrix:
         language: [java, javascript]
     steps:
       - uses: actions/checkout@v4
 
       - name: Set up Java 26
-        if: matrix.language == 'java'
         uses: actions/setup-java@v4
         with:
           java-version: '26'
           distribution: 'temurin'
-
-      - name: Initialize CodeQL — Java
         if: matrix.language == 'java'
-        uses: github/codeql-action/init@v3
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v4
         with:
-          languages: java
+          languages: ${{ matrix.language }}
           build-mode: manual
+        if: matrix.language == 'java'
 
       - name: Build Java
         if: matrix.language == 'java'
-        run: cd packages/server && mvn --batch-mode clean package -DskipTests -q
+        run: cd packages/server && mvn clean package -DskipTests -q
 
-      - name: Analyze — Java
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v4
         if: matrix.language == 'java'
-        uses: github/codeql-action/analyze@v3
 
-      - name: Initialize CodeQL — JavaScript
-        if: matrix.language == 'javascript'
-        uses: github/codeql-action/init@v3
+      - name: Initialize CodeQL (JavaScript)
+        uses: github/codeql-action/init@v4
         with:
           languages: javascript
           build-mode: none
-
-      - name: Analyze — JavaScript
         if: matrix.language == 'javascript'
-        uses: github/codeql-action/analyze@v3
+
+      - name: Perform CodeQL Analysis (JavaScript)
+        uses: github/codeql-action/analyze@v4
+        if: matrix.language == 'javascript'
