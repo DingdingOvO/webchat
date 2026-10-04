@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { ApiError, authApi } from '../api';
 import ThemeToggle from '../components/ThemeToggle';
 import { useAuth } from '../context/AuthContext';
 import styles from './AuthPage.module.css';
@@ -18,21 +19,12 @@ export default function RegisterPage() {
     setError('');
     setLoading(true);
     try {
-      const res = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password, nickname: nickname || undefined }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error || '注册失败');
-        setLoading(false);
-        return;
-      }
+      const data = await authApi.register({ username, password, nickname: nickname || undefined });
       setAuth(data);
       navigate('/app');
-    } catch {
-      setError('网络连接失败');
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : '网络连接失败');
+    } finally {
       setLoading(false);
     }
   }

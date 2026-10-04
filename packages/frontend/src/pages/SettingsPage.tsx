@@ -1,9 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ApiError, authApi, userApi } from '../api';
 import { ArrowLeftIcon } from '../components/Icons';
 import ThemeToggle from '../components/ThemeToggle';
 import { useAuth } from '../context/AuthContext';
 import styles from './SettingsPage.module.css';
+
+/** 把 ApiError 归一化成给用户看的文案，避免每处 catch 重复判断。 */
+function errorText(err: unknown, fallback: string): string {
+  return err instanceof ApiError ? err.message : fallback;
+}
 
 export default function SettingsPage() {
   const { auth, setAuth } = useAuth();
@@ -19,13 +25,15 @@ export default function SettingsPage() {
 
   useEffect(() => {
     if (!auth) return;
-    fetch('/api/auth/me', { headers: { Authorization: `Bearer ${auth.token}`, 'X-Auth-Token': auth.token } })
-      .then((r) => r.json())
+    authApi
+      .me()
       .then((d) => {
         if (d.avatar) setAvatar(d.avatar);
         if (d.username) setUsername(d.username);
       })
-      .catch(() => {});
+      .catch(() => {
+        /* 拉取失败时保留本地已有值 */
+      });
   }, [auth]);
 
   async function handleUsername() {
@@ -33,26 +41,12 @@ export default function SettingsPage() {
     setLoading(true);
     setMsg(null);
     try {
-      const res = await fetch('/api/users/profile/username', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${auth.token}`,
-          'X-Auth-Token': auth.token,
-        },
-        body: JSON.stringify({ username: username.trim() }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setMsg({ type: 'error', text: data.error });
-        setLoading(false);
-        return;
-      }
-      setAuth({ ...auth, username: data.username });
+      await userApi.updateUsername(username.trim());
+      setAuth({ ...auth, username: username.trim() });
       setMsg({ type: 'ok', text: '用户名已更新' });
-      setLoading(false);
-    } catch {
-      setMsg({ type: 'error', text: '网络错误' });
+    } catch (err) {
+      setMsg({ type: 'error', text: errorText(err, '网络错误') });
+    } finally {
       setLoading(false);
     }
   }
@@ -71,25 +65,12 @@ export default function SettingsPage() {
       setLoading(true);
       setMsg(null);
       try {
-        const res = await fetch('/api/users/profile/avatar', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${auth.token}`,
-            'X-Auth-Token': auth.token,
-          },
-          body: JSON.stringify({ avatar: base64 }),
-        });
-        const data = await res.json();
-        if (!res.ok) {
-          setMsg({ type: 'error', text: data.error });
-        } else {
-          setAvatar(base64);
-          setMsg({ type: 'ok', text: '头像已更新' });
-        }
-        setLoading(false);
-      } catch {
-        setMsg({ type: 'error', text: '上传失败' });
+        await userApi.updateAvatar(base64);
+        setAvatar(base64);
+        setMsg({ type: 'ok', text: '头像已更新' });
+      } catch (err) {
+        setMsg({ type: 'error', text: errorText(err, '上传失败') });
+      } finally {
         setLoading(false);
       }
     };
@@ -105,26 +86,13 @@ export default function SettingsPage() {
     setLoading(true);
     setMsg(null);
     try {
-      const res = await fetch('/api/users/profile/password', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${auth.token}`,
-          'X-Auth-Token': auth.token,
-        },
-        body: JSON.stringify({ oldPassword: oldPw, newPassword: newPw }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setMsg({ type: 'error', text: data.error });
-      } else {
-        setMsg({ type: 'ok', text: '密码已更新' });
-        setOldPw('');
-        setNewPw('');
-      }
-      setLoading(false);
-    } catch {
-      setMsg({ type: 'error', text: '网络错误' });
+      await userApi.updatePassword(oldPw, newPw);
+      setMsg({ type: 'ok', text: '密码已更新' });
+      setOldPw('');
+      setNewPw('');
+    } catch (err) {
+      setMsg({ type: 'error', text: errorText(err, '网络错误') });
+    } finally {
       setLoading(false);
     }
   }

@@ -25,7 +25,7 @@ const FEATURES = [
   },
 ];
 
-/** Hero 下方的信任锚点：三句话回答「我为什么要立刻用它」。 */
+/** 首屏下方的三句「安心话」，回答访客最先冒出来的顾虑。 */
 const TRUST = ['无需下载', '打开即用', '聊天记录不丢'];
 
 export default function LandingPage() {
@@ -61,19 +61,23 @@ export default function LandingPage() {
         </div>
       </nav>
 
+      {/* 极简居中 Hero：一句话 + 两个按钮 + 三个安心点。
+          不放插画、不放截图，靠留白和字重拉出层级。 */}
       <section className={styles.hero}>
         <div className={styles.heroInner}>
-          <span className={styles.heroBadge}>
-            <span className={styles.badgeDot} />
+          <p className={styles.heroBadge}>
+            <span className={styles.badgeDot} aria-hidden="true" />
             现在就能用，不用等
-          </span>
+          </p>
           <h1 className={styles.heroTitle}>
             和在意的人，
             <br />
             随时说上话
           </h1>
           <p className={styles.heroLede}>
-            WebChat 是一个简单好用的聊天工具。打开浏览器就能用，不用下载，不用注册一堆信息。
+            打开浏览器就能用，不用下载，不用注册一堆信息。
+            <br />
+            私聊、群聊、历史记录，都在一个地方。
           </p>
           <div className={styles.heroActions}>
             <Link to="/register" className={styles.btnPrimary}>
@@ -84,10 +88,10 @@ export default function LandingPage() {
             </Link>
           </div>
           <ul className={styles.heroTrust}>
-            {TRUST.map((text) => (
-              <li key={text} className={styles.trustItem}>
-                <CheckmarkIcon size={14} className={styles.trustIcon} />
-                {text}
+            {TRUST.map((item) => (
+              <li key={item} className={styles.trustItem}>
+                <CheckmarkIcon size={16} className={styles.trustIcon} />
+                {item}
               </li>
             ))}
           </ul>

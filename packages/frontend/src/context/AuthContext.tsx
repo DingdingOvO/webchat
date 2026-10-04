@@ -1,4 +1,5 @@
 import { createContext, type ReactNode, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { ApiError, authApi, setAuthToken } from '../api';
 import type { AuthInfo } from '../types';
 
 const AUTH_KEY = 'webchat_auth';
@@ -27,14 +28,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
      2) context value 每次都是新对象，所有 useAuth() 消费者无条件重渲染。 */
   const setAuth = useCallback((a: AuthInfo | null) => {
     setAuthState(a);
+    setAuthToken(a?.token ?? null);
     if (a) localStorage.setItem(AUTH_KEY, JSON.stringify(a));
     else localStorage.removeItem(AUTH_KEY);
   }, []);
 
   const logout = useCallback(() => {
     setAuthState(null);
+    setAuthToken(null);
     localStorage.removeItem(AUTH_KEY);
   }, []);
+
+  // 首帧把已有 token 注入 api 层，保证刷新页面后首个请求就带鉴权头。
+  useEffect(() => {
+    setAuthToken(auth?.token ?? null);
+  }, [auth?.token]);
 
   // 定期验证 token 有效性。只依赖 token 字符串本身，避免对象引用变化引发重建。
   const token = auth?.token;
@@ -42,16 +50,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!token) return;
     const id = setInterval(async () => {
       try {
-        const res = await fetch('/api/auth/me', {
-          headers: { Authorization: `Bearer ${token}`, 'X-Auth-Token': token },
-        });
-        if (!res.ok) setAuth(null);
-      } catch {
-        // 网络抖动不应导致登出，交给下一次轮询
+        await authApi.me();
+      } catch (err) {
+        // 仅在明确 401 时登出；网络抖动不应导致掉线，交给下一次轮询
+        if (err instanceof ApiError && err.status === 401) logout();
       }
     }, 60000);
     return () => clearInterval(id);
-  }, [token, setAuth]);
+  }, [token, logout]);
 
   const value = useMemo(() => ({ auth, setAuth, logout }), [auth, setAuth, logout]);
 

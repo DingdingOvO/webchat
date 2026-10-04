@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { ApiError, groupApi } from '../api';
 import { useAuth } from '../context/AuthContext';
 import type { GroupDTO, UserDTO } from '../types';
 import styles from './CreateGroupModal.module.css';
@@ -31,24 +32,11 @@ export default function CreateGroupModal({ friends, onClose, onCreated }: Props)
     setLoading(true);
     setError('');
     try {
-      const res = await fetch('/api/groups', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${auth.token}`,
-          'X-Auth-Token': auth.token,
-        },
-        body: JSON.stringify({ name: name.trim(), memberIds: [...selected] }),
-      });
-      if (!res.ok) {
-        const data: Record<string, string> = await res.json().catch(() => ({}));
-        setError(data.error || '创建失败');
-        return;
-      }
-      onCreated(await res.json());
+      const group = await groupApi.create(name.trim(), [...selected]);
+      onCreated(group);
       onClose();
-    } catch {
-      setError('网络错误，请重试');
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : '网络错误，请重试');
     } finally {
       setLoading(false);
     }

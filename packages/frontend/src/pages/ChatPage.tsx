@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ApiError, chatApi, groupApi, type PendingRequest, userApi } from '../api';
 import { hueIndex } from '../components/avatarHue';
 import CreateGroupModal from '../components/CreateGroupModal';
 import { buildConversations } from '../components/conversations';
@@ -23,12 +24,6 @@ import type { Contact, GroupDTO, MessageDTO, UserDTO } from '../types';
 import styles from './ChatPage.module.css';
 
 /* ============ Inner (with WebSocket) ============ */
-
-interface PendingRequest {
-  id: number;
-  fromUserId: number;
-  status: string;
-}
 
 function ChatPageInner() {
   const navigate = useNavigate();
@@ -64,19 +59,12 @@ function ChatPageInner() {
     (async () => {
       setDataLoading(true);
       try {
-        const [fRes, gRes, pRes] = await Promise.all([
-          fetch('/api/users/friends', {
-            headers: { Authorization: `Bearer ${auth.token}`, 'X-Auth-Token': auth.token },
-          }),
-          fetch('/api/groups', { headers: { Authorization: `Bearer ${auth.token}`, 'X-Auth-Token': auth.token } }),
-          fetch('/api/users/friend-requests/pending', {
-            headers: { Authorization: `Bearer ${auth.token}`, 'X-Auth-Token': auth.token },
-          }),
+        const [fData, gData, pData] = await Promise.all([
+          userApi.friends(),
+          groupApi.list(),
+          // 待处理请求失败不应拖垮首屏，降级为空列表
+          userApi.pendingRequests().catch(() => [] as PendingRequest[]),
         ]);
-        if (!fRes.ok || !gRes.ok) return;
-        const fData: UserDTO[] = await fRes.json();
-        const gData: GroupDTO[] = await gRes.json();
-        const pData: PendingRequest[] = await (pRes.ok ? pRes.json() : []);
         setFriends(fData);
         setGroups(gData);
         setPendingRequests(pData);
@@ -113,11 +101,7 @@ function ChatPageInner() {
       const results = await Promise.all(
         contacts.map(async (c) => {
           try {
-            const res = await fetch(`/api/chat/messages?convKey=${encodeURIComponent(c.key)}`, {
-              headers: { Authorization: `Bearer ${auth.token}`, 'X-Auth-Token': auth.token },
-            });
-            if (!res.ok) return [c.key, [] as MessageDTO[]] as const;
-            const data: MessageDTO[] = await res.json();
+            const data = await chatApi.messages(c.key);
             return [c.key, data] as const;
           } catch {
             return [c.key, [] as MessageDTO[]] as const;
@@ -156,19 +140,7 @@ function ChatPageInner() {
       if (!auth) return;
       setMessageLoading(true);
       try {
-        const res = await fetch(`/api/chat/messages?convKey=${encodeURIComponent(convKey)}`, {
-          headers: { Authorization: `Bearer ${auth.token}`, 'X-Auth-Token': auth.token },
-        });
-        if (!res.ok) {
-          return;
-        }
-        const text = await res.text();
-        let data: MessageDTO[];
-        try {
-          data = JSON.parse(text);
-        } catch {
-          return;
-        }
+        const data = await chatApi.messages(convKey);
         setConvMessages((prev) => {
           const n = new Map(prev);
           /* 同样按 id 合并而不是直接覆盖：
@@ -299,14 +271,7 @@ function ChatPageInner() {
       return;
     }
     try {
-      const res = await fetch(`/api/users/search?q=${encodeURIComponent(q.trim())}`, {
-        headers: { Authorization: `Bearer ${auth.token}`, 'X-Auth-Token': auth.token },
-      });
-      if (!res.ok) {
-        setSearchResults([]);
-        return;
-      }
-      const data: UserDTO[] = await res.json();
+      const data = await userApi.search(q.trim());
       setSearchResults(data.filter((u) => u.id !== userId));
     } catch {
       setSearchResults([]);
@@ -316,40 +281,21 @@ function ChatPageInner() {
   async function addFriend(id: number) {
     if (!auth) return;
     try {
-      const res = await fetch('/api/users/friend-requests', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${auth.token}`,
-          'X-Auth-Token': auth.token,
-        },
-        body: JSON.stringify({ toUserId: id }),
-      });
-      if (res.ok) {
-        setSearchResults((prev) => prev.filter((u) => u.id !== id));
-      } else {
-        const data = await res.json().catch(() => ({}));
-        setSearchError(data.error || '添加失败');
-      }
-    } catch {
-      setSearchError('网络错误');
+      await userApi.sendFriendRequest(id);
+      setSearchResults((prev) => prev.filter((u) => u.id !== id));
+    } catch (err) {
+      setSearchError(err instanceof ApiError ? err.message : '网络错误');
     }
   }
 
   async function handleRequestAction(id: number, action: 'accept' | 'reject') {
     if (!auth) return;
     try {
-      const res = await fetch(`/api/users/friend-requests/${id}/${action}`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${auth.token}`, 'X-Auth-Token': auth.token },
-      });
-      if (res.ok) {
-        setPendingRequests((prev) => prev.filter((r) => r.id !== id));
-        const fRes = await fetch('/api/users/friends', {
-          headers: { Authorization: `Bearer ${auth.token}`, 'X-Auth-Token': auth.token },
-        });
-        if (fRes.ok) setFriends(await fRes.json());
-      }
+      if (action === 'accept') await userApi.acceptFriendRequest(id);
+      else await userApi.rejectFriendRequest(id);
+      setPendingRequests((prev) => prev.filter((r) => r.id !== id));
+      // 接受后好友列表会变化，重新拉取
+      setFriends(await userApi.friends());
     } catch (_err) {
       /* 忽略 */
     }

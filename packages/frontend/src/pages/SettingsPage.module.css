@@ -139,8 +139,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.5);
-  color: #fff;
+  background: var(--scrim);
+  /* 覆盖层上的文字固定用白色：scrim 在深浅两模式都是深色，
+     故此处直接用 --text-on-accent（全站统一的「深底浅字」令牌）。 */
+  color: var(--text-on-accent);
   font-size: var(--t-xs);
   font-weight: 500;
   opacity: 0;

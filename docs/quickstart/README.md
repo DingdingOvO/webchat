@@ -48,7 +48,7 @@ docker compose logs -f
 open http://localhost:3000
 ```
 
-更多部署方式（Kubernetes、Helm、Swarm、Ansible、VPS 等 19 种）见 [DEPLOY.md](https://github.com/DingdingOvO/webchat/blob/main/DEPLOY.md)。
+更多部署方式（Docker Compose、Kubernetes、云平台三类）见 [DEPLOY.md](https://github.com/DingdingOvO/webchat/blob/main/DEPLOY.md)。
 
 ---
 

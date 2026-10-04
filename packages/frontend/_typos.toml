@@ -1,0 +1,20 @@
+# typos 配置（拼写检查）
+#
+# 只排除构建产物与第三方目录。中文注释里的英文技术词若被误判，
+# 在这里追加到 extend-words，而不是整段忽略文件。
+[files]
+extend-exclude = [
+    "node_modules/",
+    "dist/",
+    "package-lock.json",
+    "coverage/",
+    "target/",
+]
+
+[default]
+extend-ignore-re = [
+    # 忽略长十六进制串（commit hash、颜色值、base64）
+    "[0-9a-f]{7,}",
+    # 忽略形如 chunk.134.9e8661ba.js 的构建产物名
+    "[a-z]+\\.[0-9]+\\.[0-9a-f]{6,}\\.[a-z]+",
+]

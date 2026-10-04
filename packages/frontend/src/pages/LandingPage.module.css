@@ -104,23 +104,19 @@
   color: var(--text-on-accent);
 }
 
-/* ---- Hero：极简居中大标题。
-   参考 Linear / Vercel：整块居中对齐，最大字号压住首屏，
-   背后铺一层极淡的氛围光把「纯白」撑出纵深（--glow），
-   不画边框、不加卡片，靠留白和字重建立层级。 */
+/* ---- Hero：极简居中。
+   不放插画/截图，靠留白、字号跳跃和一条极淡光晕拉出纵深。
+   背景光晕用 --glow（随主题切换），避免近纯白底出现大片死白。 */
 
 .hero {
   position: relative;
   padding: var(--s-24) var(--s-6) var(--s-20);
-  text-align: center;
-  /* 氛围光只铺在 Hero 这一层，向下自然淡出，不干扰下方功能区 */
   background-image: var(--glow);
   background-repeat: no-repeat;
-  background-position: top center;
+  text-align: center;
 }
 
 .heroInner {
-  position: relative;
   max-width: var(--w-content);
   margin: 0 auto;
   display: flex;
@@ -128,28 +124,28 @@
   align-items: center;
 }
 
-/* 顶部胶囊徽标：给首屏一个「这产品是活的」的信号 */
+/* 首屏徽标：小圆点 + 一句状态，给页面一个「活着」的信号 */
 .heroBadge {
   display: inline-flex;
   align-items: center;
   gap: var(--s-2);
-  padding: var(--s-1) var(--s-3);
+  height: 30px;
+  padding: 0 var(--s-4);
   margin-bottom: var(--s-6);
   border: 1px solid var(--border);
   border-radius: var(--r-full);
   background: var(--surface);
+  color: var(--text-secondary);
   font-size: var(--t-sm);
   font-weight: 500;
-  color: var(--text-secondary);
 }
 
 .badgeDot {
-  width: 6px;
-  height: 6px;
+  width: 7px;
+  height: 7px;
   border-radius: var(--r-full);
   background: var(--success);
   box-shadow: 0 0 0 3px var(--success-subtle);
-  flex-shrink: 0;
 }
 
 .heroTitle {
@@ -158,13 +154,14 @@
   line-height: 1.08;
   letter-spacing: -0.035em;
   color: var(--text);
-  margin-bottom: var(--s-6);
+  margin-bottom: var(--s-5);
+  text-wrap: balance;
 }
 
 .heroLede {
   font-size: var(--t-body-lg);
   color: var(--text-secondary);
-  line-height: 1.7;
+  line-height: 1.75;
   max-width: 560px;
   margin-bottom: var(--s-8);
 }
@@ -174,30 +171,33 @@
   align-items: center;
   justify-content: center;
   gap: var(--s-3);
-  margin-bottom: var(--s-6);
+  margin-bottom: var(--s-8);
 }
 
-/* 信任锚点：三句短话，用对勾串起来，回答「我为什么要立刻用它」 */
+/* 三个安心点：等宽排开，窄屏自动换行 */
 .heroTrust {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: center;
-  flex-wrap: wrap;
-  gap: var(--s-5);
+  gap: var(--s-3) var(--s-6);
+  padding: 0;
+  margin: 0;
   list-style: none;
 }
 
 .trustItem {
   display: inline-flex;
   align-items: center;
-  gap: var(--s-1);
-  font-size: var(--t-sm);
+  gap: var(--s-2);
   color: var(--text-tertiary);
+  font-size: var(--t-sm);
+  font-weight: 500;
 }
 
 .trustIcon {
   color: var(--success);
-  flex-shrink: 0;
+  flex: none;
 }
 
 .btnPrimary,
@@ -359,6 +359,9 @@
   }
   .heroTitle {
     font-size: clamp(30px, 9vw, 38px);
+  }
+  .heroLede {
+    font-size: var(--t-body);
   }
   .heroActions {
     flex-direction: column;

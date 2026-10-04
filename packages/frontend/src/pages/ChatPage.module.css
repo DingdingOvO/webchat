@@ -541,7 +541,8 @@
   padding: 0 5px;
   border-radius: var(--r-full);
   background: var(--danger);
-  color: #fff;
+  /* 走语义令牌，深色模式下同样成立；不写死 #fff */
+  color: var(--text-on-accent);
   font-size: 11px;
   font-weight: 600;
   display: flex;

@@ -2,12 +2,13 @@
 
 # WebChat
 
-**和在意的人，随时说上话。**
+**打开浏览器就能用的聊天工具 —— 不用下载，不用注册一堆信息。**
 
-一个打开浏览器就能用的即时通讯应用 —— 不用下载，不用填一堆信息。
+私聊、群聊、历史记录，都在一个地方。
 
-[![CI/CD](https://github.com/DingdingOvO/webchat/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/DingdingOvO/webchat/actions/workflows/ci-cd.yml)
-[![Quality Gate](https://github.com/DingdingOvO/webchat/actions/workflows/quality.yml/badge.svg)](https://github.com/DingdingOvO/webchat/actions/workflows/quality.yml)
+[![Quality](https://github.com/DingdingOvO/webchat/actions/workflows/quality.yml/badge.svg)](https://github.com/DingdingOvO/webchat/actions/workflows/quality.yml)
+[![Build & Deploy](https://github.com/DingdingOvO/webchat/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/DingdingOvO/webchat/actions/workflows/ci-cd.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 [功能](#功能) · [快速开始](#快速开始) · [技术栈](#技术栈) · [项目结构](#项目结构) · [文档](#文档)
 
@@ -15,100 +16,141 @@
 
 ---
 
-## 这是什么
+## 功能
 
-WebChat 是一套全栈即时通讯系统。前端 React 19，后端 Spring Boot，消息通过 WebSocket 实时投递，
-历史记录分级存储。目标很简单：**让「找人聊天」这件事本身不成为障碍。**
-
-| 能力 | 说明 |
+| 功能 | 说明 |
 | --- | --- |
-| 💬 实时私聊 | WebSocket 长连接，消息即发即达，无需刷新 |
-| 👥 群组聊天 | 建群、拉人，群消息通过 Redis Pub/Sub 广播，多实例部署也能保持同步 |
-| 🔍 好友管理 | 搜昵称加好友，好友列表实时同步在线状态 |
-| 🟢 在线状态 | 连接即上线，断线即离线，状态一眼可见 |
-| ✏️ 输入提示 | 对方「正在输入」实时可见 |
-| 📦 消息不丢 | 热消息驻留 Redis，冷消息落盘 MongoDB，换设备打开记录仍在 |
+| **实时消息** | WebSocket 长连接，消息即发即到，不用刷新页面 |
+| **私聊与群聊** | 两种会话在同一列表里，切换不用找 |
+| **历史记录** | 消息落库持久化，换设备打开也还在，可往回翻 |
+| **好友系统** | 按昵称搜索、发好友申请、同意或拒绝 |
+| **在线状态** | 谁在线一眼可见，基于 Redis 维护状态与心跳 |
+| **多端一致** | 深色 / 浅色主题、响应式布局，桌面与手机都能用 |
+
+---
 
 ## 快速开始
 
 ### 方式一：Docker Compose（推荐）
 
-只需要 Docker，一条命令拉起全部依赖：
-
 ```bash
 git clone https://github.com/DingdingOvO/webchat.git
 cd webchat
-docker compose up -d
+docker compose up -d --build
 ```
 
-打开 <http://localhost:8080> 即可。
+访问 <http://localhost:8080> 即可。
+
+写入演示数据（可选）：
+
+```bash
+python3 scripts/seed_demo.py
+# 创建 demo/demo1234、alice/1234、bob/1234 三个账号
+```
 
 ### 方式二：本地开发
 
-前置：**JDK 26**、**Node.js 22**、**MySQL 8.4 / MongoDB 8.3 / Redis 7.4**（或用 `deploy/scripts/docker-db-only.yaml` 只起数据库）。
+前置条件：**JDK 26**、**Node.js 22+**、**Docker**。
 
 ```bash
-# 1. 只启动依赖服务
+# 1. 只起中间件（MySQL / MongoDB / Redis）
 docker compose -f deploy/scripts/docker-db-only.yaml up -d
 
-# 2. 后端（默认 :8080）
+# 2. 起后端（:8080）
 cd packages/server && ./mvnw spring-boot:run
 
-# 3. 前端（热更新，默认 :3000，代理到后端）
+# 3. 起前端（:3000，带热更新）
 cd packages/frontend && npm install && npm run dev
 ```
 
-> 环境变量与详细配置见 [docs/quickstart](docs/quickstart/README.md)。
+### 方式三：部署到服务器
+
+见 [DEPLOY.md](DEPLOY.md) —— 覆盖 Docker Compose、Kubernetes、云平台（Railway / Render / Fly.io / Heroku / Zeabur）三类方式。
+
+---
 
 ## 技术栈
 
-| 层 | 选型 |
+| 层 | 技术 | 说明 |
+| --- | --- | --- |
+| **前端** | React 19 · TypeScript · Webpack 5 | 路由级代码分割，CSS Modules + 设计令牌 |
+| **后端** | Spring Boot 3.5 · Java 26 | WebSocket 实时通信，REST API |
+| **元数据** | MySQL 8.4 | 用户、好友关系、群组 |
+| **消息存储** | MongoDB 8.3 | 聊天消息，按会话分片 |
+| **缓存 / 状态** | Redis 7.4 | 热点缓存、在线状态、Pub/Sub 跨实例广播 |
+
+**质量门禁**
+
+| 范围 | 工具 |
 | --- | --- |
-| 前端 | React 19 · TypeScript 5 · Webpack 5 · React Router 6 · CSS Modules · Biome |
-| 后端 | Java 26 · Spring Boot 3.5 · Spring Security (JWT) · WebSocket · Maven |
-| 存储 | MySQL 8.4（用户/好友/群组） · MongoDB 8.3（消息本体） · Redis 7.4（热缓存/在线状态/Pub-Sub） |
-| 质量 | Spotless · Checkstyle · PMD · SpotBugs+FindSecBugs · JaCoCo · CodeQL · Gitleaks |
-| 交付 | GitHub Actions · Docker · Kubernetes · GHCR |
+| 后端 | Spotless · Checkstyle · PMD · SpotBugs(+FindSecBugs) · JaCoCo · JUnit |
+| 前端 | TypeScript · Biome · Stylelint · typos（拼写） |
+| 仓库 | Gitleaks（密钥扫描）· CodeQL（SAST）· Commitlint |
+
+以上检查全部绑定到 CI，`main` 分支受保护：需通过全部检查 + 1 人评审。
+
+---
 
 ## 项目结构
 
 ```
 webchat/
 ├── packages/
-│   ├── frontend/            # React 19 + TypeScript + Webpack
-│   │   ├── src/
-│   │   │   ├── pages/       # 落地页 / 登录注册 / 聊天 / 设置 / 文档 / 反馈
-│   │   │   ├── components/  # 通用组件与图标
-│   │   │   ├── api/         # 后端接口封装
-│   │   │   └── global.css   # 设计令牌（唯一色值来源）
-│   │   └── Dockerfile
-│   └── server/              # Spring Boot 3.5 后端
-│       └── src/main/java/com/webchat/
-├── deploy/                  # 部署资产（Kubernetes / 云平台 / 数据库脚本）
-├── docs/                    # 多页文档（概览 / 快速开始 / API / 设计 / 技术 / 部署）
-├── Dockerfile               # 后端镜像
-├── docker-compose.yaml      # 一键启动（推荐入口）
-└── DEPLOY.md                # 权威部署文档
+│   ├── frontend/           React 前端
+│   │   └── src/
+│   │       ├── api/        统一 API 客户端（含鉴权头）
+│   │       ├── components/ 可复用组件
+│   │       ├── context/    Auth / Theme 全局状态
+│   │       ├── pages/      页面组件
+│   │       └── global.css  设计令牌（浅色 + 深色）
+│   └── server/             Spring Boot 后端
+│       └── src/main/java/.../
+│           ├── controller/ REST 接口
+│           ├── service/    业务逻辑
+│           ├── repository/ MySQL 访问
+│           ├── document/   MongoDB 文档模型
+│           └── websocket/  实时通信
+├── deploy/
+│   ├── cloud/              云平台配置
+│   ├── kubernetes/         K8s 清单
+│   └── scripts/            仅中间件的 Compose 配置
+├── docs/                   文档（见下）
+├── scripts/                辅助脚本（单端口服务、演示数据）
+├── docker-compose.yaml     全栈一键启动
+├── Dockerfile
+└── DEPLOY.md               部署指南
 ```
+
+---
 
 ## 文档
 
 | 文档 | 内容 |
 | --- | --- |
-| [docs/overview](docs/overview/README.md) | 项目介绍、核心功能、系统架构 |
-| [docs/quickstart](docs/quickstart/README.md) | 环境准备、启动方式、第一次聊天 |
-| [docs/api](docs/api/README.md) | 认证、用户、好友、群组、消息、WebSocket、错误码 |
-| [docs/design](docs/design/README.md) | 设计语言「清明 v3」—— 色板、排版、间距、组件规范 |
+| [DEPLOY.md](DEPLOY.md) | 三类部署方式详解、环境变量、反向代理与 HTTPS |
+| [docs/quickstart](docs/quickstart/README.md) | 本地开发上手 |
+| [docs/design](docs/design/README.md) | 设计语言：色板、字体、间距、组件规范 |
 | [docs/tech](docs/tech/README.md) | 前后端技术、存储层、数据流 |
-| [DEPLOY.md](DEPLOY.md) | 生产部署完整指南 |
+| [docs/deploy](docs/deploy/README.md) | 部署方式索引 |
+
+---
 
 ## 开发约定
 
-- **提交信息**遵循 [Conventional Commits](https://www.conventionalcommits.org/)（`feat:` / `fix:` / `chore:` …），由 `lefthook` + `commitlint` 在本地拦截。
-- **代码风格**：前端由 Biome 统一格式化与检查；后端由 Spotless(google-java-format) 约束。
-- **设计改动**必须先查阅 [`docs/design/DESIGN-LANGUAGE.md`](docs/design/DESIGN-LANGUAGE.md)，禁止硬编码色值与间距。
-- **主分支受保护**：所有改动须经 Pull Request，并通过全部必需状态检查后方可合并。
+- **提交信息**遵循 [Conventional Commits](https://www.conventionalcommits.org/)，由 Commitlint 校验
+- **改代码前先跑质量检查**，别把问题留给 CI：
+
+  ```bash
+  cd packages/server   && ./mvnw verify        # 后端
+  cd packages/frontend && npm run quality      # 前端
+  ```
+
+- **前端请求一律走 `src/api/`**，不要在组件里直接 `fetch` —— 鉴权头与错误处理统一在那里
+- **颜色一律用 CSS 变量**（`var(--bg)` 等），不要写字面值，否则深色模式会错
+- **不要提交密钥**，Gitleaks 会拦截
+
+---
 
 ## 许可证
 
-本项目为学习与演示用途。许可证信息见仓库设置。
+[MIT](LICENSE)
