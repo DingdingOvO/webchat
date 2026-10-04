@@ -13,11 +13,25 @@
   position: relative;
 }
 
-/* 主题切换固定在右上角，不参与表单流 */
+/* 主题切换固定在右上角，不参与表单流。
+   加一个与全局 toolBtn 一致的「有面」外观（浅网格底 + 圆角），
+   否则一个裸图标悬在角落，与居中的表单视觉重量失衡。 */
 .themeSlot {
   position: absolute;
   top: var(--s-5);
   right: var(--s-5);
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+}
+
+.backHome {
+  font-size: var(--t-sm);
+  color: var(--text-secondary);
+  transition: color var(--dur-1) var(--ease);
+}
+.backHome:hover {
+  color: var(--text);
 }
 
 .panel {
@@ -27,12 +41,13 @@
   flex-direction: column;
 }
 
-/* ---- 品牌区：左对齐，徽标 32px ---- */
+/* ---- 品牌区：居中，与标题/表单同一中轴 ---- */
 .brand {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: var(--s-3);
-  margin-bottom: var(--s-6);
+  margin-bottom: var(--s-8);
 }
 
 .logo {
@@ -73,7 +88,7 @@
 /* ---- 标题：大留白节奏 ---- */
 .heading {
   text-align: center;
-  margin-bottom: var(--s-10);
+  margin-bottom: var(--s-8);
 }
 
 .title {

@@ -1,40 +1,173 @@
-/* 反馈跳转页 —— 极简居中，等待外部跳转 */
+/* 反馈页 —— 顶栏 + 内嵌表单（与文档页同构，保证全站一致） */
 
-.page {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--s-4);
-  padding: var(--s-6);
-  text-align: center;
-  background: var(--bg);
+/* ---- 顶栏（与 DocsPage 同款，复用同一套视觉节奏） ---- */
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
 }
 
-.logo {
-  width: 40px;
-  height: 40px;
+.topbarInner {
+  max-width: var(--w-wide);
+  margin: 0 auto;
+  padding: 0 var(--s-6);
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-4);
+}
+
+.topbarBrand {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+}
+
+.topbarLogo {
+  width: 30px;
+  height: 30px;
   border-radius: var(--r-md);
   background: var(--accent);
   color: var(--text-on-accent);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: var(--t-h3);
+  font-size: var(--t-sm);
   font-weight: 650;
-  margin-bottom: var(--s-2);
+  flex-shrink: 0;
 }
 
-.title {
-  font-size: var(--t-body);
-  font-weight: 550;
+.topbarTitle {
+  font-size: var(--t-h3);
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: var(--sp-tight);
+}
+
+.topbarBadge {
+  margin-left: var(--s-1);
+  padding: 1px var(--s-2);
+  border-radius: var(--r-xs);
+  background: var(--surface-sunken);
+  color: var(--text-tertiary);
+  font-size: var(--t-xs);
+  font-weight: 500;
+}
+
+.topbarNav {
+  display: flex;
+  align-items: center;
+  gap: var(--s-5);
+}
+
+.topbarLink {
+  font-size: var(--t-sm);
+  font-weight: 500;
+  color: var(--text-secondary);
+  transition: color var(--dur-1) var(--ease);
+}
+.topbarLink:hover {
   color: var(--text);
 }
 
-.hint {
+.topbarLinkActive {
+  font-size: var(--t-sm);
+  font-weight: 600;
+  color: var(--accent-text);
+}
+
+/* ---- 布局 ---- */
+
+.page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+}
+
+.layout {
+  flex: 1;
+  width: 100%;
+  max-width: var(--w-wide);
+  margin: 0 auto;
+  padding: var(--s-10) var(--s-6) var(--s-12);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-6);
+}
+
+.intro {
+  max-width: var(--w-content);
+}
+
+.introTitle {
+  font-size: var(--t-h1);
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: var(--sp-tight);
+  margin-bottom: var(--s-3);
+}
+
+.introDesc {
+  font-size: var(--t-body-lg);
+  color: var(--text-secondary);
+  line-height: 1.75;
+}
+
+/* 表单容器：给 iframe 一个明确的「面板」，而不是让它裸在页面上。
+   固定高度让内嵌的 Forms 有足够空间，不出现尴尬的双滚动条。 */
+.frameWrap {
+  position: relative;
+  flex: 1;
+  min-height: 640px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.frame {
+  width: 100%;
+  height: 100%;
+  min-height: 640px;
+  border: none;
+  display: block;
+}
+
+.loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-size: var(--t-sm);
   color: var(--text-tertiary);
-  line-height: 1.7;
-  max-width: 320px;
+  background: var(--surface);
+  z-index: 1;
+}
+
+.fallback {
+  font-size: var(--t-sm);
+  color: var(--text-tertiary);
+  text-align: center;
+}
+
+@media (max-width: 640px) {
+  .topbarInner {
+    padding: 0 var(--s-4);
+  }
+  .layout {
+    padding: var(--s-8) var(--s-4) var(--s-10);
+  }
+  .introTitle {
+    font-size: var(--t-h2);
+  }
+  .frameWrap,
+  .frame {
+    min-height: 520px;
+  }
 }
